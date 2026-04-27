@@ -4,191 +4,311 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ID Card Maker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 *{box-sizing:border-box}
-body{margin:0;font-family:'Inter','Noto Sans KR',sans-serif;background:#eef1f4}
-.app{display:grid;grid-template-columns:340px 1fr;gap:20px;padding:20px}
-.panel,.preview{background:#fff;border-radius:14px;padding:16px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
-input,button{width:100%;margin-bottom:8px;padding:8px;border-radius:8px;border:1px solid #ddd}
+body{
+  margin:0;
+  font-family:'Pretendard',Arial,sans-serif;
+  background:#eef1f4;
+  color:#1f2937;
+}
+.app{display:grid;grid-template-columns:340px 1fr;gap:22px;padding:22px}
+.panel,.preview{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 10px 26px rgba(15,23,42,.08);
+}
+.panel h3{margin:0 0 12px;font-size:18px;letter-spacing:-.02em}
+label{display:block;font-size:12px;color:#64748b;margin-top:10px;font-weight:600}
+input,textarea,button{
+  width:100%;margin-bottom:8px;padding:9px 10px;border-radius:10px;
+  border:1px solid #d8dee8;background:#f8fafc;color:#111827;
+}
+textarea{resize:none;height:64px}
 input[type=color]{height:42px;padding:4px}
-label{font-size:12px;color:#555}
+button{background:#111827;color:#fff;font-weight:600;letter-spacing:.04em;cursor:pointer}
+.cards{display:flex;gap:34px;flex-wrap:wrap;justify-content:center;align-items:flex-start;padding:10px 0}
 
-.cards{display:flex;gap:30px;flex-wrap:wrap;justify-content:center}
+.card{
+  --main:#334155;
+  --sub:#f8fafc;
+  width:300px;height:520px;border-radius:24px;overflow:hidden;position:relative;
+  background:var(--sub);
+  border:1px solid rgba(100,116,139,.22);
+  box-shadow:0 16px 34px rgba(15,23,42,.12);
+}
+.hole{
+  position:absolute;top:16px;left:50%;transform:translateX(-50%);width:54px;height:10px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 4px rgba(15,23,42,.24);z-index:4;
+}
+.header{
+  background:var(--main);
+  height:68px;
+  border-bottom:1px solid rgba(100,116,139,.22);
+}
+.photo{
+  width:176px;height:230px;background:#dbe1e8;
+  border:1px solid rgba(100,116,139,.32);border-radius:14px;margin:26px auto 0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:#7b8490;
+  letter-spacing:.18em;font-weight:600;position:relative;z-index:2;
+}
+.photo img{width:100%;height:100%;object-fit:cover;transform-origin:center}
+.front-info{
+  position:relative;z-index:2;padding:24px 24px 0;display:grid;grid-template-columns:1fr 1fr;gap:16px 18px;
+}
+.field{
+  border-top:1px solid rgba(100,116,139,.28);padding-top:8px;font-size:10px;
+  letter-spacing:.14em;min-height:58px;color:#64748b;font-weight:600;
+}
+.field b{
+  display:block;font-size:15px;color:var(--main);margin-top:7px;line-height:1.35;
+  word-break:break-word;white-space:normal;text-align:left;letter-spacing:.02em;font-weight:600;
+}
 
-.card{--main:#1f2937;--sub:#e5e7eb;width:300px;height:520px;border-radius:16px;overflow:hidden;position:relative;background:var(--sub);border:1px solid rgba(0,0,0,.08);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.back{
+  background:var(--sub);
+  padding:70px 24px 24px;
+}
+.qr-wrap{
+  position:relative;
+  z-index:2;
+  display:flex;
+  justify-content:center;
+  margin:0 0 36px;
+}
+.qr{width:128px;height:128px;padding:9px;background:#fff;border-radius:12px;box-shadow:0 10px 22px rgba(15,23,42,.14);border:1px solid rgba(100,116,139,.18)}
+.barcode{
+  position:relative;z-index:2;height:52px;margin:0 0 14px;
+  background:repeating-linear-gradient(90deg,#111827 0 2px,transparent 2px 4px,#111827 4px 7px,transparent 7px 10px);
+  background-color:#fff;border:9px solid #fff;border-radius:6px;box-shadow:0 6px 14px rgba(15,23,42,.08);
+}
+.barcodeText{position:relative;z-index:2;text-align:center;font-size:10px;margin:0 0 28px;letter-spacing:2px;color:#475569}
+.info{position:relative;z-index:2;margin-top:0;font-size:12px;display:grid;gap:18px}
+.info div{
+  border-bottom:1px solid rgba(100,116,139,.26);padding:0 0 12px;display:grid;
+  grid-template-columns:70px 1fr;gap:10px;align-items:start;color:#64748b;font-weight:600;letter-spacing:.08em;
+}
+.info span{max-width:none;text-align:right;word-break:break-word;white-space:normal;line-height:1.35;color:#111827;font-weight:600;letter-spacing:0}
+.notice{
+  position:relative;
+  z-index:2;
+  margin:12px 0 0;
+  font-size:10px;
+  color:#64748b;
+  text-align:center;
+  line-height:1.45;
+  padding:0 4px;
+  background:transparent;
+  font-weight:500;
+  word-break:keep-all;
+}
+.notice:empty::before{
+  content:"습득 시 해당 지부로 연락 바랍니다";
+  opacity:.6;
+}
 
-.header{background:var(--main);color:white;padding:14px;height:100px;display:flex;flex-direction:column;justify-content:center}
-.header h2{margin:0;font-size:13px;letter-spacing:2px;font-weight:600}
-.level{position:absolute;top:12px;right:12px;border:1px solid rgba(255,255,255,.4);padding:2px 8px;border-radius:999px;font-size:10px;opacity:.8}
-
-.photo{width:170px;height:210px;background:#d1d5db;border-radius:10px;margin:14px auto;overflow:hidden;position:relative}
-.photo img{width:100%;height:100%;object-fit:cover;transform-origin:center center}
-
-.identity{padding:0 18px;font-size:12px}
-.identity .name{font-weight:700;font-size:14px}
-.identity .code{opacity:.7}
-
-.grid{padding:0 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px}
-.grid div{border-top:1px solid rgba(0,0,0,.15);padding-top:4px}
-
-.serial{position:absolute;bottom:8px;left:18px;font-size:9px;color:#666}
-
-/* back */
-.back{background:var(--main);color:white;padding:18px;position:relative}
-
-/* world mark under NAME center */
-.backmark{width:160px;height:160px;margin:10px auto 0 auto;opacity:.9}
-.backmark img{width:100%;height:100%;object-fit:contain}
-
-.barcode{margin-top:20px;height:60px;background:repeating-linear-gradient(90deg,#fff 0 3px,transparent 3px 6px)}
-.barcodeText{text-align:center;margin-top:6px;letter-spacing:3px;font-size:10px}
-
-.info{margin-top:12px;font-size:10px}
-.info div{margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:3px}
-
+@media print{
+  body{background:#fff}.panel{display:none}.app{display:block;padding:0}.preview{box-shadow:none;padding:0}.card{box-shadow:none;page-break-after:always}
+}
 </style>
 </head>
 <body>
-
 <div class="app">
-
 <div class="panel">
 <h3>출입증 설정</h3>
 
 <label>증명사진</label>
-<input id="photoInput" type="file">
+<input id="photoInput" type="file" accept="image/*">
 
-<label>이미지 위치 X</label>
+<label>사진 위치 X</label>
 <input id="imgX" type="range" min="-100" max="100" value="0">
-<label>이미지 위치 Y</label>
+<label>사진 위치 Y</label>
 <input id="imgY" type="range" min="-100" max="100" value="0">
-<label>이미지 확대</label>
+<label>사진 확대</label>
 <input id="imgScale" type="range" min="1" max="2" step="0.01" value="1">
 
-<label>세계관 마크</label>
-<input id="markInput" type="file">
+<label>글씨 크기(px)</label>
+<input id="fontSize" type="number" min="10" max="20" step="1" value="12">
+<label>글자 간격(px)</label>
+<input id="letterSpace" type="number" min="0" max="5" step="0.1" value="0.5">
 
 <label>메인 색상</label>
 <input id="mainColor" type="color" value="#1f2937">
-
 <label>배경 색상</label>
 <input id="subColor" type="color" value="#e5e7eb">
 
-<input id="name" placeholder="NAME">
-<input id="eng" placeholder="CLASS">
 <input id="code" placeholder="CODE NAME">
-
 <input id="branch" placeholder="BRANCH">
 <input id="dept" placeholder="DEPARTMENT">
-
-<input id="pair" placeholder="PAIR">
-<input id="pairId" placeholder="PAIR ID">
-<input id="sync" placeholder="SYNC RATE">
 <input id="clear" placeholder="CLEARANCE">
+
+<input id="name" placeholder="NAME">
+<input id="pair" placeholder="PAIR">
+<input id="pairId" placeholder="ID">
+<input id="qrText" placeholder="QR TEXT">
 <input id="barcode" placeholder="BARCODE">
 
-<button onclick="window.print()">PRINT</button>
+<label>안내문 (습득 시)</label>
+<textarea id="noticeInput" placeholder="습득 시 ○○로 연락 바랍니다"></textarea>
+
+<button id="downloadBtn">DOWNLOAD PNG</button>
 </div>
 
 <div class="preview">
 <div class="cards">
 
-<div class="card" id="front">
-<div class="header">
-<h2>ACCESS CARD</h2>
-<div class="level" id="clearOut"></div>
+<div class="card">
+<div class="hole"></div>
+<div class="header"></div>
+<div class="photo" id="photoBox">PHOTO</div>
+
+<div class="front-info" id="frontText">
+<div class="field">CODE NAME<b id="codeOut"></b></div>
+<div class="field">BRANCH<b id="branchOut"></b></div>
+<div class="field">DEPARTMENT<b id="deptOut"></b></div>
+<div class="field">CLEARANCE<b id="clearOut"></b></div>
 </div>
-
-<div class="photo" id="photoBox"></div>
-
-<div class="identity">
-<div class="name" id="nameOut"></div>
-<div id="engOut"></div>
-<div class="code" id="codeOut"></div>
-</div>
-
-<div class="grid">
-<div>BRANCH<br><b id="branchOut"></b></div>
-<div>CLEARANCE<br><b id="clearOut2"></b></div>
-<div>DEPARTMENT<br><b id="deptOut"></b></div>
-<div>SYNC<br><b id="syncOut"></b></div>
-<div>PAIR<br><b id="pairOut"></b></div>
-<div>ID<br><b id="pairIdOut"></b></div>
-</div>
-
-<div class="serial" id="barcodeOut"></div>
 </div>
 
 <div class="card back">
-<h3>SECURITY PASS</h3>
+<div class="hole"></div>
 
-<div class="info">
-<div>NAME : <span id="nameBack"></span></div>
-</div>
-
-<div class="backmark" id="markBox"></div>
+<div class="qr-wrap"><div id="qrBox" class="qr"></div></div>
 
 <div class="barcode"></div>
-<div class="barcodeText" id="barcodeOut2"></div>
+<div class="barcodeText" id="barcodeOut"></div>
 
 <div class="info">
-<div>PAIR : <span id="pairBack"></span></div>
-<div>ID : <span id="pairIdBack"></span></div>
-<div>CLASS : <span id="engBack"></span></div>
+<div>NAME <span id="nameOut"></span></div>
+<div>ID <span id="idOut"></span></div>
+<div>PAIR <span id="pairOut"></span></div>
 </div>
+
+<div class="notice" id="noticeOut"></div>
 </div>
 
 </div>
 </div>
-
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-const bind=(a,b)=>document.getElementById(a).oninput=e=>document.getElementById(b).innerText=e.target.value;
+function bind(inputId, outputId){
+  const input = document.getElementById(inputId);
+  const output = document.getElementById(outputId);
+  if(!input || !output) return;
+  input.addEventListener('input', () => {
+    output.innerText = input.value;
+  });
+}
 
-['name','eng','code','branch','dept','pair','pairId','sync','clear','barcode'].forEach(id=>{
-  const out = id==='clear' ? ['clearOut','clearOut2'] : [id+'Out'];
-  out.forEach(o=>{ if(document.getElementById(o)) bind(id,o); });
+bind('code','codeOut');
+bind('branch','branchOut');
+bind('dept','deptOut');
+bind('clear','clearOut');
+bind('name','nameOut');
+bind('pair','pairOut');
+bind('pairId','idOut');
+bind('barcode','barcodeOut');
+bind('noticeInput','noticeOut');
+
+function renderQR(text){
+  const qrBox = document.getElementById('qrBox');
+  qrBox.innerHTML = '';
+  if (typeof QRCode === 'undefined') {
+    qrBox.textContent = 'QR';
+    return;
+  }
+  new QRCode(qrBox, {
+    text: text || ' ',
+    width: 110,
+    height: 110,
+    colorDark: '#111827',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+document.getElementById('qrText').addEventListener('input', e => renderQR(e.target.value));
+renderQR(' ');
+
+let imgEl = null;
+const photoInput = document.getElementById('photoInput');
+const photoBox = document.getElementById('photoBox');
+const imgX = document.getElementById('imgX');
+const imgY = document.getElementById('imgY');
+const imgScale = document.getElementById('imgScale');
+
+photoInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    photoBox.innerHTML = '<img id="charImg" src="' + ev.target.result + '" alt="ID photo">';
+    imgEl = document.getElementById('charImg');
+    updateImg();
+  };
+  reader.readAsDataURL(file);
 });
 
-bind('name','nameBack');
-bind('pair','pairBack');
-bind('pairId','pairIdBack');
-bind('eng','engBack');
-bind('barcode','barcodeOut2');
-
-let imgEl;
-photoInput.onchange=e=>{
- const f=e.target.files[0];if(!f)return;
- const r=new FileReader();
- r.onload=ev=>{
-   photoBox.innerHTML='<img id="charImg" src="'+ev.target.result+'">';
-   imgEl=document.getElementById('charImg');
- };
- r.readAsDataURL(f);
-}
-
 function updateImg(){
- if(!imgEl) return;
- const x=imgX.value; const y=imgY.value; const s=imgScale.value;
- imgEl.style.transform=`translate(${x}px, ${y}px) scale(${s})`;
+  if(!imgEl) return;
+  imgEl.style.transform = `translate(${imgX.value}px, ${imgY.value}px) scale(${imgScale.value})`;
 }
+imgX.addEventListener('input', updateImg);
+imgY.addEventListener('input', updateImg);
+imgScale.addEventListener('input', updateImg);
 
-imgX.oninput=updateImg;
-imgY.oninput=updateImg;
-imgScale.oninput=updateImg;
+const fontSize = document.getElementById('fontSize');
+const letterSpace = document.getElementById('letterSpace');
 
-markInput.onchange=e=>{
- const f=e.target.files[0];if(!f)return;
- const r=new FileReader();
- r.onload=ev=>markBox.innerHTML='<img src="'+ev.target.result+'">';
- r.readAsDataURL(f);
+function updateFontControls(){
+  const size = Math.max(10, Math.min(20, Number(fontSize.value || 12)));
+  const spacing = Math.max(0, Math.min(5, Number(letterSpace.value || 0)));
+  document.querySelectorAll('.field b, .info span, .barcodeText').forEach(el => {
+    el.style.fontSize = size + 'px';
+    el.style.letterSpacing = spacing + 'px';
+  });
 }
+fontSize.addEventListener('input', updateFontControls);
+letterSpace.addEventListener('input', updateFontControls);
+updateFontControls();
 
-mainColor.oninput=e=>document.querySelectorAll('.card').forEach(c=>c.style.setProperty('--main',e.target.value));
-subColor.oninput=e=>document.querySelectorAll('.card').forEach(c=>c.style.setProperty('--sub',e.target.value));
+const mainColor = document.getElementById('mainColor');
+const subColor = document.getElementById('subColor');
+function updateColors(){
+  document.querySelectorAll('.card').forEach(card => {
+    card.style.setProperty('--main', mainColor.value);
+    card.style.setProperty('--sub', subColor.value);
+  });
+}
+mainColor.addEventListener('input', updateColors);
+subColor.addEventListener('input', updateColors);
+updateColors();
 
+// 다운로드 기능
+const downloadBtn = document.getElementById('downloadBtn');
+downloadBtn.addEventListener('click', async () => {
+  const cards = document.querySelectorAll('.card');
+
+  for (let i = 0; i < cards.length; i++) {
+    const canvas = await html2canvas(cards[i], { scale: 2 });
+    const link = document.createElement('a');
+    link.download = i === 0 ? 'card-front.png' : 'card-back.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+});
+
+// 간단한 동작 확인용 테스트
+console.assert(document.getElementById('codeOut'), 'codeOut exists');
+console.assert(document.getElementById('photoBox'), 'photoBox exists');
+console.assert(typeof updateImg === 'function', 'updateImg exists');
 </script>
-
 </body>
 </html>
