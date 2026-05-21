@@ -10,7 +10,11 @@
   <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700;800&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700;800&family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700;800;900&family=Gothic+A1:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans/dist/webfonts/static/complete/WantedSans.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-11@1.0/NanumSquareNeo-Variable.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/42dotSans.css">
 
   <style>
     :root{
@@ -419,7 +423,7 @@
       margin:0;
       color:var(--subText);
       font-size:.92em;
-      line-height:1.7;
+      line-height:var(--lineHeight, 1.7);
       white-space:pre-wrap;
     }
 
@@ -624,18 +628,18 @@
 
         <div class="row2">
           <div class="field">
-            <label>PC 이름</label>
-            <input id="pc" value="백재하">
+            <label>NPC 이름</label>
+            <input id="npc" value="NPC">
           </div>
           <div class="field">
-            <label>NPC 이름</label>
-            <input id="npc" value="신예은">
+            <label>PC 이름</label>
+            <input id="pc" value="PC">
           </div>
         </div>
 
         <div class="field">
           <label>카드 제목</label>
-          <input id="title" value="타임라이이이인">
+          <input id="title" value="Timeline Maker">
         </div>
 
         <div class="row2">
@@ -654,7 +658,6 @@
               <option value="sky">하늘 다이어리</option>
               <option value="paper">파스텔</option>
               <option value="cyber">사이버 HUD</option>
-              <option value="mono">흑백 노트</option>
               <option value="lavender">연보라</option>
               <option value="mint">파스텔 연두</option>
               <option value="bw">흑백</option>
@@ -681,15 +684,22 @@
             <label>글씨체</label>
             <select id="fontFamily">
               <option value="Pretendard">Pretendard</option>
+              <option value="Paperlogy">Paperlogy</option>
+              <option value="Wanted Sans">Wanted Sans</option>
+              <option value="NanumSquareNeo">NanumSquare Neo</option>
+              <option value="42dot Sans">42dot Sans</option>
               <option value="Noto Sans KR">Noto Sans KR</option>
               <option value="IBM Plex Sans KR">IBM Plex Sans KR</option>
-              <option value="Nanum Gothic">Nanum Gothic</option>
+              <option value="Gothic A1">Gothic A1</option>
             </select>
           </div>
 
           <div class="bar-field">
-            <label>전체 글자색</label>
-            <input id="fontColor" type="color" value="#3d3540">
+            <label>줄 간격</label>
+            <div class="range-line">
+              <input id="lineHeight" type="range" min="1.2" max="2.4" step="0.05" value="1.7">
+              <span id="lineHeightValue" class="range-value">1.7</span>
+            </div>
           </div>
 
           <div class="bar-field">
@@ -799,9 +809,20 @@
   }
 
   function drawPreview(){
-    $('pLabel').textContent = $('label').value || 'timeline record';
-    $('pTitle').textContent = $('title').value || 'Timeline';
-    $('pSub').textContent = `${$('npc').value || 'NPC'} × ${$('pc').value || 'PC'}`;
+    const label = $('label').value.trim();
+    const title = $('title').value.trim();
+    const npc = $('npc').value.trim();
+    const pc = $('pc').value.trim();
+
+    $('pLabel').textContent = label;
+    $('pLabel').style.display = label ? 'inline-flex' : 'none';
+
+    $('pTitle').textContent = title;
+    $('pTitle').style.display = title ? 'block' : 'none';
+
+    const pair = [npc, pc].filter(Boolean).join(' × ');
+    $('pSub').textContent = pair;
+    $('pSub').style.display = pair ? 'block' : 'none';
 
     $('timeline').innerHTML = events.map((e,i) => `
       <article class="event">
@@ -860,7 +881,7 @@
     applyTextStyle();
   }
 
-  ['fontSize','fontFamily','fontColor','titleColor','memoColor'].forEach(id => {
+  ['fontSize','fontFamily','lineHeight','titleColor','memoColor'].forEach(id => {
     $(id).oninput = applyTextStyle;
     $(id).onchange = applyTextStyle;
   });
@@ -868,13 +889,17 @@
   function applyTextStyle(){
     const card = $('card');
     const font = $('fontFamily').value;
+    const titleColor = $('titleColor').value;
+    const memoColor = $('memoColor').value;
 
     $('fontSizeValue').textContent = $('fontSize').value + 'px';
+    $('lineHeightValue').textContent = $('lineHeight').value;
     card.style.fontSize = $('fontSize').value + 'px';
+    card.style.setProperty('--lineHeight', $('lineHeight').value);
     card.style.setProperty('--font', `"${font}", Pretendard, "Noto Sans KR", sans-serif`);
-    card.style.color = $('fontColor').value;
-    card.style.setProperty('--cardText', $('titleColor').value);
-    card.style.setProperty('--subText', $('memoColor').value);
+
+    card.style.setProperty('--cardText', titleColor);
+    card.style.setProperty('--subText', memoColor);
   }
 
   $('save').onclick = async () => {
