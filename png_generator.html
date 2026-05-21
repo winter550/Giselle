@@ -80,6 +80,19 @@
       white-space: nowrap;
     }
 
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .export-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
     .wrap {
       width: min(100%, 1280px);
       max-width: 1280px;
@@ -207,7 +220,7 @@
       right: 24px;
       bottom: 22px;
       z-index: 5;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 500;
       opacity: .82;
       letter-spacing: -0.02em;
@@ -375,8 +388,8 @@
       }
 
       #capture {
-        width: min(92vw, 420px);
-        padding: clamp(24px, 7vw, 38px);
+        width: min(92vw, 520px);
+        padding: clamp(24px, 7vw, 42px);
       }
 
       .quote-inner {
@@ -385,7 +398,7 @@
       }
 
       .credit {
-        font-size: 11px;
+        font-size: 13px;
         right: 16px;
         bottom: 16px;
       }
@@ -411,8 +424,18 @@
       }
 
       .left-column {
-        position: static;
+        position: sticky;
+        top: 62px;
+        z-index: 20;
         margin-bottom: 12px;
+      }
+
+      .export-actions {
+        margin-top: 8px;
+      }
+
+      .top-actions button:not(.primary) {
+        display: none;
       }
     }
   </style>
@@ -420,7 +443,10 @@
 <body>
   <header>
     <h1>문구 이미지 생성기</h1>
-    <button class="primary" onclick="savePng()">PNG 저장</button>
+    <div class="top-actions">
+      <button class="primary" onclick="savePng()">PNG 저장</button>
+      <button onclick="copyPng()">이미지 복사</button>
+    </div>
   </header>
 
   <main class="wrap">
@@ -438,6 +464,10 @@
         </div>
       </div>
       </section>
+      <div class="export-actions">
+        <button class="primary" onclick="savePng()">저장</button>
+        <button onclick="copyPng()">이미지 복사</button>
+      </div>
     </div>
 
     <div class="control-column">
@@ -737,17 +767,46 @@
       characterText.textContent = e.target.value || '캐릭터';
     });
 
-    async function savePng() {
+    async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
-      const canvas = await html2canvas(capture, {
+
+      const rect = capture.getBoundingClientRect();
+      const targetSize = 1080;
+      const scale = targetSize / rect.width;
+
+      return await html2canvas(capture, {
         backgroundColor: null,
-        scale: 3,
-        useCORS: true
+        scale,
+        useCORS: true,
+        logging: false
       });
+    }
+
+    async function savePng() {
+      const canvas = await renderPngCanvas();
       const link = document.createElement('a');
       link.download = `quote-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
+    }
+
+    async function copyPng() {
+      const canvas = await renderPngCanvas();
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        alert('이 브라우저에서는 이미지 복사를 지원하지 않아요. PNG 저장을 사용해 주세요.');
+        return;
+      }
+
+      canvas.toBlob(async blob => {
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          alert('이미지가 클립보드에 복사됐어요.');
+        } catch (error) {
+          alert('복사에 실패했어요. 브라우저 권한 설정을 확인해 주세요.');
+        }
+      }, 'image/png');
     }
 
     updateText();
