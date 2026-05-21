@@ -62,7 +62,7 @@
       padding: 11px 15px;
       background: #f2f9ff;
       color: #2c6485;
-      font-weight: 800;
+      font-weight: 600;
       font-family: inherit;
       transition: .15s ease;
     }
@@ -187,9 +187,12 @@
       text-align: left;
       font-family: Pretendard, sans-serif;
       font-size: 15px;
-      line-height: 1.9;
-      letter-spacing: -0.035em;
-      text-shadow: 0 2px 12px rgba(0,0,0,.18);
+      font-weight: 400;
+      line-height: 1.95;
+      letter-spacing: -0.045em;
+      text-shadow: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
     .placeholder { opacity: .72; }
@@ -200,7 +203,7 @@
       bottom: 22px;
       z-index: 5;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
       opacity: .82;
       letter-spacing: -0.02em;
     }
@@ -225,7 +228,7 @@
     label {
       display: block;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 500;
       color: var(--muted);
       margin-bottom: 7px;
     }
@@ -324,7 +327,7 @@
       min-width: 44px;
       text-align: right;
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 600;
       color: #4680a0;
     }
 
@@ -607,11 +610,7 @@
       dawn: `linear-gradient(180deg, #c7d2fe 0%, #ddd6fe 36%, #fbcfe8 72%, #fff7ed 100%)`,
       rose: `linear-gradient(135deg, #fff8fb, #ffd9ea, #ffeef8)`,
       milk: `linear-gradient(135deg, #fffef9, #fffaf0, #fffdf7)`,
-      system: `
-        radial-gradient(circle at 18% 18%, rgba(186,230,253,.5), transparent 20%),
-        radial-gradient(circle at 82% 72%, rgba(125,211,252,.34), transparent 24%),
-        linear-gradient(135deg, #e0f7ff 0%, #bae6fd 44%, #dbeafe 100%)
-      `,
+      system: `linear-gradient(135deg, #eef8ff 0%, #dff4ff 35%, #cdeeff 100%)`,
       mono: `linear-gradient(135deg, #e2e8f0, #94a3b8)`
     };
 
