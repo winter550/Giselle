@@ -180,7 +180,7 @@
       position: relative;
       z-index: 4;
       width: 100%;
-      max-width: 880px;
+      max-width: 100%;
       white-space: pre-wrap;
       word-break: break-word;
       overflow-wrap: anywhere;
@@ -193,17 +193,18 @@
       font-size: 20px;
       font-weight: 400;
       line-height: 1.9;
-      letter-spacing: -0.035em;
+      letter-spacing: -0.045em;
       text-shadow: none;
       -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+      text-rendering: geometricPrecision;
+      font-synthesis: none;
     }
 
     .placeholder { opacity: .72; }
 
     .quote-paragraph {
       white-space: pre-wrap;
-      margin: 0 0 var(--paragraph-gap, 24px);
+      margin: 0 0 var(--paragraph-gap, 18px);
     }
 
     .quote-paragraph:last-child {
@@ -370,7 +371,7 @@
 
       button {
         padding: 10px 12px;
-        font-size: 11.5px;
+        font-size: 13px;
       }
 
       .wrap {
@@ -394,14 +395,14 @@
       }
 
       #capture {
-        width: min(92vw, 430px);
-        padding: var(--mobile-capture-padding, 18px);
+        width: min(62vw, 280px);
+        padding: var(--mobile-capture-padding, 30px);
       }
 
       .quote-inner {
-        font-size: 11.5px;
-        line-height: 1.9;
-        letter-spacing: -0.045em;
+        font-size: 14px;
+        line-height: 1.68;
+        letter-spacing: -0.06em;
       }
 
       textarea {
@@ -451,13 +452,13 @@
       }
 
       body.is-typing #capture {
-        width: min(66vw, 300px);
-        padding: var(--mobile-focus-padding, 18px);
+        width: min(48vw, 220px);
+        padding: var(--mobile-focus-padding, 22px);
       }
 
       body.is-typing .quote-inner {
-        font-size: 11px;
-        line-height: 1.5;
+        font-size: 12px;
+        line-height: 1.55;
       }
 
       body.is-typing .credit {
@@ -558,8 +559,8 @@
           <div>
             <label>문단 간격</label>
             <div class="size-row">
-              <input id="paragraphGap" type="range" value="24" min="0" max="80" step="1">
-              <div id="paragraphPreview" class="value-preview">24px</div>
+              <input id="paragraphGap" type="range" value="18" min="0" max="60" step="1">
+              <div id="paragraphPreview" class="value-preview">18px</div>
             </div>
           </div>
 
@@ -767,14 +768,10 @@
     });
 
     function applyPadding(value) {
-      const desktopPadding = Number(value);
-      const mobilePadding = Math.max(18, Math.min(34, Math.round(desktopPadding * 0.34)));
-      const mobileFocusPadding = Math.max(12, Math.min(24, Math.round(desktopPadding * 0.24)));
-
-      capture.style.setProperty('--capture-padding', `${desktopPadding}px`);
-      capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
-      capture.style.setProperty('--mobile-focus-padding', `${mobileFocusPadding}px`);
-      paddingPreview.textContent = `${desktopPadding}px`;
+      const padding = Number(value);
+      capture.style.setProperty('--capture-padding', `${padding}px`);
+      capture.style.setProperty('--mobile-capture-padding', `${padding}px`);
+      paddingPreview.textContent = `${padding}px`;
     }
 
     document.getElementById('paddingSize').addEventListener('input', e => {
@@ -872,18 +869,33 @@
     async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
 
-      const rect = capture.getBoundingClientRect();
       const targetSize = 1080;
-      const scale = Math.max(1, targetSize / rect.width);
 
-      return await html2canvas(capture, {
+      /*
+        저장 오류 수정:
+        - 별도 1080px 클론을 만들지 않음 → 줄바꿈/여백이 미리보기와 달라지는 문제 방지
+        - 현재 보이는 #capture 자체를 고해상도로 캡처
+        - 마지막에 1080px 정사각형으로 부드럽게 리샘플링
+      */
+      const sourceCanvas = await html2canvas(capture, {
         backgroundColor: null,
-        scale,
+        scale: 3,
         useCORS: true,
         logging: false,
         scrollX: 0,
         scrollY: 0
       });
+
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetSize;
+      finalCanvas.height = targetSize;
+
+      const ctx = finalCanvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(sourceCanvas, 0, 0, targetSize, targetSize);
+
+      return finalCanvas;
     }
 
     async function savePng() {
@@ -916,9 +928,6 @@
 
     capture.style.setProperty('--capture-padding', '70px');
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
-    quote.style.fontSize = `${document.getElementById('fontSize').value}px`;
-    quote.style.lineHeight = document.getElementById('lineHeight').value;
-    quote.style.setProperty('--paragraph-gap', `${document.getElementById('paragraphGap').value}px`);
     applyPadding(document.getElementById('paddingSize').value);
     updateText();
     updateGradientBackground();
