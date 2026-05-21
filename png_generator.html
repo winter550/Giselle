@@ -91,21 +91,22 @@
       align-items: start;
     }
 
-    .control-column {
-      min-width: 0;
-      order: 1;
-    }
-
     .left-column {
       position: sticky;
       top: 84px;
       order: 2;
     }
 
+    .control-column {
+      min-width: 0;
+      order: 1;
+    }
+
     .preview-zone {
       display: flex;
       justify-content: center;
       align-items: center;
+      min-height: auto;
       padding: 30px;
       border-radius: 30px;
       margin-bottom: 0;
@@ -132,7 +133,8 @@
 
     .generated-bg,
     .photo-bg,
-    .mood-filter {
+    .mood-filter,
+    .hud-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
@@ -150,6 +152,10 @@
       opacity: 0;
       background-size: cover;
       background-position: center;
+    }
+
+    .hud-layer {
+      display: none;
     }
 
     .dim {
@@ -177,8 +183,8 @@
       position: relative;
       z-index: 4;
       width: 100%;
-      max-width: 100%;
       white-space: pre-wrap;
+      max-width: 100%;
       word-break: break-word;
       overflow-wrap: anywhere;
       word-wrap: break-word;
@@ -360,19 +366,12 @@
       }
 
       .wrap {
-        display: block;
         padding: 10px;
-      }
-
-      .left-column {
-        position: static;
-        margin-bottom: 12px;
       }
 
       .preview-zone {
         border-radius: 22px;
         margin-bottom: 12px;
-        padding: 14px;
       }
 
       #capture {
@@ -402,10 +401,22 @@
       .btn-grid-5 {
         grid-template-columns: 1fr;
       }
+
+      .wrap {
+        display: block;
+      }
+
+      .preview-zone {
+        min-height: auto;
+      }
+
+      .left-column {
+        position: static;
+        margin-bottom: 12px;
+      }
     }
   </style>
 </head>
-
 <body>
   <header>
     <h1>문구 이미지 생성기</h1>
@@ -415,179 +426,170 @@
   <main class="wrap">
     <div class="left-column">
       <section class="preview-zone">
-        <div id="capture">
-          <div id="generatedBg" class="generated-bg"></div>
-          <div id="photoBg" class="photo-bg"></div>
-          <div id="moodFilter" class="mood-filter filter-none"></div>
-          <div class="dim"></div>
-
-          <div id="quote" class="quote-inner placeholder">문구를 입력하세요.</div>
-
-          <div id="creditBox" class="credit">
-            <span id="creatorText">제작자</span><span style="opacity:.6; margin:0 6px;">|</span><span id="characterText">캐릭터</span>
-          </div>
+      <div id="capture">
+        <div id="generatedBg" class="generated-bg"></div>
+        <div id="photoBg" class="photo-bg"></div>
+        <div id="hudLayer" class="hud-layer"></div>
+        <div id="moodFilter" class="mood-filter filter-none"></div>
+        <div class="dim"></div>
+        <div id="quote" class="quote-inner placeholder">문구를 입력하세요.</div>
+        <div id="creditBox" class="credit">
+          <span id="creatorText">제작자</span><span style="opacity:.6; margin:0 6px;">|</span><span id="characterText">캐릭터</span>
         </div>
+      </div>
       </section>
     </div>
 
     <div class="control-column">
-      <section class="panel">
-        <h2>내용 입력</h2>
-        <textarea id="textInput" placeholder="여기에 문구를 입력하세요."></textarea>
-        <p class="hint">줄바꿈과 이모지가 그대로 반영됩니다.</p>
-      </section>
+    <section class="panel">
+      <h2>내용 입력</h2>
+      <textarea id="textInput" placeholder="여기에 문구를 입력하세요."></textarea>
+      <p class="hint">줄바꿈과 이모지가 그대로 반영됩니다.</p>
+    </section>
 
-      <section class="panel">
-        <h2>캔버스 비율</h2>
-        <div class="btn-grid-3">
-          <button class="choice active" data-ratio="1 / 1">1:1</button>
-          <button class="choice" data-ratio="4 / 5">4:5</button>
-          <button class="choice" data-ratio="16 / 9">16:9</button>
-        </div>
-      </section>
+    <section class="panel">
+      <h2>캔버스 비율</h2>
+      <div class="btn-grid-3">
+        <button class="choice active" data-ratio="1 / 1">1:1</button>
+        <button class="choice" data-ratio="4 / 5">4:5</button>
+        <button class="choice" data-ratio="16 / 9">16:9</button>
+      </div>
+    </section>
 
-      <section class="panel">
-        <h2>텍스트 스타일</h2>
-        <div class="grid three">
-          <div>
-            <label>폰트</label>
-            <select id="fontFamily">
-              <option value='Pretendard, sans-serif'>Pretendard</option>
-              <option value='SUIT, sans-serif'>SUIT</option>
-              <option value='"IBM Plex Sans KR", sans-serif'>IBM Plex Sans KR</option>
-              <option value='"Noto Sans KR", sans-serif'>Noto Sans KR</option>
-              <option value='"Gowun Dodum", sans-serif'>고운돋움</option>
-              <option value='"Hahmlet", serif'>함렛</option>
-              <option value='"Jua", sans-serif'>주아</option>
-              <option value='system-ui, sans-serif'>시스템 기본</option>
-            </select>
-          </div>
-
-          <div>
-            <label>글자 크기</label>
-            <div class="size-row">
-              <input id="fontSize" type="range" value="15" min="8" max="45" step="1">
-              <div id="fontPreview">15px</div>
-            </div>
-          </div>
-
-          <div>
-            <label>줄 간격</label>
-            <input id="lineHeight" type="number" value="1.9" min="1" max="3" step="0.1">
-          </div>
-        </div>
-
-        <div class="grid" style="margin-top:12px;">
-          <div>
-            <label>글씨 색</label>
-            <input id="textColor" type="color" value="#ffffff">
-          </div>
-
-          <div>
-            <label>글씨 투명도</label>
-            <input id="textOpacity" type="range" min="0.2" max="1" step="0.05" value="1">
-          </div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <label>정렬</label>
-          <div class="btn-grid-3">
-            <button class="choice active" data-align="left">왼쪽</button>
-            <button class="choice" data-align="center">가운데</button>
-            <button class="choice" data-align="right">오른쪽</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>분위기 필터</h2>
-        <div class="btn-grid-3">
-          <button class="choice active" data-filter="none">없음</button>
-          <button class="choice" data-filter="warm">따뜻함</button>
-          <button class="choice" data-filter="cool">차가움</button>
-          <button class="choice" data-filter="vintage">빈티지</button>
-          <button class="choice" data-filter="dream">몽환</button>
-          <button class="choice" data-filter="night">밤</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>배경 스타일</h2>
-
-        <div class="grid">
-          <div>
-            <label>시작 색상</label>
-            <input id="bgStart" type="color" value="#0f172a">
-          </div>
-
-          <div>
-            <label>끝 색상</label>
-            <input id="bgEnd" type="color" value="#243b55">
-          </div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <label>그라데이션 방향</label>
-          <select id="gradientDir">
-            <option value="135deg">대각선</option>
-            <option value="180deg">위에서 아래</option>
-            <option value="90deg">왼쪽에서 오른쪽</option>
-            <option value="45deg">반대 대각선</option>
+    <section class="panel">
+      <h2>텍스트 스타일</h2>
+      <div class="grid three">
+        <div>
+          <label>폰트</label>
+          <select id="fontFamily">
+            <option value='Pretendard, sans-serif'>Pretendard</option>
+            <option value='SUIT, sans-serif'>SUIT</option>
+            <option value='"IBM Plex Sans KR", sans-serif'>IBM Plex Sans KR</option>
+            <option value='"Noto Sans KR", sans-serif'>Noto Sans KR</option>
+            <option value='"Gowun Dodum", sans-serif'>고운돋움</option>
+            <option value='"Hahmlet", serif'>함렛</option>
+            <option value='"Jua", sans-serif'>주아</option>
+            <option value='system-ui, sans-serif'>시스템 기본</option>
           </select>
         </div>
-
-        <div class="palette" style="margin-top:14px;">
-          <div class="swatch" style="background:linear-gradient(135deg,#0f172a,#243b55)" data-start="#0f172a" data-end="#243b55"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#dbeafe,#f8fafc)" data-start="#dbeafe" data-end="#f8fafc"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#fff8fb,#ffd9ea)" data-start="#fff8fb" data-end="#ffd9ea"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#fffef9,#fffaf0)" data-start="#fffef9" data-end="#fffaf0"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#c4b5fd,#fbcfe8)" data-start="#c4b5fd" data-end="#fbcfe8"></div>
-          <div class="swatch" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0)" data-start="#f8fafc" data-end="#e2e8f0"></div>
-        </div>
-
-        <div style="margin-top:18px;">
-          <label>기본 배경</label>
-          <div class="btn-grid-5">
-            <button class="preset" data-preset="space" style="background:linear-gradient(135deg,#0f172a,#172554,#1e293b);">우주</button>
-            <button class="preset light" data-preset="sky" style="background:linear-gradient(180deg,#dbeafe,#eff6ff,#ffffff);">하늘</button>
-            <button class="preset light" data-preset="dawn" style="background:linear-gradient(180deg,#c7d2fe,#ddd6fe,#fbcfe8,#fff7ed); color:#59466f; text-shadow:none;">새벽</button>
-            <button class="preset light" data-preset="rose" style="background:linear-gradient(135deg,#fff8fb,#ffd9ea,#ffeef8);">로즈</button>
-            <button class="preset light" data-preset="milk" style="background:linear-gradient(135deg,#fffef9,#fffaf0,#fffdf7);">밀크</button>
-            <button class="preset light" data-preset="system" style="background:linear-gradient(135deg,#eaf7ff,#dff1ff,#d7ecff); color:#075985; text-shadow:none;">GISELLE UI</button>
-            <button class="preset light" data-preset="mono" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);">모노</button>
+        <div>
+          <label>글자 크기</label>
+          <div class="size-row">
+            <input id="fontSize" type="range" value="15" min="8" max="45" step="1">
+            <div id="fontPreview">15px</div>
           </div>
         </div>
-
-        <div style="margin-top:14px;">
-          <label>내 배경 이미지 업로드</label>
-          <input id="bgImage" type="file" accept="image/*">
+        <div>
+          <label>줄 간격</label>
+          <input id="lineHeight" type="number" value="1.9" min="1" max="3" step="0.1">
         </div>
+      </div>
 
-        <div style="margin-top:12px;">
-          <label>배경 이미지/기본 배경 투명도</label>
-          <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0">
+      <div class="grid" style="margin-top:12px;">
+        <div>
+          <label>글씨 색</label>
+          <input id="textColor" type="color" value="#ffffff">
         </div>
-      </section>
-
-      <section class="panel">
-        <h2>제작자 / 캐릭터</h2>
-        <div class="grid">
-          <div>
-            <label>제작자</label>
-            <input id="creatorInput" placeholder="winter">
-          </div>
-
-          <div>
-            <label>캐릭터</label>
-            <input id="characterInput" placeholder="이름 입력">
-          </div>
+        <div>
+          <label>글씨 투명도</label>
+          <input id="textOpacity" type="range" min="0.2" max="1" step="0.05" value="1">
         </div>
-      </section>
+      </div>
 
-      <footer>
-        이 파일 하나를 GitHub Pages에 올리면 됩니다.<br>
-        PNG 저장은 브라우저 내부에서 처리됩니다.
-      </footer>
+      <div style="margin-top:12px;">
+        <label>정렬</label>
+        <div class="btn-grid-3">
+          <button class="choice active" data-align="left">왼쪽</button>
+          <button class="choice" data-align="center">가운데</button>
+          <button class="choice" data-align="right">오른쪽</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>분위기 필터</h2>
+      <div class="btn-grid-3">
+        <button class="choice active" data-filter="none">없음</button>
+        <button class="choice" data-filter="warm">따뜻함</button>
+        <button class="choice" data-filter="cool">차가움</button>
+        <button class="choice" data-filter="vintage">빈티지</button>
+        <button class="choice" data-filter="dream">몽환</button>
+        <button class="choice" data-filter="night">밤</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>배경 스타일</h2>
+      <div class="grid">
+        <div>
+          <label>시작 색상</label>
+          <input id="bgStart" type="color" value="#0f172a">
+        </div>
+        <div>
+          <label>끝 색상</label>
+          <input id="bgEnd" type="color" value="#243b55">
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>그라데이션 방향</label>
+        <select id="gradientDir">
+          <option value="135deg">대각선</option>
+          <option value="180deg">위에서 아래</option>
+          <option value="90deg">왼쪽에서 오른쪽</option>
+          <option value="45deg">반대 대각선</option>
+        </select>
+      </div>
+
+      <div class="palette" style="margin-top:14px;">
+        <div class="swatch" style="background:linear-gradient(135deg,#0f172a,#243b55)" data-start="#0f172a" data-end="#243b55"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#dbeafe,#f8fafc)" data-start="#dbeafe" data-end="#f8fafc"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#fff1f5,#ffeef6)" data-start="#fff1f5" data-end="#ffeef6"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#c4b5fd,#fbcfe8)" data-start="#c4b5fd" data-end="#fbcfe8"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0)" data-start="#f8fafc" data-end="#e2e8f0"></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <label>기본 배경</label>
+        <div class="btn-grid-5">
+          <button class="preset" data-preset="space" style="background:linear-gradient(135deg,#0f172a,#172554,#1e293b);">우주</button>
+          <button class="preset light" data-preset="sky" style="background:linear-gradient(180deg,#dbeafe,#eff6ff,#ffffff);">하늘</button>
+          <button class="preset light" data-preset="dawn" style="background:linear-gradient(180deg,#c7d2fe,#ddd6fe,#fbcfe8,#fff7ed); color:#59466f; text-shadow:none;">새벽</button>
+          <button class="preset light" data-preset="rose" style="background:linear-gradient(135deg,#fff8fb,#ffd9ea,#ffeef8);">로즈</button>
+          <button class="preset light" data-preset="milk" style="background:linear-gradient(135deg,#fffef9,#fffaf0,#fffdf7);">밀크</button>
+          <button class="preset light" data-preset="system" style="background:linear-gradient(135deg,#e0f7ff,#bae6fd,#dbeafe); color:#075985; text-shadow:none;">GISELLE UI</button>
+          <button class="preset light" data-preset="mono" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);">모노</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>내 배경 이미지 업로드</label>
+        <input id="bgImage" type="file" accept="image/*">
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>배경 이미지/기본 배경 투명도</label>
+        <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0">
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>제작자 / 캐릭터</h2>
+      <div class="grid">
+        <div>
+          <label>제작자</label>
+          <input id="creatorInput" placeholder="winter">
+        </div>
+        <div>
+          <label>캐릭터</label>
+          <input id="characterInput" placeholder="이름 입력">
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      이 파일 하나를 index.html로 저장해서 GitHub Pages에 올리면 됩니다.<br>
+      PNG 저장은 브라우저 내부에서 처리됩니다.    </footer>
     </div>
   </main>
 
@@ -596,6 +598,7 @@
     const quote = document.getElementById('quote');
     const generatedBg = document.getElementById('generatedBg');
     const photoBg = document.getElementById('photoBg');
+    const hudLayer = document.getElementById('hudLayer');
     const moodFilter = document.getElementById('moodFilter');
     const bgOpacity = document.getElementById('bgOpacity');
     const creatorText = document.getElementById('creatorText');
@@ -626,11 +629,11 @@
       const dir = document.getElementById('gradientDir').value;
       const start = document.getElementById('bgStart').value;
       const end = document.getElementById('bgEnd').value;
-
       capture.style.background = `linear-gradient(${dir}, ${start}, ${end})`;
       generatedBg.style.background = 'transparent';
       generatedBg.style.opacity = 0;
       photoBg.style.opacity = 0;
+      hudLayer.classList.remove('active');
       bgOpacity.value = 0;
     }
 
@@ -700,18 +703,19 @@
         generatedBg.style.opacity = .96;
         photoBg.style.opacity = 0;
         bgOpacity.value = .96;
+        hudLayer.classList.remove('active');
       });
     });
 
     document.getElementById('bgImage').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = () => {
         photoBg.style.backgroundImage = `url("${reader.result}")`;
         photoBg.style.opacity = .75;
         generatedBg.style.opacity = 0;
+        hudLayer.classList.remove('active');
         bgOpacity.value = .75;
       };
       reader.readAsDataURL(file);
@@ -735,14 +739,11 @@
 
     async function savePng() {
       if (document.fonts) await document.fonts.ready;
-
       const canvas = await html2canvas(capture, {
         backgroundColor: null,
-        scale: 1,
-        useCORS: true,
-        logging: false
+        scale: 3,
+        useCORS: true
       });
-
       const link = document.createElement('a');
       link.download = `quote-${Date.now()}.png`;
       link.href = canvas.toDataURL('image/png');
