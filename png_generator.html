@@ -124,7 +124,7 @@
       width: min(68vw, 820px);
       max-width: 820px;
       aspect-ratio: 1 / 1;
-      padding: 70px;
+      padding: var(--capture-padding, 70px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -394,8 +394,8 @@
       }
 
       #capture {
-        width: min(74vw, 320px);
-        padding: 28px;
+        width: min(62vw, 280px);
+        padding: var(--mobile-capture-padding, 30px);
       }
 
       .quote-inner {
@@ -437,6 +437,41 @@
 
       .top-actions button:not(.primary) {
         display: none;
+      }
+
+
+      body.is-typing .left-column {
+        top: 0;
+        padding: 6px 10px 8px;
+      }
+
+      body.is-typing .preview-zone {
+        padding: 6px;
+        border-radius: 16px;
+      }
+
+      body.is-typing #capture {
+        width: min(48vw, 220px);
+        padding: var(--mobile-focus-padding, 22px);
+      }
+
+      body.is-typing .quote-inner {
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      body.is-typing .credit {
+        font-size: 10px;
+        right: 10px;
+        bottom: 10px;
+      }
+
+      body.is-typing .export-actions {
+        display: none;
+      }
+
+      .control-column {
+        scroll-margin-top: 260px;
       }
     }
   </style>
@@ -708,7 +743,14 @@
       bgOpacity.value = 0;
     }
 
-    document.getElementById('textInput').addEventListener('input', updateText);
+    const textInput = document.getElementById('textInput');
+    textInput.addEventListener('input', updateText);
+    textInput.addEventListener('focus', () => {
+      document.body.classList.add('is-typing');
+    });
+    textInput.addEventListener('blur', () => {
+      document.body.classList.remove('is-typing');
+    });
 
     document.getElementById('fontFamily').addEventListener('change', e => {
       quote.style.setProperty('font-family', e.target.value, 'important');
@@ -724,9 +766,19 @@
       paragraphPreview.textContent = `${e.target.value}px`;
     });
 
+    function applyPadding(value) {
+      const desktopPadding = Number(value);
+      const mobilePadding = Math.max(22, Math.min(42, Math.round(desktopPadding * 0.48)));
+      const mobileFocusPadding = Math.max(16, Math.min(28, Math.round(desktopPadding * 0.32)));
+
+      capture.style.setProperty('--capture-padding', `${desktopPadding}px`);
+      capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
+      capture.style.setProperty('--mobile-focus-padding', `${mobileFocusPadding}px`);
+      paddingPreview.textContent = `${desktopPadding}px`;
+    }
+
     document.getElementById('paddingSize').addEventListener('input', e => {
-      capture.style.padding = `${e.target.value}px`;
-      paddingPreview.textContent = `${e.target.value}px`;
+      applyPadding(e.target.value);
     });
 
     document.getElementById('lineHeight').addEventListener('input', e => {
@@ -828,7 +880,9 @@
         backgroundColor: null,
         scale,
         useCORS: true,
-        logging: false
+        logging: false,
+        scrollX: 0,
+        scrollY: 0
       });
     }
 
@@ -860,8 +914,9 @@
       }, 'image/png');
     }
 
-    capture.style.padding = '70px';
+    capture.style.setProperty('--capture-padding', '70px');
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
+    applyPadding(document.getElementById('paddingSize').value);
     updateText();
     updateGradientBackground();
   </script>
