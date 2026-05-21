@@ -180,7 +180,7 @@
       position: relative;
       z-index: 4;
       width: 100%;
-      max-width: 100%;
+      max-width: 880px;
       white-space: pre-wrap;
       word-break: break-word;
       overflow-wrap: anywhere;
@@ -192,8 +192,8 @@
       font-family: Pretendard, sans-serif;
       font-size: 20px;
       font-weight: 400;
-      line-height: 1.95;
-      letter-spacing: -0.045em;
+      line-height: 1.9;
+      letter-spacing: -0.035em;
       text-shadow: none;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -203,7 +203,7 @@
 
     .quote-paragraph {
       white-space: pre-wrap;
-      margin: 0 0 var(--paragraph-gap, 18px);
+      margin: 0 0 var(--paragraph-gap, 24px);
     }
 
     .quote-paragraph:last-child {
@@ -370,7 +370,7 @@
 
       button {
         padding: 10px 12px;
-        font-size: 13px;
+        font-size: 11.5px;
       }
 
       .wrap {
@@ -394,14 +394,14 @@
       }
 
       #capture {
-        width: min(78vw, 360px);
-        padding: var(--mobile-capture-padding, 20px);
+        width: min(92vw, 430px);
+        padding: var(--mobile-capture-padding, 18px);
       }
 
       .quote-inner {
-        font-size: 10.5px;
-        line-height: 1.62;
-        letter-spacing: -0.055em;
+        font-size: 11.5px;
+        line-height: 1.9;
+        letter-spacing: -0.045em;
       }
 
       textarea {
@@ -451,12 +451,12 @@
       }
 
       body.is-typing #capture {
-        width: min(58vw, 270px);
-        padding: var(--mobile-focus-padding, 16px);
+        width: min(66vw, 300px);
+        padding: var(--mobile-focus-padding, 18px);
       }
 
       body.is-typing .quote-inner {
-        font-size: 9.5px;
+        font-size: 11px;
         line-height: 1.5;
       }
 
@@ -558,8 +558,8 @@
           <div>
             <label>문단 간격</label>
             <div class="size-row">
-              <input id="paragraphGap" type="range" value="18" min="0" max="60" step="1">
-              <div id="paragraphPreview" class="value-preview">18px</div>
+              <input id="paragraphGap" type="range" value="24" min="0" max="80" step="1">
+              <div id="paragraphPreview" class="value-preview">24px</div>
             </div>
           </div>
 
@@ -768,8 +768,8 @@
 
     function applyPadding(value) {
       const desktopPadding = Number(value);
-      const mobilePadding = Math.max(14, Math.min(28, Math.round(desktopPadding * 0.25)));
-      const mobileFocusPadding = Math.max(10, Math.min(20, Math.round(desktopPadding * 0.18)));
+      const mobilePadding = Math.max(18, Math.min(34, Math.round(desktopPadding * 0.34)));
+      const mobileFocusPadding = Math.max(12, Math.min(24, Math.round(desktopPadding * 0.24)));
 
       capture.style.setProperty('--capture-padding', `${desktopPadding}px`);
       capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
@@ -916,6 +916,9 @@
 
     capture.style.setProperty('--capture-padding', '70px');
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
+    quote.style.fontSize = `${document.getElementById('fontSize').value}px`;
+    quote.style.lineHeight = document.getElementById('lineHeight').value;
+    quote.style.setProperty('--paragraph-gap', `${document.getElementById('paragraphGap').value}px`);
     applyPadding(document.getElementById('paddingSize').value);
     updateText();
     updateGradientBackground();
