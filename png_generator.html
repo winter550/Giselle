@@ -394,14 +394,14 @@
       }
 
       #capture {
-        width: min(62vw, 280px);
-        padding: var(--mobile-capture-padding, 30px);
+        width: min(78vw, 360px);
+        padding: var(--mobile-capture-padding, 20px);
       }
 
       .quote-inner {
-        font-size: 14px;
-        line-height: 1.68;
-        letter-spacing: -0.06em;
+        font-size: 10.5px;
+        line-height: 1.62;
+        letter-spacing: -0.055em;
       }
 
       textarea {
@@ -451,13 +451,13 @@
       }
 
       body.is-typing #capture {
-        width: min(48vw, 220px);
-        padding: var(--mobile-focus-padding, 22px);
+        width: min(58vw, 270px);
+        padding: var(--mobile-focus-padding, 16px);
       }
 
       body.is-typing .quote-inner {
-        font-size: 12px;
-        line-height: 1.55;
+        font-size: 9.5px;
+        line-height: 1.5;
       }
 
       body.is-typing .credit {
@@ -768,8 +768,8 @@
 
     function applyPadding(value) {
       const desktopPadding = Number(value);
-      const mobilePadding = Math.max(22, Math.min(42, Math.round(desktopPadding * 0.48)));
-      const mobileFocusPadding = Math.max(16, Math.min(28, Math.round(desktopPadding * 0.32)));
+      const mobilePadding = Math.max(14, Math.min(28, Math.round(desktopPadding * 0.25)));
+      const mobileFocusPadding = Math.max(10, Math.min(20, Math.round(desktopPadding * 0.18)));
 
       capture.style.setProperty('--capture-padding', `${desktopPadding}px`);
       capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
