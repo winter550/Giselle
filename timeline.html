@@ -47,10 +47,10 @@ button{border:0;border-radius:16px;padding:12px 14px;font:inherit;font-weight:95
 .card-title{margin:14px 0 6px;font-size:2.25em;line-height:1.04;letter-spacing:-.06em;color:var(--cardText)}
 .card-sub{margin:0 0 36px;color:var(--subText);font-size:.9em;font-weight:750}
 .tree{position:relative;display:grid;padding:0 10px}
-.tree:before{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:3px;transform:translateX(-50%);border-radius:99px;background:linear-gradient(180deg,var(--a),var(--b),var(--c))}
-.event{display:grid;grid-template-columns:1fr 58px 1fr;align-items:start;padding-bottom:30px}
+.tree:before{content:"";position:absolute;left:50%;top:21px;bottom:21px;width:3px;transform:translateX(-50%);border-radius:99px;background:linear-gradient(180deg,var(--a),var(--b),var(--c));z-index:0}
+.event{display:grid;grid-template-columns:1fr 58px 1fr;align-items:start;padding-bottom:30px;position:relative;z-index:1}
 .event:last-child{padding-bottom:0}
-.marker{grid-column:2;justify-self:center;z-index:2;width:42px;height:42px;border-radius:50%;background:var(--box);border:3px solid var(--a);display:grid;place-items:center;color:var(--tagText);font-size:.78em;font-weight:950}
+.marker{grid-column:2;justify-self:center;position:relative;z-index:5;width:42px;height:42px;border-radius:50%;background:var(--box);border:3px solid var(--a);display:grid;place-items:center;color:var(--tagText);font-size:.78em;font-weight:950}
 .event-card{position:relative;padding:4px 0;color:var(--cardText)}
 .event-card:before{content:"";position:absolute;top:20px;width:32px;height:2px;background:linear-gradient(90deg,var(--a),transparent)}
 .event:nth-child(odd) .event-card{grid-column:1;text-align:right;padding-right:20px}
@@ -70,6 +70,10 @@ button{border:0;border-radius:16px;padding:12px 14px;font:inherit;font-weight:95
 #card.theme-bw{--a:#777;--b:#cfcfcf;--c:#f0f0f0;--cardText:#111;--subText:#555;--boxBorder:#ddd;--tagBg:#f4f4f4;--tagText:#333;--chipBg:#eee;--chipText:#444;--dash:#bbb;background:linear-gradient(180deg,#fff,#efefef)}
 #card.layout-vertical .tree{padding-left:0}.layout-vertical .tree:before{left:21px;transform:none}.layout-vertical .event{grid-template-columns:46px 1fr;gap:14px}.layout-vertical .marker{grid-column:1}.layout-vertical .event-card{grid-column:2!important;text-align:left!important;padding-left:10px!important;padding-right:0!important}.layout-vertical .event-card:before{left:-20px!important;right:auto!important;transform:none!important;width:22px}
 #card.layout-horizontal{width:min(100%,1100px)}.layout-horizontal .tree{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;padding:26px 0 4px}.layout-horizontal .tree:before{display:none}.layout-horizontal .event{display:flex;flex-direction:column;align-items:center;gap:10px;padding:0;text-align:center}.layout-horizontal .marker{justify-self:center}.layout-horizontal .event-card{width:100%;text-align:center!important;padding:0!important;margin:0!important}.layout-horizontal .event-card:before{display:none}.layout-horizontal .meta{justify-content:center}
+
+.empty-event .event-card:before{display:none!important}
+.empty-event .event-card{min-height:0}
+
 @media(max-width:980px){
 html,body{height:100%;overflow:hidden}
 .wrap{width:100%;height:100dvh;padding:8px;overflow:hidden;display:flex;flex-direction:column}
@@ -83,11 +87,25 @@ h1{font-size:24px;margin-bottom:8px}
 .editor{order:2;position:relative;top:auto;flex:1;min-height:0;max-height:none;overflow-y:auto;padding:16px;border-radius:26px 26px 0 0}
 .row2{grid-template-columns:1fr 1fr;gap:8px}.textbar{grid-template-columns:1fr;padding:12px}
 input,textarea,select{font-size:14px;padding:12px;border-radius:14px}textarea{min-height:110px}
-.tree{padding:0}.tree:before{left:21px;transform:none;width:2px}
+.tree{padding:0}.tree:before{left:17px;top:17px;bottom:17px;transform:none;width:2px}
 .event{grid-template-columns:42px 1fr;gap:12px;padding-bottom:18px}.marker{grid-column:1;width:34px;height:34px;font-size:.72em}
 .event:nth-child(odd) .event-card,.event:nth-child(even) .event-card{grid-column:2;margin:0;text-align:left;padding-left:8px;padding-right:0}.event-card:before{display:none}.event:nth-child(odd) .meta{justify-content:flex-start}.layout-horizontal .tree{grid-template-columns:1fr}
+      /* PNG 저장 전용: 모바일 미리보기 제한 해제 */
+      #card.export-mode{
+        width:min(820px,100%) !important;
+        height:auto !important;
+        min-height:0 !important;
+        max-height:none !important;
+        overflow:visible !important;
+      }
+
 }
-  </style>
+  
+#card.export-mode .marker{position:relative!important;z-index:5!important;background:var(--box)!important}
+#card.export-mode .tree:before{z-index:0!important;top:21px!important;bottom:21px!important}
+#card.export-mode .empty-event .event-card:before{display:none!important}
+
+</style>
 </head>
 <body>
   <div class="wrap">
@@ -143,7 +161,7 @@ function drawPreview(){
   $('pTitle').textContent=title;$('pTitle').style.display=title?'block':'none';
   $('pSub').textContent=pair;$('pSub').style.display=pair?'block':'none';
   $('timeline').innerHTML=events.map((e,i)=>`
-    <article class="event"><div class="marker">${String(i+1).padStart(2,'0')}</div><div class="event-card">
+    <article class="event ${(!e.when && !e.what && !e.memo && !e.tag) ? 'empty-event' : ''}"><div class="marker">${String(i+1).padStart(2,'0')}</div><div class="event-card">
       ${e.when?`<div class="when">${esc(e.when)}</div>`:''}
       ${e.what?`<h3 class="what">${esc(e.what)}</h3>`:''}
       ${e.memo?`<p class="memo">${esc(e.memo)}</p>`:''}
@@ -168,8 +186,26 @@ function applyTextStyle(){
 $('save').onclick=async()=>{
   if(document.fonts&&document.fonts.ready)await document.fonts.ready;
   applyTextStyle();
-  const canvas=await html2canvas($('card'),{scale:2,backgroundColor:null,useCORS:true,logging:false});
-  const a=document.createElement('a');a.download=(($('title').value||'timeline').replace(/[\\/:*?"<>|]/g,'').trim()||'timeline')+'.png';a.href=canvas.toDataURL('image/png');a.click();
+
+  const card = $('card');
+  card.classList.add('export-mode');
+
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  const canvas=await html2canvas(card,{
+    scale:2,
+    backgroundColor:null,
+    useCORS:true,
+    logging:false,
+    windowWidth:1200
+  });
+
+  card.classList.remove('export-mode');
+
+  const a=document.createElement('a');
+  a.download=(($('title').value||'timeline').replace(/[\\/:*?"<>|]/g,'').trim()||'timeline')+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
 };
 render();
 </script>
