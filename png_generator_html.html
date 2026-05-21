@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>문구 이미지 생성기</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Hahmlet:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Jua&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --main: #63b3ed;
+      --line: #dcecf7;
+      --text: #253244;
+      --muted: #7890a5;
+      --panel: rgba(255, 255, 255, .92);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Pretendard, SUIT, "Noto Sans KR", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(219, 234, 254, .75), transparent 34%),
+        radial-gradient(circle at top right, rgba(240, 249, 255, .95), transparent 36%),
+        linear-gradient(180deg, #f8fcff 0%, #eef8ff 48%, #ffffff 100%);
+      color: var(--text);
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, .86);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(99, 179, 237, .08);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: -0.04em;
+      color: #245c7d;
+    }
+
+    button {
+      border: 1px solid #d7edf9;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 11px 15px;
+      background: #f2f9ff;
+      color: #2c6485;
+      font-weight: 800;
+      font-family: inherit;
+      transition: .15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(99, 179, 237, .13);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #7dd3fc, #60a5fa);
+      color: #fff;
+      border: 0;
+      box-shadow: 0 10px 22px rgba(96, 165, 250, .26);
+      white-space: nowrap;
+    }
+
+    .wrap {
+      width: min(100%, 1280px);
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: clamp(10px, 2vw, 24px);
+      display: grid;
+      grid-template-columns: minmax(320px, 520px) minmax(360px, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .left-column {
+      position: sticky;
+      top: 84px;
+    }
+
+    .control-column {
+      min-width: 0;
+    }
+
+    .preview-zone {
+      display: flex;
+      justify-content: center;
+      padding: clamp(10px, 3vw, 30px) 14px;
+      border-radius: 30px;
+      margin-bottom: 0;
+      overflow: hidden;
+      background: rgba(255,255,255,.54);
+      border: 1px solid rgba(191,219,254,.72);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.8), 0 16px 40px rgba(96,165,250,.1);
+    }
+
+    #capture {
+      position: relative;
+      width: min(88vw, 420px);
+      aspect-ratio: 1 / 1;
+      padding: clamp(26px, 6vw, 58px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: #ffffff;
+      background: linear-gradient(135deg, #0f172a, #243b55);
+      box-shadow: 0 22px 50px rgba(30, 58, 90, .18);
+    }
+
+    .generated-bg,
+    .photo-bg,
+    .mood-filter,
+    .hud-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .generated-bg {
+      z-index: 0;
+      opacity: 0;
+      background: transparent;
+      background-size: auto;
+    }
+
+    .photo-bg {
+      z-index: 0;
+      opacity: 0;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .hud-layer {
+      display: none;
+    }
+
+    .dim {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: rgba(0, 0, 0, .08);
+      pointer-events: none;
+    }
+
+    .mood-filter {
+      z-index: 3;
+      opacity: 0;
+      background: transparent;
+    }
+
+    .filter-none { background: transparent; opacity: 0; }
+    .filter-warm { background: rgba(255, 186, 130, .2); opacity: 1; }
+    .filter-cool { background: rgba(125, 211, 252, .18); opacity: 1; }
+    .filter-vintage { background: rgba(168, 122, 76, .16); opacity: 1; }
+    .filter-dream { background: linear-gradient(135deg, rgba(196,181,253,.16), rgba(186,230,253,.1)); opacity: 1; }
+    .filter-night { background: rgba(15, 23, 42, .3); opacity: 1; }
+
+    .quote-inner {
+      position: relative;
+      z-index: 4;
+      width: 100%;
+      white-space: pre-wrap;
+      word-break: keep-all;
+      text-align: left;
+      font-family: Pretendard, sans-serif;
+      font-size: 15px;
+      line-height: 1.9;
+      letter-spacing: -0.035em;
+      text-shadow: 0 2px 12px rgba(0,0,0,.18);
+    }
+
+    .placeholder { opacity: .72; }
+
+    .credit {
+      position: absolute;
+      right: 24px;
+      bottom: 22px;
+      z-index: 5;
+      font-size: 12px;
+      font-weight: 700;
+      opacity: .82;
+      letter-spacing: -0.02em;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 19px;
+      margin-bottom: 14px;
+      box-shadow: 0 12px 32px rgba(96, 165, 250, .08);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 15px;
+      letter-spacing: -0.03em;
+      color: #245c7d;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid #d2e8f7;
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255,255,255,.95);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.7;
+    }
+
+    input[type="range"] {
+      accent-color: #60a5fa;
+      padding: 0;
+      height: 36px;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(147, 197, 253, .18);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .btn-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .btn-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+      gap: 10px;
+    }
+
+    .choice.active {
+      background: #e0f2fe;
+      outline: 2px solid #93c5fd;
+      color: #075985;
+    }
+
+    .swatch {
+      height: 38px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.92);
+      box-shadow: inset 0 0 0 1px rgba(14,116,144,.06), 0 6px 14px rgba(96,165,250,.12);
+      cursor: pointer;
+    }
+
+    .preset {
+      min-height: 70px;
+      color: #fff;
+      text-shadow: 0 1px 8px rgba(0,0,0,.38);
+      overflow: hidden;
+    }
+
+    .preset.light {
+      color: #245c7d;
+      text-shadow: none;
+    }
+
+    .size-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .size-row input { flex: 1; }
+
+    #fontPreview {
+      min-width: 44px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 800;
+      color: #4680a0;
+    }
+
+    .hint {
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: #7c93aa;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 20px 0 34px;
+      color: #8ca7bc;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 14px;
+        gap: 8px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      button {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .wrap {
+        padding: 10px;
+      }
+
+      .preview-zone {
+        border-radius: 22px;
+        margin-bottom: 12px;
+      }
+
+      #capture {
+        width: min(92vw, 420px);
+        padding: clamp(24px, 7vw, 38px);
+      }
+
+      .quote-inner {
+        font-size: 15px !important;
+        line-height: 1.8;
+      }
+
+      .credit {
+        font-size: 11px;
+        right: 16px;
+        bottom: 16px;
+      }
+
+      .panel {
+        padding: 14px;
+        border-radius: 20px;
+      }
+
+      .grid,
+      .grid.three,
+      .btn-grid-3,
+      .btn-grid-5 {
+        grid-template-columns: 1fr;
+      }
+
+      .wrap {
+        display: block;
+      }
+
+      .left-column {
+        position: static;
+        margin-bottom: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>문구 이미지 생성기</h1>
+    <button class="primary" onclick="savePng()">PNG 저장</button>
+  </header>
+
+  <main class="wrap">
+    <div class="left-column">
+      <section class="preview-zone">
+      <div id="capture">
+        <div id="generatedBg" class="generated-bg"></div>
+        <div id="photoBg" class="photo-bg"></div>
+        <div id="hudLayer" class="hud-layer"></div>
+        <div id="moodFilter" class="mood-filter filter-none"></div>
+        <div class="dim"></div>
+        <div id="quote" class="quote-inner placeholder">문구를 입력하세요.</div>
+        <div id="creditBox" class="credit">
+          <span id="creatorText">제작자</span><span style="opacity:.6; margin:0 6px;">|</span><span id="characterText">캐릭터</span>
+        </div>
+      </div>
+      </section>
+    </div>
+
+    <div class="control-column">
+    <section class="panel">
+      <h2>내용 입력</h2>
+      <textarea id="textInput" placeholder="여기에 문구를 입력하세요."></textarea>
+      <p class="hint">줄바꿈과 이모지가 그대로 반영됩니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>캔버스 비율</h2>
+      <div class="btn-grid-3">
+        <button class="choice active" data-ratio="1 / 1">1:1</button>
+        <button class="choice" data-ratio="4 / 5">4:5</button>
+        <button class="choice" data-ratio="16 / 9">16:9</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>텍스트 스타일</h2>
+      <div class="grid three">
+        <div>
+          <label>폰트</label>
+          <select id="fontFamily">
+            <option value='Pretendard, sans-serif'>Pretendard</option>
+            <option value='SUIT, sans-serif'>SUIT</option>
+            <option value='"IBM Plex Sans KR", sans-serif'>IBM Plex Sans KR</option>
+            <option value='"Noto Sans KR", sans-serif'>Noto Sans KR</option>
+            <option value='"Gowun Dodum", sans-serif'>고운돋움</option>
+            <option value='"Hahmlet", serif'>함렛</option>
+            <option value='"Jua", sans-serif'>주아</option>
+            <option value='system-ui, sans-serif'>시스템 기본</option>
+          </select>
+        </div>
+        <div>
+          <label>글자 크기</label>
+          <div class="size-row">
+            <input id="fontSize" type="range" value="15" min="8" max="45" step="1">
+            <div id="fontPreview">15px</div>
+          </div>
+        </div>
+        <div>
+          <label>줄 간격</label>
+          <input id="lineHeight" type="number" value="1.9" min="1" max="3" step="0.1">
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px;">
+        <div>
+          <label>글씨 색</label>
+          <input id="textColor" type="color" value="#ffffff">
+        </div>
+        <div>
+          <label>글씨 투명도</label>
+          <input id="textOpacity" type="range" min="0.2" max="1" step="0.05" value="1">
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>정렬</label>
+        <div class="btn-grid-3">
+          <button class="choice active" data-align="left">왼쪽</button>
+          <button class="choice" data-align="center">가운데</button>
+          <button class="choice" data-align="right">오른쪽</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>분위기 필터</h2>
+      <div class="btn-grid-3">
+        <button class="choice active" data-filter="none">없음</button>
+        <button class="choice" data-filter="warm">따뜻함</button>
+        <button class="choice" data-filter="cool">차가움</button>
+        <button class="choice" data-filter="vintage">빈티지</button>
+        <button class="choice" data-filter="dream">몽환</button>
+        <button class="choice" data-filter="night">밤</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>배경 스타일</h2>
+      <div class="grid">
+        <div>
+          <label>시작 색상</label>
+          <input id="bgStart" type="color" value="#0f172a">
+        </div>
+        <div>
+          <label>끝 색상</label>
+          <input id="bgEnd" type="color" value="#243b55">
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>그라데이션 방향</label>
+        <select id="gradientDir">
+          <option value="135deg">대각선</option>
+          <option value="180deg">위에서 아래</option>
+          <option value="90deg">왼쪽에서 오른쪽</option>
+          <option value="45deg">반대 대각선</option>
+        </select>
+      </div>
+
+      <div class="palette" style="margin-top:14px;">
+        <div class="swatch" style="background:linear-gradient(135deg,#0f172a,#243b55)" data-start="#0f172a" data-end="#243b55"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#dbeafe,#f8fafc)" data-start="#dbeafe" data-end="#f8fafc"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#fff1f5,#ffeef6)" data-start="#fff1f5" data-end="#ffeef6"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#c4b5fd,#fbcfe8)" data-start="#c4b5fd" data-end="#fbcfe8"></div>
+        <div class="swatch" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0)" data-start="#f8fafc" data-end="#e2e8f0"></div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <label>기본 배경</label>
+        <div class="btn-grid-5">
+          <button class="preset" data-preset="space" style="background:linear-gradient(135deg,#0f172a,#172554,#1e293b);">우주</button>
+          <button class="preset light" data-preset="sky" style="background:linear-gradient(180deg,#dbeafe,#eff6ff,#ffffff);">하늘</button>
+          <button class="preset light" data-preset="dawn" style="background:linear-gradient(180deg,#c7d2fe,#ddd6fe,#fbcfe8,#fff7ed); color:#59466f; text-shadow:none;">새벽</button>
+          <button class="preset light" data-preset="rose" style="background:linear-gradient(135deg,#fff8fb,#ffd9ea,#ffeef8);">로즈</button>
+          <button class="preset light" data-preset="milk" style="background:linear-gradient(135deg,#fffef9,#fffaf0,#fffdf7);">밀크</button>
+          <button class="preset light" data-preset="system" style="background:linear-gradient(135deg,#e0f7ff,#bae6fd,#dbeafe); color:#075985; text-shadow:none;">GISELLE UI</button>
+          <button class="preset light" data-preset="mono" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);">모노</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <label>내 배경 이미지 업로드</label>
+        <input id="bgImage" type="file" accept="image/*">
+      </div>
+
+      <div style="margin-top:12px;">
+        <label>배경 이미지/기본 배경 투명도</label>
+        <input id="bgOpacity" type="range" min="0" max="1" step="0.05" value="0">
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>제작자 / 캐릭터</h2>
+      <div class="grid">
+        <div>
+          <label>제작자</label>
+          <input id="creatorInput" placeholder="winter">
+        </div>
+        <div>
+          <label>캐릭터</label>
+          <input id="characterInput" placeholder="이름 입력">
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      이 파일 하나를 index.html로 저장해서 GitHub Pages에 올리면 됩니다.<br>
+      PNG 저장은 브라우저 내부에서 처리됩니다.    </footer>
+    </div>
+  </main>
+
+  <script>
+    const capture = document.getElementById('capture');
+    const quote = document.getElementById('quote');
+    const generatedBg = document.getElementById('generatedBg');
+    const photoBg = document.getElementById('photoBg');
+    const hudLayer = document.getElementById('hudLayer');
+    const moodFilter = document.getElementById('moodFilter');
+    const bgOpacity = document.getElementById('bgOpacity');
+    const creatorText = document.getElementById('creatorText');
+    const characterText = document.getElementById('characterText');
+    const fontPreview = document.getElementById('fontPreview');
+
+    const presetBackgrounds = {
+      space: `
+        radial-gradient(circle at 30% 40%, rgba(99,102,241,.08), transparent 25%),
+        radial-gradient(circle at 70% 60%, rgba(168,85,247,.08), transparent 35%),
+        linear-gradient(135deg, #0f172a 0%, #172554 45%, #1e293b 100%)
+      `,
+      sky: `linear-gradient(180deg, #dbeafe, #eff6ff, #ffffff)`,
+      dawn: `linear-gradient(180deg, #c7d2fe 0%, #ddd6fe 36%, #fbcfe8 72%, #fff7ed 100%)`,
+      rose: `linear-gradient(135deg, #fff8fb, #ffd9ea, #ffeef8)`,
+      milk: `linear-gradient(135deg, #fffef9, #fffaf0, #fffdf7)`,
+      system: `
+        radial-gradient(circle at 18% 18%, rgba(186,230,253,.5), transparent 20%),
+        radial-gradient(circle at 82% 72%, rgba(125,211,252,.34), transparent 24%),
+        linear-gradient(135deg, #e0f7ff 0%, #bae6fd 44%, #dbeafe 100%)
+      `,
+      mono: `linear-gradient(135deg, #e2e8f0, #94a3b8)`
+    };
+
+    function updateText() {
+      const text = document.getElementById('textInput').value.trimEnd();
+      quote.textContent = text || '문구를 입력하세요.';
+      quote.classList.toggle('placeholder', !text);
+    }
+
+    function updateGradientBackground() {
+      const dir = document.getElementById('gradientDir').value;
+      const start = document.getElementById('bgStart').value;
+      const end = document.getElementById('bgEnd').value;
+      capture.style.background = `linear-gradient(${dir}, ${start}, ${end})`;
+      generatedBg.style.background = 'transparent';
+      generatedBg.style.opacity = 0;
+      photoBg.style.opacity = 0;
+      hudLayer.classList.remove('active');
+      bgOpacity.value = 0;
+    }
+
+    document.getElementById('textInput').addEventListener('input', updateText);
+
+    document.getElementById('fontFamily').addEventListener('change', e => {
+      quote.style.fontFamily = e.target.value;
+    });
+
+    document.getElementById('fontSize').addEventListener('input', e => {
+      quote.style.fontSize = `${e.target.value}px`;
+      fontPreview.textContent = `${e.target.value}px`;
+    });
+
+    document.getElementById('lineHeight').addEventListener('input', e => {
+      quote.style.lineHeight = e.target.value;
+    });
+
+    document.getElementById('textColor').addEventListener('input', e => {
+      capture.style.color = e.target.value;
+    });
+
+    document.getElementById('textOpacity').addEventListener('input', e => {
+      quote.style.opacity = e.target.value;
+    });
+
+    document.querySelectorAll('[data-ratio]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        capture.style.aspectRatio = btn.dataset.ratio;
+      });
+    });
+
+    document.querySelectorAll('[data-align]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        quote.style.textAlign = btn.dataset.align;
+      });
+    });
+
+    document.querySelectorAll('[data-filter]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        moodFilter.className = `mood-filter filter-${btn.dataset.filter}`;
+      });
+    });
+
+    ['bgStart', 'bgEnd', 'gradientDir'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateGradientBackground);
+    });
+
+    document.querySelectorAll('.swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.getElementById('bgStart').value = swatch.dataset.start;
+        document.getElementById('bgEnd').value = swatch.dataset.end;
+        updateGradientBackground();
+      });
+    });
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        generatedBg.style.background = presetBackgrounds[btn.dataset.preset] || presetBackgrounds.space;
+        generatedBg.style.backgroundSize = 'auto';
+        generatedBg.style.opacity = .96;
+        photoBg.style.opacity = 0;
+        bgOpacity.value = .96;
+        hudLayer.classList.remove('active');
+      });
+    });
+
+    document.getElementById('bgImage').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        photoBg.style.backgroundImage = `url("${reader.result}")`;
+        photoBg.style.opacity = .75;
+        generatedBg.style.opacity = 0;
+        hudLayer.classList.remove('active');
+        bgOpacity.value = .75;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    bgOpacity.addEventListener('input', e => {
+      if (photoBg.style.opacity !== '0' && photoBg.style.backgroundImage) {
+        photoBg.style.opacity = e.target.value;
+      } else {
+        generatedBg.style.opacity = e.target.value;
+      }
+    });
+
+    document.getElementById('creatorInput').addEventListener('input', e => {
+      creatorText.textContent = e.target.value || '제작자';
+    });
+
+    document.getElementById('characterInput').addEventListener('input', e => {
+      characterText.textContent = e.target.value || '캐릭터';
+    });
+
+    async function savePng() {
+      if (document.fonts) await document.fonts.ready;
+      const canvas = await html2canvas(capture, {
+        backgroundColor: null,
+        scale: 3,
+        useCORS: true
+      });
+      const link = document.createElement('a');
+      link.download = `quote-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    updateText();
+    updateGradientBackground();
+  </script>
+</body>
+</html>
