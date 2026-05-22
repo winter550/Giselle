@@ -304,5 +304,14 @@ $('save').onclick=async()=>{
 
 render();
 </script>
+
+<style>
+/* 모바일에서 저장한 가지치기 PNG에 보이는 배경 가로 점선 제거 */
+#exportArea #card.layout-branch::before{
+  display:none !important;
+  content:none !important;
+}
+</style>
 </body>
+
 </html>
