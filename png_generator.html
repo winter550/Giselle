@@ -794,7 +794,7 @@
     });
 
     document.getElementById('textColor').addEventListener('input', e => {
-      capture.style.color = e.target.value;
+      capture.style.color = e.target.value || '#ffffff';
     });
 
     document.getElementById('textOpacity').addEventListener('input', e => {
@@ -900,6 +900,7 @@
       clone.style.display = 'flex';
       clone.style.alignItems = 'center';
       clone.style.justifyContent = 'center';
+      clone.style.color = document.getElementById('textColor').value || '#ffffff';
 
       const paddingValue = Number(document.getElementById('paddingSize').value || 70);
       clone.style.padding = `${Math.round(paddingValue * ratio)}px`;
@@ -979,6 +980,8 @@
     }
 
     capture.style.setProperty('--capture-padding', '70px');
+    capture.style.color = document.getElementById('textColor').value || '#ffffff';
+    quote.style.opacity = document.getElementById('textOpacity').value || '1';
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
     applyPadding(document.getElementById('paddingSize').value);
     updateText();
