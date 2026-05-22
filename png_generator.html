@@ -182,8 +182,8 @@
       width: 100%;
       max-width: 100%;
       white-space: pre-wrap;
-      word-break: break-word;
-      overflow-wrap: anywhere;
+      word-break: keep-all;
+      overflow-wrap: break-word;
       word-wrap: break-word;
       line-break: strict;
       text-align: left;
@@ -196,8 +196,7 @@
       letter-spacing: -0.045em;
       text-shadow: none;
       -webkit-font-smoothing: antialiased;
-      text-rendering: geometricPrecision;
-      font-synthesis: none;
+      text-rendering: optimizeLegibility;
     }
 
     .placeholder { opacity: .72; }
@@ -390,19 +389,30 @@
       }
 
       .preview-zone {
+        --preview-scale: calc((100vw - 44px) / 820);
+        height: calc(820px * var(--preview-scale) + 16px);
+        align-items: flex-start;
         border-radius: 18px;
         padding: 8px;
+        overflow: hidden;
       }
 
       #capture {
-        width: min(62vw, 280px);
-        padding: var(--mobile-capture-padding, 30px);
+        width: 820px;
+        max-width: 820px;
+        min-width: 820px;
+        padding: var(--capture-padding, 70px);
+        transform: scale(var(--preview-scale));
+        transform-origin: top center;
+        flex: 0 0 auto;
       }
 
       .quote-inner {
-        font-size: 14px;
-        line-height: 1.68;
-        letter-spacing: -0.06em;
+        font-size: 20px;
+        line-height: 1.9;
+        letter-spacing: -0.045em;
+        word-break: keep-all;
+        overflow-wrap: break-word;
       }
 
       textarea {
@@ -410,9 +420,9 @@
       }
 
       .credit {
-        font-size: 12px;
-        right: 16px;
-        bottom: 16px;
+        font-size: 16px;
+        right: 24px;
+        bottom: 22px;
       }
 
       .panel {
@@ -440,31 +450,10 @@
         display: none;
       }
 
-
-      body.is-typing .left-column {
-        top: 0;
-        padding: 6px 10px 8px;
-      }
-
       body.is-typing .preview-zone {
+        --preview-scale: calc((100vw - 116px) / 820);
+        height: calc(820px * var(--preview-scale) + 12px);
         padding: 6px;
-        border-radius: 16px;
-      }
-
-      body.is-typing #capture {
-        width: min(48vw, 220px);
-        padding: var(--mobile-focus-padding, 22px);
-      }
-
-      body.is-typing .quote-inner {
-        font-size: 12px;
-        line-height: 1.55;
-      }
-
-      body.is-typing .credit {
-        font-size: 10px;
-        right: 10px;
-        bottom: 10px;
       }
 
       body.is-typing .export-actions {
@@ -770,7 +759,6 @@
     function applyPadding(value) {
       const padding = Number(value);
       capture.style.setProperty('--capture-padding', `${padding}px`);
-      capture.style.setProperty('--mobile-capture-padding', `${padding}px`);
       paddingPreview.textContent = `${padding}px`;
     }
 
@@ -869,33 +857,73 @@
     async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
 
-      const targetSize = 1080;
+      const exportSize = 1080;
+      const baseSize = 820;
+      const ratio = exportSize / baseSize;
 
-      /*
-        저장 오류 수정:
-        - 별도 1080px 클론을 만들지 않음 → 줄바꿈/여백이 미리보기와 달라지는 문제 방지
-        - 현재 보이는 #capture 자체를 고해상도로 캡처
-        - 마지막에 1080px 정사각형으로 부드럽게 리샘플링
-      */
-      const sourceCanvas = await html2canvas(capture, {
+      const clone = capture.cloneNode(true);
+      clone.id = 'capture-export-clone';
+      clone.style.position = 'fixed';
+      clone.style.left = '-99999px';
+      clone.style.top = '0';
+      clone.style.width = `${exportSize}px`;
+      clone.style.maxWidth = `${exportSize}px`;
+      clone.style.minWidth = `${exportSize}px`;
+      clone.style.height = `${exportSize}px`;
+      clone.style.aspectRatio = '1 / 1';
+      clone.style.transform = 'none';
+      clone.style.flex = 'none';
+      clone.style.boxShadow = 'none';
+      clone.style.display = 'flex';
+      clone.style.alignItems = 'center';
+      clone.style.justifyContent = 'center';
+
+      const paddingValue = Number(document.getElementById('paddingSize').value || 70);
+      clone.style.padding = `${Math.round(paddingValue * ratio)}px`;
+
+      const cloneQuote = clone.querySelector('#quote');
+      if (cloneQuote) {
+        const fontValue = Number(document.getElementById('fontSize').value || 20);
+        cloneQuote.style.fontSize = `${Math.round(fontValue * ratio)}px`;
+        cloneQuote.style.lineHeight = document.getElementById('lineHeight').value || '1.9';
+        cloneQuote.style.letterSpacing = '-0.045em';
+        cloneQuote.style.width = '100%';
+        cloneQuote.style.maxWidth = '100%';
+        cloneQuote.style.margin = '0 auto';
+        cloneQuote.style.transform = 'none';
+        cloneQuote.style.wordBreak = 'keep-all';
+        cloneQuote.style.overflowWrap = 'break-word';
+        cloneQuote.style.wordWrap = 'break-word';
+        cloneQuote.style.lineBreak = 'strict';
+        cloneQuote.style.fontFamily = quote.style.fontFamily || getComputedStyle(quote).fontFamily;
+        cloneQuote.style.webkitFontSmoothing = 'antialiased';
+        cloneQuote.style.textRendering = 'geometricPrecision';
+        cloneQuote.style.setProperty('--paragraph-gap', `${Math.round(Number(document.getElementById('paragraphGap').value || 18) * ratio)}px`);
+      }
+
+      const cloneCredit = clone.querySelector('#creditBox');
+      if (cloneCredit) {
+        cloneCredit.style.fontSize = `${Math.round(16 * ratio)}px`;
+        cloneCredit.style.right = `${Math.round(24 * ratio)}px`;
+        cloneCredit.style.bottom = `${Math.round(22 * ratio)}px`;
+        cloneCredit.style.transform = 'none';
+      }
+
+      document.body.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
         backgroundColor: null,
-        scale: 3,
+        scale: 1,
         useCORS: true,
         logging: false,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        windowWidth: exportSize,
+        windowHeight: exportSize
       });
 
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetSize;
-      finalCanvas.height = targetSize;
-
-      const ctx = finalCanvas.getContext('2d');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(sourceCanvas, 0, 0, targetSize, targetSize);
-
-      return finalCanvas;
+      clone.remove();
+      return canvas;
     }
 
     async function savePng() {
