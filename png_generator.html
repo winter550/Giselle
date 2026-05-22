@@ -389,19 +389,25 @@
       }
 
       .preview-zone {
+        align-items: center;
         border-radius: 18px;
         padding: 8px;
+        overflow: hidden;
       }
 
       #capture {
-        width: min(62vw, 280px);
-        padding: var(--mobile-capture-padding, 30px);
+        width:min(92vw,820px) !important;
+        max-width: 390px;
+        min-width: 0;
+        padding: var(--mobile-capture-padding, 26px);
+        transform: none;
+        flex: 0 0 auto;
       }
 
       .quote-inner {
-        font-size: 14px;
-        line-height: 1.68;
-        letter-spacing: -0.06em;
+        font-size: 13px;
+        line-height: 1.65;
+        letter-spacing: -0.045em;
         word-break: keep-all;
         overflow-wrap: break-word;
       }
@@ -438,9 +444,8 @@
       }
 
       .top-actions button:not(.primary) {
-        display: none;
+        opacity:1 !important;
       }
-
 
       body.is-typing .left-column {
         top: 0;
@@ -453,15 +458,14 @@
       }
 
       body.is-typing #capture {
-        width: min(48vw, 220px);
-        padding: var(--mobile-focus-padding, 22px);
+        width:min(92vw,820px) !important;
+        max-width: 310px;
+        padding: var(--mobile-focus-padding, 18px);
       }
 
       body.is-typing .quote-inner {
-        font-size: 12px;
-        line-height: 1.55;
-        word-break: keep-all;
-        overflow-wrap: break-word;
+        font-size:16px !important;
+        line-height:1.9 !important;
       }
 
       body.is-typing .credit {
@@ -471,7 +475,7 @@
       }
 
       body.is-typing .export-actions {
-        display: none;
+        opacity:1 !important;
       }
 
       .control-column {
@@ -771,9 +775,14 @@
     });
 
     function applyPadding(value) {
-      const padding = Number(value);
-      capture.style.setProperty('--capture-padding', `${padding}px`);
-      paddingPreview.textContent = `${padding}px`;
+      const desktopPadding = Number(value);
+      const mobilePadding = Math.max(18, Math.min(34, Math.round(desktopPadding * 0.36)));
+      const mobileFocusPadding = Math.max(12, Math.min(24, Math.round(desktopPadding * 0.24)));
+
+      capture.style.setProperty('--capture-padding', `${desktopPadding}px`);
+      capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
+      capture.style.setProperty('--mobile-focus-padding', `${mobileFocusPadding}px`);
+      paddingPreview.textContent = `${desktopPadding}px`;
     }
 
     document.getElementById('paddingSize').addEventListener('input', e => {
@@ -905,11 +914,11 @@
         cloneQuote.style.maxWidth = '100%';
         cloneQuote.style.margin = '0 auto';
         cloneQuote.style.transform = 'none';
+        cloneQuote.style.whiteSpace = 'pre-wrap';
         cloneQuote.style.wordBreak = 'keep-all';
         cloneQuote.style.overflowWrap = 'break-word';
         cloneQuote.style.wordWrap = 'break-word';
         cloneQuote.style.lineBreak = 'strict';
-        cloneQuote.style.whiteSpace = 'pre-wrap';
         cloneQuote.style.fontFamily = quote.style.fontFamily || getComputedStyle(quote).fontFamily;
         cloneQuote.style.webkitFontSmoothing = 'antialiased';
         cloneQuote.style.textRendering = 'geometricPrecision';
