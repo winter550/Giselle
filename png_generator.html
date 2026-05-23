@@ -107,6 +107,33 @@
       order: 2;
     }
 
+    .capture-scale-box {
+      transform-origin: top center;
+      margin: 0 auto;
+    }
+
+
+    .live-preview-image {
+      display: block;
+      width: min(100%, 620px);
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      margin: 0 auto;
+      box-shadow: 0 18px 42px rgba(30, 58, 90, .16);
+    }
+
+    .preview-zone #capture,
+    .preview-zone .capture-scale-box {
+      position: fixed !important;
+      left: -99999px !important;
+      top: 0 !important;
+      transform: none !important;
+      margin: 0 !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+    }
+
     .preview-zone {
       display: flex;
       justify-content: center;
@@ -393,34 +420,66 @@
         border-bottom: 1px solid rgba(191,219,254,.75);
       }
 
-      .preview-zone {
+      .capture-scale-box {
+      transform-origin: top center;
+      margin: 0 auto;
+    }
+
+
+    .live-preview-image {
+      display: block;
+      width: min(100%, 620px);
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      margin: 0 auto;
+      box-shadow: 0 18px 42px rgba(30, 58, 90, .16);
+    }
+
+    .preview-zone #capture,
+    .preview-zone .capture-scale-box {
+      position: fixed !important;
+      left: -99999px !important;
+      top: 0 !important;
+      transform: none !important;
+      margin: 0 !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+    }
+
+    .preview-zone {
+        --preview-zoom: .45;
+        --typing-preview-zoom: .32;
         border-radius: 18px;
         padding: 8px;
         overflow: hidden;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
       }
 
+      /* 모바일 미리보기 = 실제 저장파일 기준 820px 레이아웃을 화면에 맞게 축소 */
       #capture {
-        width: min(92vw, 390px);
-        max-width: 390px;
-        min-width: 0;
-        padding: var(--mobile-capture-padding, 28px);
-        transform: none;
+        width: 820px !important;
+        max-width: 820px !important;
+        min-width: 820px !important;
+        padding: var(--capture-padding, 70px);
+        transform: none !important;
         position: relative;
         top: auto;
         left: auto;
         margin: 0 auto;
         flex: 0 0 auto;
+        zoom: var(--preview-zoom);
       }
 
       .quote-inner {
-        font-size: 13px;
-        line-height: 1.75;
-        letter-spacing: -0.045em;
+        font-size: 20px !important;
+        line-height: 1.9 !important;
+        letter-spacing: -0.045em !important;
         word-break: keep-all;
         overflow-wrap: break-word;
+        opacity: 1;
       }
 
       textarea {
@@ -428,9 +487,9 @@
       }
 
       .credit {
-        font-size: 12px;
-        right: 16px;
-        bottom: 16px;
+        font-size: 16px;
+        right: 24px;
+        bottom: 22px;
       }
 
       .panel {
@@ -466,31 +525,61 @@
         padding: 6px 10px 8px;
       }
 
-      body.is-typing .preview-zone {
+      body.is-typing .capture-scale-box {
+      transform-origin: top center;
+      margin: 0 auto;
+    }
+
+
+    .live-preview-image {
+      display: block;
+      width: min(100%, 620px);
+      height: auto;
+      max-height: 70vh;
+      object-fit: contain;
+      margin: 0 auto;
+      box-shadow: 0 18px 42px rgba(30, 58, 90, .16);
+    }
+
+    .preview-zone #capture,
+    .preview-zone .capture-scale-box {
+      position: fixed !important;
+      left: -99999px !important;
+      top: 0 !important;
+      transform: none !important;
+      margin: 0 !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+    }
+
+    .preview-zone {
         padding: 6px;
         border-radius: 16px;
       }
 
       body.is-typing #capture {
-        width: min(58vw, 250px);
-        max-width: 250px;
-        padding: var(--mobile-focus-padding, 16px);
+        zoom: var(--typing-preview-zoom);
       }
 
       body.is-typing .quote-inner {
-        font-size: 10px;
-        line-height: 1.55;
-        letter-spacing: -0.05em;
-      }
-
-      body.is-typing .credit {
-        font-size: 9px;
-        right: 8px;
-        bottom: 8px;
+        font-size: 20px !important;
+        line-height: 1.9 !important;
+        letter-spacing: -0.045em !important;
       }
 
       body.is-typing .export-actions {
         display: none;
+      }
+
+
+      .live-preview-image {
+        width: min(92vw, 390px);
+        max-height: 46vh;
+      }
+
+      body.is-typing .live-preview-image {
+        width: min(58vw, 250px);
+        max-height: 30vh;
       }
 
       .control-column {
@@ -512,6 +601,8 @@
   <main class="wrap">
     <div class="left-column">
       <section class="preview-zone">
+        <img id="livePreviewImage" class="live-preview-image" alt="미리보기">
+        <div id="captureScaleBox" class="capture-scale-box">
         <div id="capture">
           <div id="generatedBg" class="generated-bg"></div>
           <div id="photoBg" class="photo-bg"></div>
@@ -523,6 +614,7 @@
           <div id="creditBox" class="credit">
             <span id="creatorText">제작자</span><span style="opacity:.6; margin:0 6px;">|</span><span id="characterText">캐릭터</span>
           </div>
+        </div>
         </div>
       </section>
 
@@ -738,7 +830,60 @@
       mono: `linear-gradient(135deg, #e2e8f0, #94a3b8)`
     };
 
-    function updateText() {
+    function updateMobilePreviewZoom() {
+      const zone = document.querySelector('.preview-zone');
+      if (!zone) return;
+
+      if (window.matchMedia('(max-width: 768px)').matches) {
+        const available = Math.max(260, zone.clientWidth - 16);
+        const scale = Math.min(1, available / 820);
+        const typingScale = Math.max(0.28, scale * 0.62);
+
+        zone.style.setProperty('--preview-zoom', scale);
+        zone.style.setProperty('--typing-preview-zoom', typingScale);
+      } else {
+        zone.style.removeProperty('--preview-zoom');
+        zone.style.removeProperty('--typing-preview-zoom');
+      }
+    }
+
+function getExportSizeByRatio() {
+      const ratioText = capture.style.aspectRatio || getComputedStyle(capture).aspectRatio || '1 / 1';
+      const ratioParts = ratioText.split('/').map(v => parseFloat(v.trim()));
+      const ratioW = ratioParts[0] || 1;
+      const ratioH = ratioParts[1] || 1;
+      const ratioValue = ratioW / ratioH;
+
+      if (Math.abs(ratioValue - 0.8) < 0.02) return { width: 1080, height: 1350, ratioW, ratioH };
+      if (Math.abs(ratioValue - 16 / 9) < 0.02) return { width: 1600, height: 900, ratioW, ratioH };
+      if (Math.abs(ratioValue - 3) < 0.02) return { width: 1500, height: 500, ratioW, ratioH };
+      return { width: 1080, height: 1080, ratioW, ratioH };
+    }
+
+    function updatePreviewToExportLayout() {
+      const box = document.getElementById('captureScaleBox');
+      const zone = document.querySelector('.preview-zone');
+      if (!box || !zone) return;
+
+      const size = getExportSizeByRatio();
+      const available = Math.max(280, zone.clientWidth - 16);
+      const scale = window.innerWidth <= 768
+        ? Math.min(1, available / size.width)
+        : Math.min(0.88, available / size.width);
+
+      box.style.width = `${size.width}px`;
+      box.style.height = `${size.height}px`;
+      box.style.transform = `scale(${scale})`;
+      box.style.marginBottom = `${(size.height * scale) - size.height}px`;
+
+      capture.style.width = `${size.width}px`;
+      capture.style.maxWidth = `${size.width}px`;
+      capture.style.minWidth = `${size.width}px`;
+      capture.style.height = `${size.height}px`;
+      capture.style.aspectRatio = `${size.ratioW} / ${size.ratioH}`;
+    }
+
+function updateText() {
       const text = document.getElementById('textInput').value.trimEnd();
       quote.classList.toggle('placeholder', !text);
       quote.textContent = '';
@@ -772,22 +917,25 @@
     textInput.addEventListener('input', updateText);
     textInput.addEventListener('focus', () => {
       document.body.classList.add('is-typing');
+      updateMobilePreviewZoom();
     });
     textInput.addEventListener('blur', () => {
       document.body.classList.remove('is-typing');
+      updateMobilePreviewZoom();
     });
     document.getElementById('fontFamily').addEventListener('change', e => {
       quote.style.setProperty('font-family', e.target.value, 'important');
     });
 
     document.getElementById('fontSize').addEventListener('input', e => {
-      quote.style.fontSize = `${e.target.value}px`;
       fontPreview.textContent = `${e.target.value}px`;
+      updatePreviewToExportLayout();
     });
 
     document.getElementById('paragraphGap').addEventListener('input', e => {
       quote.style.setProperty('--paragraph-gap', `${e.target.value}px`);
       paragraphPreview.textContent = `${e.target.value}px`;
+      updatePreviewToExportLayout();
     });
 
     function applyPadding(value) {
@@ -799,6 +947,7 @@
       capture.style.setProperty('--mobile-capture-padding', `${mobilePadding}px`);
       capture.style.setProperty('--mobile-focus-padding', `${mobileFocusPadding}px`);
       paddingPreview.textContent = `${desktopPadding}px`;
+      updatePreviewToExportLayout();
     }
 
     document.getElementById('paddingSize').addEventListener('input', e => {
@@ -806,11 +955,12 @@
     });
 
     document.getElementById('lineHeight').addEventListener('input', e => {
-      quote.style.lineHeight = e.target.value;
+      
+      updatePreviewToExportLayout();
     });
 
     document.getElementById('textColor').addEventListener('input', e => {
-      capture.style.color = e.target.value || '#ffffff';
+      capture.style.color = e.target.value;
     });
 
     document.getElementById('textOpacity').addEventListener('input', e => {
@@ -822,6 +972,7 @@
         document.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         capture.style.aspectRatio = btn.dataset.ratio;
+        updateMobilePreviewZoom();
       });
     });
 
@@ -896,10 +1047,43 @@
       characterText.textContent = e.target.value || '캐릭터';
     });
 
-    async function renderPngCanvas() {
+    let livePreviewTimer = null;
+    let livePreviewRunning = false;
+    let livePreviewPending = false;
+
+    function scheduleLivePreview() {
+      clearTimeout(livePreviewTimer);
+      livePreviewTimer = setTimeout(updateLivePreview, 180);
+    }
+
+    async function updateLivePreview() {
+      const previewImage = document.getElementById('livePreviewImage');
+      if (!previewImage || typeof renderPngCanvas !== 'function') return;
+
+      if (livePreviewRunning) {
+        livePreviewPending = true;
+        return;
+      }
+
+      livePreviewRunning = true;
+      try {
+        const canvas = await renderPngCanvas();
+        previewImage.src = canvas.toDataURL('image/png');
+      } catch (error) {
+        console.error('preview render failed', error);
+      } finally {
+        livePreviewRunning = false;
+        if (livePreviewPending) {
+          livePreviewPending = false;
+          scheduleLivePreview();
+        }
+      }
+    }
+
+async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
 
-      const ratioText = getComputedStyle(capture).aspectRatio || capture.style.aspectRatio || '1 / 1';
+      const ratioText = capture.style.aspectRatio || getComputedStyle(capture).aspectRatio || '1 / 1';
       const ratioParts = ratioText.split('/').map(v => parseFloat(v.trim()));
       const ratioW = ratioParts[0] || 1;
       const ratioH = ratioParts[1] || 1;
@@ -933,15 +1117,14 @@
       clone.style.height = `${exportHeight}px`;
       clone.style.aspectRatio = `${ratioW} / ${ratioH}`;
       clone.style.transform = 'none';
+      clone.style.position = 'fixed';
       clone.style.flex = 'none';
       clone.style.boxShadow = 'none';
       clone.style.display = 'flex';
       clone.style.alignItems = 'center';
       clone.style.justifyContent = 'center';
       clone.style.color = document.getElementById('textColor').value || '#ffffff';
-
-      const paddingValue = Number(document.getElementById('paddingSize').value || 70);
-      clone.style.padding = `${Math.round(paddingValue * scale)}px`;
+      clone.style.padding = `${Math.round(Number(document.getElementById('paddingSize').value || 70) * scale)}px`;
 
       const cloneQuote = clone.querySelector('#quote');
       if (cloneQuote) {
@@ -960,8 +1143,6 @@
         cloneQuote.style.wordWrap = 'break-word';
         cloneQuote.style.lineBreak = 'strict';
         cloneQuote.style.fontFamily = quote.style.fontFamily || getComputedStyle(quote).fontFamily;
-        cloneQuote.style.webkitFontSmoothing = 'antialiased';
-        cloneQuote.style.textRendering = 'geometricPrecision';
         cloneQuote.style.opacity = document.getElementById('textOpacity').value || '1';
         cloneQuote.style.textAlign = getComputedStyle(quote).textAlign;
         cloneQuote.style.textAlignLast = quote.classList.contains('justify-align') ? 'left' : getComputedStyle(quote).textAlignLast;
@@ -1024,10 +1205,29 @@
     capture.style.setProperty('--capture-padding', '70px');
     capture.style.color = document.getElementById('textColor').value || '#ffffff';
     quote.style.opacity = document.getElementById('textOpacity').value || '1';
+    applyPadding(document.getElementById('paddingSize').value);
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
     applyPadding(document.getElementById('paddingSize').value);
+    updateMobilePreviewZoom();
+    window.addEventListener('resize', updateMobilePreviewZoom);
+    updatePreviewToExportLayout();
+    window.addEventListener('resize', updatePreviewToExportLayout);
+
+    document.addEventListener('input', event => {
+      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+    });
+
+    document.addEventListener('change', event => {
+      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+    });
+
+    document.addEventListener('click', event => {
+      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+    });
+
     updateText();
     updateGradientBackground();
+    scheduleLivePreview();
   </script>
 </body>
 </html>
