@@ -781,7 +781,19 @@
       paragraphPreview.textContent = `${e.target.value}px`;
     });
 
-    function applyPadding(value) {
+    function updateMobileScale(){
+const ratio=getComputedStyle(capture).aspectRatio;
+let scale=.72;
+if(ratio==="4 / 5") scale=.58;
+if(ratio==="1 / 1") scale=.68;
+if(ratio==="16 / 9") scale=.84;
+if(ratio==="3 / 1") scale=.95;
+
+document.querySelector(".preview-zone")
+?.style.setProperty("--preview-scale",scale);
+}
+
+function applyPadding(value) {
       const desktopPadding = Number(value);
       const mobilePadding = Math.max(18, Math.min(34, Math.round(desktopPadding * 0.36)));
       const mobileFocusPadding = Math.max(12, Math.min(24, Math.round(desktopPadding * 0.24)));
@@ -812,6 +824,7 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+updateMobileScale();
         capture.style.aspectRatio = btn.dataset.ratio;
       });
     });
@@ -820,6 +833,7 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+updateMobileScale();
 
         const alignValue = btn.dataset.align;
         quote.classList.toggle('justify-align', alignValue === 'justify');
@@ -831,6 +845,7 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+updateMobileScale();
         moodFilter.className = `mood-filter filter-${btn.dataset.filter}`;
       });
     });
