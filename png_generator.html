@@ -571,16 +571,20 @@
         display: none;
       }
 
-
       .live-preview-image {
         width: min(92vw, 390px);
-        max-height: 46vh;
+        height: auto;
+        max-height: none;
+        object-fit: contain;
       }
 
       body.is-typing .live-preview-image {
-        width: min(58vw, 250px);
-        max-height: 30vh;
+        width: min(72vw, 300px);
+        height: auto;
+        max-height: none;
+        object-fit: contain;
       }
+
 
       .control-column {
         scroll-margin-top: 260px;
