@@ -201,6 +201,11 @@
 
     .placeholder { opacity: .72; }
 
+    .quote-inner.justify-align {
+      text-align: justify;
+      text-align-last: left;
+    }
+
     .quote-paragraph {
       white-space: pre-wrap;
       margin: 0 0 var(--paragraph-gap, 18px);
@@ -530,6 +535,7 @@
           <button class="choice active" data-ratio="1 / 1">1:1</button>
           <button class="choice" data-ratio="4 / 5">4:5</button>
           <button class="choice" data-ratio="16 / 9">16:9</button>
+          <button class="choice" data-ratio="3 / 1">트위터 헤더</button>
         </div>
       </section>
 
@@ -553,7 +559,7 @@
           <div>
             <label>글자 크기</label>
             <div class="size-row">
-              <input id="fontSize" type="range" value="20" min="20" max="52" step="1">
+              <input id="fontSize" type="range" value="20" min="10" max="52" step="1">
               <div id="fontPreview" class="value-preview">20px</div>
             </div>
           </div>
@@ -598,6 +604,7 @@
             <button class="choice active" data-align="left">왼쪽</button>
             <button class="choice" data-align="center">가운데</button>
             <button class="choice" data-align="right">오른쪽</button>
+            <button class="choice" data-align="justify">양쪽</button>
           </div>
         </div>
       </section>
@@ -813,7 +820,10 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        quote.style.textAlign = btn.dataset.align;
+
+        const alignValue = btn.dataset.align;
+        quote.classList.toggle('justify-align', alignValue === 'justify');
+        quote.style.textAlign = alignValue === 'justify' ? 'justify' : alignValue;
       });
     });
 
@@ -880,20 +890,39 @@
     async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
 
-      const exportSize = 1080;
-      const baseSize = 820;
-      const ratio = exportSize / baseSize;
+      const ratioText = getComputedStyle(capture).aspectRatio || capture.style.aspectRatio || '1 / 1';
+      const ratioParts = ratioText.split('/').map(v => parseFloat(v.trim()));
+      const ratioW = ratioParts[0] || 1;
+      const ratioH = ratioParts[1] || 1;
+      const ratioValue = ratioW / ratioH;
+
+      let exportWidth = 1080;
+      let exportHeight = 1080;
+
+      if (Math.abs(ratioValue - 0.8) < 0.02) {
+        exportWidth = 1080;
+        exportHeight = 1350;
+      } else if (Math.abs(ratioValue - 16 / 9) < 0.02) {
+        exportWidth = 1600;
+        exportHeight = 900;
+      } else if (Math.abs(ratioValue - 3) < 0.02) {
+        exportWidth = 1500;
+        exportHeight = 500;
+      }
+
+      const baseWidth = 820;
+      const scale = exportWidth / baseWidth;
 
       const clone = capture.cloneNode(true);
       clone.id = 'capture-export-clone';
       clone.style.position = 'fixed';
       clone.style.left = '-99999px';
       clone.style.top = '0';
-      clone.style.width = `${exportSize}px`;
-      clone.style.maxWidth = `${exportSize}px`;
-      clone.style.minWidth = `${exportSize}px`;
-      clone.style.height = `${exportSize}px`;
-      clone.style.aspectRatio = '1 / 1';
+      clone.style.width = `${exportWidth}px`;
+      clone.style.maxWidth = `${exportWidth}px`;
+      clone.style.minWidth = `${exportWidth}px`;
+      clone.style.height = `${exportHeight}px`;
+      clone.style.aspectRatio = `${ratioW} / ${ratioH}`;
       clone.style.transform = 'none';
       clone.style.flex = 'none';
       clone.style.boxShadow = 'none';
@@ -903,16 +932,17 @@
       clone.style.color = document.getElementById('textColor').value || '#ffffff';
 
       const paddingValue = Number(document.getElementById('paddingSize').value || 70);
-      clone.style.padding = `${Math.round(paddingValue * ratio)}px`;
+      clone.style.padding = `${Math.round(paddingValue * scale)}px`;
 
       const cloneQuote = clone.querySelector('#quote');
       if (cloneQuote) {
         const fontValue = Number(document.getElementById('fontSize').value || 20);
-        cloneQuote.style.fontSize = `${Math.round(fontValue * ratio)}px`;
+        cloneQuote.style.fontSize = `${Math.round(fontValue * scale)}px`;
         cloneQuote.style.lineHeight = document.getElementById('lineHeight').value || '1.9';
         cloneQuote.style.letterSpacing = '-0.045em';
         cloneQuote.style.width = '100%';
         cloneQuote.style.maxWidth = '100%';
+        cloneQuote.style.boxSizing = 'border-box';
         cloneQuote.style.margin = '0 auto';
         cloneQuote.style.transform = 'none';
         cloneQuote.style.whiteSpace = 'pre-wrap';
@@ -923,14 +953,17 @@
         cloneQuote.style.fontFamily = quote.style.fontFamily || getComputedStyle(quote).fontFamily;
         cloneQuote.style.webkitFontSmoothing = 'antialiased';
         cloneQuote.style.textRendering = 'geometricPrecision';
-        cloneQuote.style.setProperty('--paragraph-gap', `${Math.round(Number(document.getElementById('paragraphGap').value || 18) * ratio)}px`);
+        cloneQuote.style.opacity = document.getElementById('textOpacity').value || '1';
+        cloneQuote.style.textAlign = getComputedStyle(quote).textAlign;
+        cloneQuote.style.textAlignLast = quote.classList.contains('justify-align') ? 'left' : getComputedStyle(quote).textAlignLast;
+        cloneQuote.style.setProperty('--paragraph-gap', `${Math.round(Number(document.getElementById('paragraphGap').value || 18) * scale)}px`);
       }
 
       const cloneCredit = clone.querySelector('#creditBox');
       if (cloneCredit) {
-        cloneCredit.style.fontSize = `${Math.round(16 * ratio)}px`;
-        cloneCredit.style.right = `${Math.round(24 * ratio)}px`;
-        cloneCredit.style.bottom = `${Math.round(22 * ratio)}px`;
+        cloneCredit.style.fontSize = `${Math.round(16 * scale)}px`;
+        cloneCredit.style.right = `${Math.round(24 * scale)}px`;
+        cloneCredit.style.bottom = `${Math.round(22 * scale)}px`;
         cloneCredit.style.transform = 'none';
       }
 
@@ -943,8 +976,8 @@
         logging: false,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: exportSize,
-        windowHeight: exportSize
+        windowWidth: exportWidth,
+        windowHeight: exportHeight
       });
 
       clone.remove();
