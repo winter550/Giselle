@@ -483,6 +483,55 @@
         opacity:1 !important;
       }
 
+
+      /* 모바일 미리보기 = 실제 저장 파일 기준 레이아웃 */
+      .preview-zone{
+        --preview-scale:.68;
+        height:calc((820px / var(--active-ratio, 1)) * var(--preview-scale) + 16px);
+        align-items:flex-start;
+        justify-content:center;
+        overflow:hidden;
+        padding:8px;
+      }
+
+      #capture{
+        width:820px !important;
+        max-width:820px !important;
+        min-width:820px !important;
+        padding:var(--capture-padding, 70px) !important;
+        transform:scale(var(--preview-scale));
+        transform-origin:top center;
+        flex:0 0 auto;
+        margin:0 auto;
+      }
+
+      .quote-inner{
+        font-size:20px !important;
+        line-height:1.9 !important;
+        letter-spacing:-0.045em !important;
+        word-break:keep-all;
+        overflow-wrap:break-word;
+      }
+
+      body.is-typing .preview-zone{
+        --preview-scale:.56;
+        height:calc((820px / var(--active-ratio, 1)) * var(--preview-scale) + 12px);
+        padding:6px;
+      }
+
+      body.is-typing #capture{
+        width:820px !important;
+        max-width:820px !important;
+        min-width:820px !important;
+        padding:var(--capture-padding, 70px) !important;
+        transform:scale(var(--preview-scale));
+      }
+
+      body.is-typing .quote-inner{
+        font-size:20px !important;
+        line-height:1.9 !important;
+      }
+
       .control-column {
         scroll-margin-top: 260px;
       }
@@ -782,15 +831,32 @@
     });
 
     function updateMobileScale(){
-const ratio=getComputedStyle(capture).aspectRatio;
-let scale=.72;
-if(ratio==="4 / 5") scale=.58;
-if(ratio==="1 / 1") scale=.68;
-if(ratio==="16 / 9") scale=.84;
-if(ratio==="3 / 1") scale=.95;
+const ratio=getComputedStyle(capture).aspectRatio || capture.style.aspectRatio || '1 / 1';
+let activeRatio=1;
+let scale=.68;
 
-document.querySelector(".preview-zone")
-?.style.setProperty("--preview-scale",scale);
+if(ratio.includes('4 / 5') || ratio.includes('0.8')) {
+  activeRatio=4/5;
+  scale=.46;
+}
+else if(ratio.includes('16 / 9') || ratio.includes('1.777')) {
+  activeRatio=16/9;
+  scale=.82;
+}
+else if(ratio.includes('3 / 1') || ratio.includes('3')) {
+  activeRatio=3;
+  scale=.95;
+}
+else {
+  activeRatio=1;
+  scale=.68;
+}
+
+const zone=document.querySelector(".preview-zone");
+if(zone){
+  zone.style.setProperty("--preview-scale",scale);
+  zone.style.setProperty("--active-ratio",activeRatio);
+}
 }
 
 function applyPadding(value) {
@@ -824,8 +890,8 @@ function applyPadding(value) {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-ratio]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-updateMobileScale();
         capture.style.aspectRatio = btn.dataset.ratio;
+        updateMobileScale();
       });
     });
 
@@ -1032,6 +1098,7 @@ updateMobileScale();
     quote.style.opacity = document.getElementById('textOpacity').value || '1';
     quote.style.setProperty('font-family', document.getElementById('fontFamily').value, 'important');
     applyPadding(document.getElementById('paddingSize').value);
+    updateMobileScale();
     updateText();
     updateGradientBackground();
   </script>
