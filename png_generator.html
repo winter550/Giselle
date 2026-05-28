@@ -42,7 +42,7 @@
       gap: 12px;
       padding: 16px 20px;
       background: rgba(255, 255, 255, .9);
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(8px);
       border-bottom: 1px solid var(--line);
     }
 
@@ -114,6 +114,9 @@
 
 
     .live-preview-image {
+      image-rendering: auto;
+      will-change: transform;
+      transform: translateZ(0);
       display: block;
       width: min(100%, 620px);
       height: auto;
@@ -260,7 +263,7 @@
       padding: 19px;
       margin-bottom: 14px;
       box-shadow: 0 12px 32px rgba(96, 165, 250, .08);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(6px);
     }
 
     .panel h2 {
@@ -427,6 +430,9 @@
 
 
     .live-preview-image {
+      image-rendering: auto;
+      will-change: transform;
+      transform: translateZ(0);
       display: block;
       width: min(100%, 620px);
       height: auto;
@@ -532,6 +538,9 @@
 
 
     .live-preview-image {
+      image-rendering: auto;
+      will-change: transform;
+      transform: translateZ(0);
       display: block;
       width: min(100%, 620px);
       height: auto;
@@ -572,6 +581,9 @@
       }
 
       .live-preview-image {
+      image-rendering: auto;
+      will-change: transform;
+      transform: translateZ(0);
         width: min(92vw, 390px);
         height: auto;
         max-height: none;
@@ -579,6 +591,9 @@
       }
 
       body.is-typing .live-preview-image {
+      image-rendering: auto;
+      will-change: transform;
+      transform: translateZ(0);
         width: min(72vw, 300px);
         height: auto;
         max-height: none;
@@ -1019,9 +1034,9 @@ function updateText() {
       btn.addEventListener('click', () => {
         generatedBg.style.background = presetBackgrounds[btn.dataset.preset] || presetBackgrounds.space;
         generatedBg.style.backgroundSize = 'auto';
-        generatedBg.style.opacity = .96;
+        generatedBg.style.opacity = '0.96';
         photoBg.style.opacity = 0;
-        bgOpacity.value = .96;
+        bgOpacity.value = '0.96';
       });
     });
 
@@ -1032,9 +1047,9 @@ function updateText() {
       const reader = new FileReader();
       reader.onload = () => {
         photoBg.style.backgroundImage = `url("${reader.result}")`;
-        photoBg.style.opacity = .75;
+        photoBg.style.opacity = '0.75';
         generatedBg.style.opacity = 0;
-        bgOpacity.value = .75;
+        bgOpacity.value = '0.75';
       };
       reader.readAsDataURL(file);
     });
@@ -1061,7 +1076,7 @@ function updateText() {
 
     function scheduleLivePreview() {
       clearTimeout(livePreviewTimer);
-      livePreviewTimer = setTimeout(updateLivePreview, 180);
+      livePreviewTimer = setTimeout(updateLivePreview, 450);
     }
 
     async function updateLivePreview() {
@@ -1088,7 +1103,47 @@ function updateText() {
       }
     }
 
-async function renderPngCanvas() {
+
+    function stabilizeCloneForExport(clone) {
+      const cloneGeneratedBg = clone.querySelector('#generatedBg');
+      const clonePhotoBg = clone.querySelector('#photoBg');
+      const cloneMoodFilter = clone.querySelector('#moodFilter');
+      const cloneDim = clone.querySelector('.dim');
+
+      const captureStyle = getComputedStyle(capture);
+      const generatedStyle = getComputedStyle(generatedBg);
+      const photoStyle = getComputedStyle(photoBg);
+      const moodStyle = getComputedStyle(moodFilter);
+
+      clone.style.background = captureStyle.background;
+      clone.style.backgroundColor = captureStyle.backgroundColor;
+      clone.style.color = document.getElementById('textColor').value || '#ffffff';
+
+      if (cloneGeneratedBg) {
+        cloneGeneratedBg.style.background = generatedStyle.background;
+        cloneGeneratedBg.style.backgroundSize = generatedStyle.backgroundSize;
+        cloneGeneratedBg.style.backgroundPosition = generatedStyle.backgroundPosition;
+        cloneGeneratedBg.style.opacity = generatedStyle.opacity;
+      }
+
+      if (clonePhotoBg) {
+        clonePhotoBg.style.backgroundImage = photoBg.style.backgroundImage;
+        clonePhotoBg.style.backgroundSize = photoStyle.backgroundSize || 'cover';
+        clonePhotoBg.style.backgroundPosition = photoStyle.backgroundPosition || 'center';
+        clonePhotoBg.style.opacity = photoStyle.opacity;
+      }
+
+      if (cloneMoodFilter) {
+        cloneMoodFilter.className = moodFilter.className;
+        cloneMoodFilter.removeAttribute('style');
+      }
+
+      if (cloneDim) {
+        cloneDim.style.background = getComputedStyle(cloneDim).background;
+      }
+    }
+
+    async function renderPngCanvas() {
       if (document.fonts) await document.fonts.ready;
 
       const ratioText = capture.style.aspectRatio || getComputedStyle(capture).aspectRatio || '1 / 1';
@@ -1165,7 +1220,11 @@ async function renderPngCanvas() {
         cloneCredit.style.transform = 'none';
       }
 
+      stabilizeCloneForExport(clone);
       document.body.appendChild(clone);
+
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
 
       const canvas = await html2canvas(clone, {
         backgroundColor: null,
@@ -1221,16 +1280,41 @@ async function renderPngCanvas() {
     updatePreviewToExportLayout();
     window.addEventListener('resize', updatePreviewToExportLayout);
 
+    function shouldRefreshPreview(target) {
+      if (!target) return false;
+
+      const id = target.id || '';
+      const refreshIds = new Set([
+        'textInput',
+        'fontFamily',
+        'fontSize',
+        'paragraphGap',
+        'paddingSize',
+        'lineHeight',
+        'textColor',
+        'textOpacity',
+        'bgStart',
+        'bgEnd',
+        'gradientDir',
+        'bgOpacity',
+        'creatorInput',
+        'characterInput',
+        'bgImage'
+      ]);
+
+      return refreshIds.has(id) || Boolean(target.closest('[data-ratio], [data-align], [data-filter], [data-preset], .swatch'));
+    }
+
     document.addEventListener('input', event => {
-      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+      if (shouldRefreshPreview(event.target)) scheduleLivePreview();
     });
 
     document.addEventListener('change', event => {
-      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+      if (shouldRefreshPreview(event.target)) scheduleLivePreview();
     });
 
     document.addEventListener('click', event => {
-      if (event.target && event.target.closest('.control-column')) scheduleLivePreview();
+      if (shouldRefreshPreview(event.target)) scheduleLivePreview();
     });
 
     updateText();
@@ -1239,5 +1323,3 @@ async function renderPngCanvas() {
   </script>
 </body>
 </html>
-
-
