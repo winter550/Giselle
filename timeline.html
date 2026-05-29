@@ -156,6 +156,74 @@ input,textarea,select{font-size:14px;padding:12px;border-radius:14px}textarea{mi
 .layout-vertical .timeline{padding-left:14px}.layout-vertical .tline{left:45px}.layout-vertical .titem{grid-template-columns:62px minmax(0,1fr)}
 }
 </style>
+
+<style>
+/* 사건 추가 버튼과 사건 편집칸 사이 여백 */
+.btns,
+.field:has(#add){
+  margin-bottom:26px !important;
+}
+#editors{
+  padding-top:8px !important;
+}
+.event-editor{
+  margin-top:8px !important;
+}
+</style>
+
+
+<style>
+/* 글자 정렬: 모든 레이아웃/모바일/저장본 공통 */
+#card[data-align="left"] .content,
+#exportArea #card[data-align="left"] .content{
+  text-align:left !important;
+}
+#card[data-align="center"] .content,
+#exportArea #card[data-align="center"] .content{
+  text-align:center !important;
+}
+#card[data-align="right"] .content,
+#exportArea #card[data-align="right"] .content{
+  text-align:right !important;
+}
+#card[data-align="justify"] .content,
+#exportArea #card[data-align="justify"] .content{
+  text-align:justify !important;
+  text-align-last:auto !important;
+}
+#card[data-align="center"] .meta,
+#exportArea #card[data-align="center"] .meta{
+  justify-content:center !important;
+}
+#card[data-align="left"] .meta,
+#card[data-align="justify"] .meta,
+#exportArea #card[data-align="left"] .meta,
+#exportArea #card[data-align="justify"] .meta{
+  justify-content:flex-start !important;
+}
+#card[data-align="right"] .meta,
+#exportArea #card[data-align="right"] .meta{
+  justify-content:flex-end !important;
+}
+#card[data-align="center"] .when,
+#exportArea #card[data-align="center"] .when{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+#card[data-align="right"] .when,
+#exportArea #card[data-align="right"] .when{
+  margin-left:auto !important;
+  margin-right:0 !important;
+}
+#card[data-align="left"] .when,
+#card[data-align="justify"] .when,
+#exportArea #card[data-align="left"] .when,
+#exportArea #card[data-align="justify"] .when{
+  margin-left:0 !important;
+  margin-right:auto !important;
+}
+</style>
+
 </head>
 <body>
 <div class="wrap">
@@ -177,6 +245,17 @@ input,textarea,select{font-size:14px;padding:12px;border-radius:14px}textarea{mi
 <div class="textbar">
 <div class="bar-field full"><label>글자 크기</label><div class="range-line"><input id="fontSize" type="range" min="12" max="32" value="16"><span id="fontSizeValue" class="range-value">16px</span></div></div>
 <div class="bar-field"><label>글씨체</label><select id="fontFamily"><option value="Pretendard">Pretendard</option><option value="Paperlogy">Paperlogy</option><option value="Wanted Sans">Wanted Sans</option><option value="SUIT">SUIT</option><option value="IBM Plex Sans KR">IBM Plex Sans KR</option><option value="Noto Sans KR">Noto Sans KR</option></select></div>
+        <div class="field">
+          <label>글자 정렬</label>
+          <select id="textAlign">
+            <option value="default">기본</option>
+            <option value="left">왼쪽</option>
+            <option value="center">중앙</option>
+            <option value="right">오른쪽</option>
+            <option value="justify">양쪽</option>
+          </select>
+        </div>
+
 <div class="bar-field"><label>줄 간격</label><div class="range-line"><input id="lineHeight" type="range" min="1.2" max="2.4" step="0.05" value="1.7"><span id="lineHeightValue" class="range-value">1.7</span></div></div>
 <div class="bar-field"><label>제목색</label><input id="titleColor" type="color" value="#3d3540"></div>
 <div class="bar-field"><label>본문색</label><input id="memoColor" type="color" value="#6d5b68"></div>
@@ -234,7 +313,7 @@ function drawPreview(){
       <span class="arm"></span>
       <div class="dot">${String(i+1).padStart(2,'0')}</div>
       <div class="content">
-        ${e.when?`<div class="when">${esc(e.when)}</div>`:''}
+        ${e.when?`<div class="when">${esc(e.when)}</div>`:`<div class="when when-placeholder">&nbsp;</div>`}
         ${e.what?`<h3 class="what">${esc(e.what)}</h3>`:''}
         ${e.memo?`<p class="memo">${esc(e.memo)}</p>`:''}
         ${e.tag?`<div class="meta"><span class="chip">${esc(e.tag)}</span></div>`:''}
@@ -257,7 +336,7 @@ function applyCardClass(){
   applyTextStyle();
 }
 
-['fontSize','fontFamily','lineHeight','titleColor','memoColor'].forEach(id=>{
+['fontSize','fontFamily','textAlign','lineHeight','titleColor','memoColor'].forEach(id=>{
   $(id).oninput=applyTextStyle;
   $(id).onchange=applyTextStyle;
 });
@@ -265,6 +344,7 @@ function applyCardClass(){
 function applyTextStyle(){
   const card=$('card');
   const font=$('fontFamily').value;
+  card.dataset.align=$('textAlign') ? $('textAlign').value : 'default';
   $('fontSizeValue').textContent=$('fontSize').value+'px';
   $('lineHeightValue').textContent=$('lineHeight').value;
   card.style.fontSize=$('fontSize').value+'px';
@@ -312,6 +392,16 @@ render();
   content:none !important;
 }
 </style>
+
+<style>
+/* 가지치기형: '언제'를 비워도 '무슨 일' 위치가 위로 올라가지 않게 자리만 유지 */
+#card.layout-branch .when-placeholder,
+#exportArea #card.layout-branch .when-placeholder{
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+</style>
 </body>
+
 
 </html>
