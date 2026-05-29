@@ -174,20 +174,20 @@ input,textarea,select{font-size:14px;padding:12px;border-radius:14px}textarea{mi
 
 <style>
 /* 글자 정렬: 모든 레이아웃/모바일/저장본 공통 */
-#card[data-align="left"] .content,
-#exportArea #card[data-align="left"] .content{
+#card[data-align="left"] .memo,
+#exportArea #card[data-align="left"] .memo{
   text-align:left !important;
 }
 #card[data-align="center"] .content,
 #exportArea #card[data-align="center"] .content{
   text-align:center !important;
 }
-#card[data-align="right"] .content,
-#exportArea #card[data-align="right"] .content{
+#card[data-align="right"] .memo,
+#exportArea #card[data-align="right"] .memo{
   text-align:right !important;
 }
-#card[data-align="justify"] .content,
-#exportArea #card[data-align="justify"] .content{
+#card[data-align="justify"] .memo,
+#exportArea #card[data-align="justify"] .memo{
   text-align:justify !important;
   text-align-last:auto !important;
 }
@@ -221,6 +221,209 @@ input,textarea,select{font-size:14px;padding:12px;border-radius:14px}textarea{mi
 #exportArea #card[data-align="justify"] .when{
   margin-left:0 !important;
   margin-right:auto !important;
+}
+</style>
+
+
+<style>
+/* 양쪽정렬은 내용 글자만 */
+#card[data-align="justify"] .when,
+#card[data-align="justify"] .what,
+#card[data-align="justify"] .meta,
+#exportArea #card[data-align="justify"] .when,
+#exportArea #card[data-align="justify"] .what,
+#exportArea #card[data-align="justify"] .meta{
+  text-align:inherit !important;
+}
+</style>
+
+
+<style>
+/* 왼쪽/오른쪽/양쪽 정렬은 내용 본문만 이동.
+   언제/무슨 일/태그는 기본 레이아웃 위치 유지.
+   중앙 정렬은 기존 상태 유지. */
+#card[data-align="left"] .when,
+#card[data-align="left"] .what,
+#card[data-align="left"] .meta,
+#card[data-align="right"] .when,
+#card[data-align="right"] .what,
+#card[data-align="right"] .meta,
+#card[data-align="justify"] .when,
+#card[data-align="justify"] .what,
+#card[data-align="justify"] .meta,
+#exportArea #card[data-align="left"] .when,
+#exportArea #card[data-align="left"] .what,
+#exportArea #card[data-align="left"] .meta,
+#exportArea #card[data-align="right"] .when,
+#exportArea #card[data-align="right"] .what,
+#exportArea #card[data-align="right"] .meta,
+#exportArea #card[data-align="justify"] .when,
+#exportArea #card[data-align="justify"] .what,
+#exportArea #card[data-align="justify"] .meta{
+  text-align:inherit !important;
+}
+
+/* 이전 정렬 CSS가 날짜 캡슐을 밀지 못하게 초기화 */
+#card[data-align="left"] .when,
+#card[data-align="right"] .when,
+#card[data-align="justify"] .when,
+#exportArea #card[data-align="left"] .when,
+#exportArea #card[data-align="right"] .when,
+#exportArea #card[data-align="justify"] .when{
+  margin-left:initial !important;
+  margin-right:initial !important;
+}
+
+/* 이전 정렬 CSS가 태그 줄 위치를 밀지 못하게 기본 레이아웃별 위치로 복구 */
+#card[data-align="left"] .titem.left .meta,
+#card[data-align="right"] .titem.left .meta,
+#card[data-align="justify"] .titem.left .meta,
+#exportArea #card[data-align="left"] .titem.left .meta,
+#exportArea #card[data-align="right"] .titem.left .meta,
+#exportArea #card[data-align="justify"] .titem.left .meta{
+  justify-content:flex-end !important;
+}
+
+#card[data-align="left"] .titem.right .meta,
+#card[data-align="right"] .titem.right .meta,
+#card[data-align="justify"] .titem.right .meta,
+#exportArea #card[data-align="left"] .titem.right .meta,
+#exportArea #card[data-align="right"] .titem.right .meta,
+#exportArea #card[data-align="justify"] .titem.right .meta{
+  justify-content:flex-start !important;
+}
+
+#card.layout-vertical[data-align="left"] .meta,
+#card.layout-vertical[data-align="right"] .meta,
+#card.layout-vertical[data-align="justify"] .meta,
+#exportArea #card.layout-vertical[data-align="left"] .meta,
+#exportArea #card.layout-vertical[data-align="right"] .meta,
+#exportArea #card.layout-vertical[data-align="justify"] .meta{
+  justify-content:flex-start !important;
+}
+
+#card.layout-horizontal[data-align="left"] .meta,
+#card.layout-horizontal[data-align="right"] .meta,
+#card.layout-horizontal[data-align="justify"] .meta,
+#exportArea #card.layout-horizontal[data-align="left"] .meta,
+#exportArea #card.layout-horizontal[data-align="right"] .meta,
+#exportArea #card.layout-horizontal[data-align="justify"] .meta{
+  justify-content:center !important;
+}
+</style>
+
+
+<style>
+/* 한쪽 세로형: 태그는 정렬값과 상관없이 항상 왼쪽 */
+#card.layout-vertical .meta,
+#exportArea #card.layout-vertical .meta{
+  justify-content:flex-start !important;
+}
+
+/* 가로형: 태그는 정렬값과 상관없이 항상 중앙 */
+#card.layout-horizontal .meta,
+#exportArea #card.layout-horizontal .meta{
+  justify-content:center !important;
+}
+</style>
+
+
+<style>
+/* ===== 태그 위치 강제 고정 ===== */
+
+/* 세로형:
+   - 중앙 정렬(center)일 때만 중앙
+   - 나머지(left/right/justify/default)는 무조건 왼쪽 */
+#card.layout-vertical:not([data-align="center"]) .meta,
+#exportArea #card.layout-vertical:not([data-align="center"]) .meta{
+  justify-content:flex-start !important;
+}
+
+#card.layout-vertical[data-align="center"] .meta,
+#exportArea #card.layout-vertical[data-align="center"] .meta{
+  justify-content:center !important;
+}
+
+/* 가로형:
+   정렬값 상관없이 항상 중앙 */
+#card.layout-horizontal .meta,
+#exportArea #card.layout-horizontal .meta{
+  justify-content:center !important;
+}
+</style>
+
+
+<style>
+/* ===== 세로형/가로형 태그 위치 진짜 최종 고정 ===== */
+
+/* meta 줄 자체를 항상 전체 폭으로 만들어서 text-align 영향을 안 받게 함 */
+#card .meta,
+#exportArea #card .meta{
+  width:100% !important;
+}
+
+/* 세로형: 중앙 정렬이 아닐 때는 무조건 왼쪽 */
+#card.layout-vertical:not([data-align="center"]) .content .meta,
+#card.layout-vertical:not([data-align="center"]) .meta,
+#exportArea #card.layout-vertical:not([data-align="center"]) .content .meta,
+#exportArea #card.layout-vertical:not([data-align="center"]) .meta{
+  display:flex !important;
+  justify-content:flex-start !important;
+  text-align:left !important;
+}
+
+/* 세로형: 중앙 정렬일 때만 중앙 */
+#card.layout-vertical[data-align="center"] .content .meta,
+#card.layout-vertical[data-align="center"] .meta,
+#exportArea #card.layout-vertical[data-align="center"] .content .meta,
+#exportArea #card.layout-vertical[data-align="center"] .meta{
+  display:flex !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+/* 가로형: 어떤 정렬이든 태그는 무조건 중앙 */
+#card.layout-horizontal .content .meta,
+#card.layout-horizontal .meta,
+#exportArea #card.layout-horizontal .content .meta,
+#exportArea #card.layout-horizontal .meta{
+  display:flex !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+/* 세로형 왼쪽 고정 상태에서 칩 자체가 오른쪽으로 밀리지 않게 */
+#card.layout-vertical:not([data-align="center"]) .chip,
+#exportArea #card.layout-vertical:not([data-align="center"]) .chip{
+  margin-left:0 !important;
+  margin-right:auto !important;
+}
+
+/* 세로형 중앙 정렬과 가로형에서는 칩 자동 margin 제거 */
+#card.layout-vertical[data-align="center"] .chip,
+#card.layout-horizontal .chip,
+#exportArea #card.layout-vertical[data-align="center"] .chip,
+#exportArea #card.layout-horizontal .chip{
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+</style>
+
+
+<style>
+/* ===== 가로형 태그 무조건 중앙 최종 강제 ===== */
+#card.layout-horizontal .meta,
+#card.layout-horizontal .content .meta,
+#card.layout-horizontal .chip,
+#exportArea #card.layout-horizontal .meta,
+#exportArea #card.layout-horizontal .content .meta,
+#exportArea #card.layout-horizontal .chip{
+  display:flex !important;
+  justify-content:center !important;
+  text-align:center !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+  width:100% !important;
 }
 </style>
 
