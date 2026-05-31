@@ -243,6 +243,7 @@
       width: 100%;
       max-height: 120px;
       object-fit: contain;
+      object-position: center center;
       border-radius: 6px;
       background: transparent;
     }
@@ -416,13 +417,16 @@
 
     .pair-image-render {
       display: block;
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
       object-fit: contain;
       object-position: center center;
       background: transparent;
       pointer-events: none;
       transform-origin: center center;
+      flex: 0 0 auto;
     }
 
     .pair-head {
@@ -568,78 +572,102 @@
       background: #ffffff !important;
     }
 
-    /* mobile cp name overlap fix */
 
+
+
+    /* stable title layout for preview and export */
     .pair-head {
-      min-width: 0;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      align-items: start !important;
+      gap: 14px !important;
+      margin-bottom: 18px !important;
     }
 
     .names {
-      min-width: 0;
-      max-width: 100%;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 10px !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+    }
+
+    .pair-name,
+    .au-title {
+      display: block !important;
+      position: static !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: visible !important;
+      white-space: normal !important;
+      word-break: keep-all !important;
+      overflow-wrap: anywhere !important;
     }
 
     .pair-name {
-      max-width: 100%;
-      overflow-wrap: anywhere;
-      word-break: keep-all;
-      line-height: 1.28;
+      line-height: 1.42 !important;
     }
 
     .au-title {
-      display: block;
-      margin-top: 8px;
-      line-height: 1.45;
-      overflow-wrap: anywhere;
-      word-break: keep-all;
+      line-height: 1.55 !important;
+    }
+
+    .type-badge {
+      align-self: start !important;
+      white-space: nowrap !important;
+      margin-top: 4px !important;
     }
 
     .archive.horizontal .pair-head {
-      display: block;
-    }
-
-    .archive.horizontal .type-badge {
-      display: inline-flex;
-      margin-top: 10px;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 10px !important;
     }
 
     .archive.horizontal .pair-name {
-      font-size: 21px;
-      line-height: 1.3;
-      letter-spacing: -0.025em;
+      font-size: 21px !important;
+      line-height: 1.42 !important;
     }
 
     @media (max-width: 900px) {
-      .pair-head {
-        display: block;
-      }
-
-      .type-badge {
-        display: inline-flex;
-        margin-top: 10px;
-      }
-
       .pair-name {
-        font-size: 22px;
-        line-height: 1.32;
+        font-size: 22px !important;
+        line-height: 1.45 !important;
       }
 
       .au-title {
-        margin-top: 8px;
-        line-height: 1.5;
+        line-height: 1.58 !important;
       }
     }
 
     @media (max-width: 520px) {
       .pair-name {
-        font-size: 20px;
-        line-height: 1.35;
+        font-size: 20px !important;
+        line-height: 1.48 !important;
       }
 
       .au-title {
-        font-size: 13px;
-        line-height: 1.5;
+        font-size: 13px !important;
+        line-height: 1.6 !important;
       }
+    }
+
+
+    .exporting .pair-image-render {
+      max-width: 100% !important;
+      max-height: 100% !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      object-position: center center !important;
+    }
+
+
+    /* single card exact export fix */
+    .exporting .pair-card {
+      margin: 0 !important;
     }
 
     .toast {
@@ -689,7 +717,7 @@
 
   </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 
 <body>
@@ -823,8 +851,7 @@
       <div class="controls">
         <button type="button" class="primary" id="addBtn">아카이브 카드 추가</button>
         <button type="button" id="downloadAllBtn" style="background:#555; color:white; border-color:#555;">전체 PNG 저장</button>
-        <button type="button" id="copyBtn">복사</button>
-        <button type="button" class="danger" id="clearBtn">데이터 전체 삭제</button>
+<button type="button" class="danger" id="clearBtn">데이터 전체 삭제</button>
       </div>
     </aside>
 
@@ -1180,25 +1207,8 @@
       }
     }
 
-    async function waitForImages(root) {
-      const images = Array.from(root.querySelectorAll("img"));
-      await Promise.all(images.map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      }));
-      if ("decode" in HTMLImageElement.prototype) {
-        await Promise.all(images.map(img => img.decode().catch(() => {})));
-      }
-    }
-
-    function getExportBackgroundColor(targetNode) {
-      if (targetNode.classList && targetNode.classList.contains("pair-card")) {
-        return getComputedStyle(targetNode).backgroundColor || "#ffffff";
-      }
-      return "#ffffff";
+    function getSavedCardCount() {
+      return archive.querySelectorAll(".pair-card:not(.live-preview-card)").length;
     }
 
     async function downloadBlob(blob, fileName) {
@@ -1215,120 +1225,82 @@
       }, 1200);
     }
 
-
-    function hardenCardBackgrounds(root) {
-      const cardNodes = root.classList && root.classList.contains("pair-card")
-        ? [root]
-        : Array.from(root.querySelectorAll(".pair-card"));
-
-      cardNodes.forEach(card => {
-        const bg = getComputedStyle(card).getPropertyValue("--card-bg").trim()
-          || getComputedStyle(card).backgroundColor
-          || "#ffffff";
-
-        card.style.backgroundColor = bg;
-
-        let layer = card.querySelector(":scope > .card-export-bg");
-        if (!layer) {
-          layer = document.createElement("div");
-          layer.className = "card-export-bg";
-          layer.setAttribute("aria-hidden", "true");
-          card.prepend(layer);
-        }
-        layer.style.background = bg;
-      });
-    }
-
-    async function exportNodeToPng(targetNode, fileName, mode = "download") {
-      if (!targetNode || typeof htmlToImage === "undefined") {
+    async function exportNodeToPng(targetNode, fileName) {
+      if (!targetNode || typeof html2canvas === "undefined") {
         showToast("PNG 저장 라이브러리를 불러오지 못했습니다.");
         return;
       }
 
-      const savedCards = archive.querySelectorAll(".pair-card:not(.live-preview-card)");
-      if (!savedCards.length && targetNode === archive) {
+      const isArchive = targetNode === archive;
+      if (isArchive && !getSavedCardCount()) {
         showToast("저장할 카드가 없습니다.");
         return;
       }
 
-      showToast(mode === "copy" ? "이미지 복사 중..." : "PNG 저장 중...");
+      showToast("PNG 저장 중...");
+
+      const prevArchiveGrid = archive.style.gridTemplateColumns;
+      const prevArchiveWidth = archive.style.width;
+      const prevBodyBg = document.body.style.backgroundColor;
 
       document.body.classList.add("exporting");
+      document.body.style.backgroundColor = "#ffffff";
 
-      const previousGridTemplateColumns = targetNode.style.gridTemplateColumns;
-      const previousWidth = targetNode.style.width;
-
-      if (targetNode === archive && currentLayout === "horizontal") {
-        const visibleCards = Array.from(archive.querySelectorAll(".pair-card:not(.live-preview-card)"));
-        const colCount = Math.min(3, Math.max(1, visibleCards.length));
-        targetNode.style.gridTemplateColumns = `repeat(${colCount}, 300px)`;
-        targetNode.style.width = "max-content";
+      if (isArchive && currentLayout === "horizontal") {
+        const count = getSavedCardCount();
+        const colCount = Math.min(3, Math.max(1, count));
+        archive.style.gridTemplateColumns = `repeat(${colCount}, 300px)`;
+        archive.style.width = "max-content";
       }
 
       await cachedFontReady;
       await waitForImages(targetNode);
       await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, 40));
 
-      const exportBackgroundColor = "#ffffff";
-      const computed = getComputedStyle(targetNode);
-      const previousBg = targetNode.style.backgroundColor;
-
-      hardenCardBackgrounds(targetNode);
-
-      if (targetNode.classList && targetNode.classList.contains("pair-card")) {
-        targetNode.style.backgroundColor = computed.getPropertyValue("--card-bg").trim() || computed.backgroundColor || exportBackgroundColor;
-      }
+      const rect = targetNode.getBoundingClientRect();
+      const isSingleCard = targetNode.classList && targetNode.classList.contains("pair-card");
+      const captureWidth = Math.ceil(isSingleCard ? rect.width : (targetNode.scrollWidth || rect.width));
+      const captureHeight = Math.ceil(isSingleCard ? rect.height : (targetNode.scrollHeight || rect.height));
 
       try {
-        const blob = await htmlToImage.toBlob(targetNode, {
-          pixelRatio: 1.5,
-          cacheBust: false,
+        const canvas = await html2canvas(targetNode, {
           backgroundColor: "#ffffff",
-          skipAutoScale: true,
-          style: {
-            transform: "none",
-            transformOrigin: "top left"
-          },
-          filter: (node) => {
-            if (!node.classList) return true;
-            if (node.classList.contains("live-preview-card")) return false;
-            if (node.classList.contains("action-buttons-group")) return false;
-            return true;
-          }
+          scale: 2,
+          width: captureWidth,
+          height: captureHeight,
+          windowWidth: captureWidth,
+          windowHeight: captureHeight,
+          scrollX: 0,
+          scrollY: 0,
+          useCORS: true,
+          allowTaint: true,
+          imageTimeout: 0,
+          logging: false,
+          removeContainer: true
         });
 
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
         if (!blob) {
-          showToast(mode === "copy" ? "이미지 복사에 실패했습니다." : "PNG 저장에 실패했습니다.");
+          showToast("PNG 저장에 실패했습니다.");
           return;
         }
 
-        if (mode === "copy") {
-          if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
-            showToast("이 브라우저는 이미지 클립보드 복사를 지원하지 않습니다.");
-            return;
-          }
-
-          await navigator.clipboard.write([
-            new ClipboardItem({ "image/png": blob })
-          ]);
-          showToast("이미지 복사가 완료되었습니다.");
-        } else {
-          await downloadBlob(blob, fileName);
-          showToast("PNG 저장이 완료되었습니다.");
-        }
+        await downloadBlob(blob, fileName);
+        showToast("PNG 저장이 완료되었습니다.");
       } catch (err) {
         console.error(err);
-        showToast(mode === "copy" ? "이미지 복사에 실패했습니다." : "PNG 저장에 실패했습니다.");
+        showToast("PNG 저장에 실패했습니다.");
       } finally {
-        targetNode.style.backgroundColor = previousBg;
-        targetNode.style.gridTemplateColumns = previousGridTemplateColumns;
-        targetNode.style.width = previousWidth;
+        archive.style.gridTemplateColumns = prevArchiveGrid;
+        archive.style.width = prevArchiveWidth;
+        document.body.style.backgroundColor = prevBodyBg;
         document.body.classList.remove("exporting");
       }
     }
 
     async function captureTargetNode(targetNode, fileName) {
-      await exportNodeToPng(targetNode, fileName, "download");
+      await exportNodeToPng(targetNode, fileName);
     }
 
     $("imageInput").addEventListener("change", (e) => {
@@ -1387,14 +1359,7 @@
         showToast("전체 초기화가 완료되었습니다.");
       }
     });
-
-    async function copyBoardImageToClipboard() {
-      await exportNodeToPng(archive, "pair-au-archive", "copy");
-    }
-
-    $("copyBtn").addEventListener("click", copyBoardImageToClipboard);
-
-    archive.addEventListener("click", (e) => {
+archive.addEventListener("click", (e) => {
       const singleId = e.target.dataset.downloadSingle;
       const editId = e.target.dataset.edit;
       const deleteId = e.target.dataset.delete;
