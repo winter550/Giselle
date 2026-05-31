@@ -308,7 +308,7 @@
 
     .archive {
       display: grid;
-      grid-template-columns: 640px;
+      grid-template-columns: 800px;
       gap: 24px;
       width: max-content;
       max-width: none;
@@ -317,7 +317,7 @@
     }
 
     .archive.horizontal {
-      grid-template-columns: repeat(3, 300px);
+      grid-template-columns: repeat(3, 480px);
       align-items: start;
       width: max-content;
       max-width: none;
@@ -412,7 +412,7 @@
     }
 
     .archive.horizontal .image-container-frame {
-      height: 170px;
+      height: 240px;
     }
 
     .pair-image-render {
@@ -563,16 +563,6 @@
     }
 
 
-    body.exporting {
-      background: #ffffff !important;
-    }
-
-    .exporting .archive,
-    .exporting .archive-container-target {
-      background: #ffffff !important;
-    }
-
-
 
 
     /* stable title layout for preview and export */
@@ -627,7 +617,7 @@
     }
 
     .archive.horizontal .pair-name {
-      font-size: 21px !important;
+      font-size: 24px !important;
       line-height: 1.42 !important;
     }
 
@@ -670,6 +660,30 @@
       margin: 0 !important;
     }
 
+
+
+    .export-export-frame {
+      background: #ffffff !important;
+      padding: 10px !important;
+      box-sizing: border-box !important;
+      display: inline-block !important;
+      width: max-content !important;
+      height: max-content !important;
+      overflow: visible !important;
+    }
+
+
+    /* single card save exact width fix */
+    .exporting .pair-card {
+      margin: 0 !important;
+    }
+
+    .exporting .archive {
+      width: max-content !important;
+      max-width: none !important;
+      justify-content: start !important;
+    }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -705,13 +719,13 @@
       }
 
       .archive.horizontal {
-        grid-template-columns: repeat(3, 300px);
+        grid-template-columns: repeat(3, 480px);
       }
     }
   
     @media (max-width: 620px) {
       .archive.horizontal {
-        grid-template-columns: repeat(3, 300px);
+        grid-template-columns: repeat(3, 480px);
       }
     }
 
@@ -1225,6 +1239,7 @@
       }, 1200);
     }
 
+
     async function exportNodeToPng(targetNode, fileName) {
       if (!targetNode || typeof html2canvas === "undefined") {
         showToast("PNG 저장 라이브러리를 불러오지 못했습니다.");
@@ -1232,6 +1247,8 @@
       }
 
       const isArchive = targetNode === archive;
+      const isSingleCard = targetNode.classList && targetNode.classList.contains("pair-card");
+
       if (isArchive && !getSavedCardCount()) {
         showToast("저장할 카드가 없습니다.");
         return;
@@ -1241,30 +1258,79 @@
 
       const prevArchiveGrid = archive.style.gridTemplateColumns;
       const prevArchiveWidth = archive.style.width;
-      const prevBodyBg = document.body.style.backgroundColor;
 
       document.body.classList.add("exporting");
-      document.body.style.backgroundColor = "#ffffff";
+
+      let sourceNode = targetNode;
 
       if (isArchive && currentLayout === "horizontal") {
         const count = getSavedCardCount();
         const colCount = Math.min(3, Math.max(1, count));
-        archive.style.gridTemplateColumns = `repeat(${colCount}, 300px)`;
+        archive.style.gridTemplateColumns = `repeat(${colCount}, 480px)`;
         archive.style.width = "max-content";
       }
 
       await cachedFontReady;
-      await waitForImages(targetNode);
+      await waitForImages(sourceNode);
       await new Promise(resolve => requestAnimationFrame(resolve));
-      await new Promise(resolve => setTimeout(resolve, 40));
 
-      const rect = targetNode.getBoundingClientRect();
-      const isSingleCard = targetNode.classList && targetNode.classList.contains("pair-card");
-      const captureWidth = Math.ceil(isSingleCard ? rect.width : (targetNode.scrollWidth || rect.width));
-      const captureHeight = Math.ceil(isSingleCard ? rect.height : (targetNode.scrollHeight || rect.height));
+      const frame = document.createElement("div");
+      frame.className = "export-export-frame";
+      frame.style.position = "fixed";
+      frame.style.left = "-100000px";
+      frame.style.top = "0";
+      frame.style.background = "#ffffff";
+      frame.style.padding = "10px";
+      frame.style.boxSizing = "border-box";
+      frame.style.display = "inline-block";
+      frame.style.width = "max-content";
+      frame.style.height = "max-content";
+      frame.style.overflow = "visible";
+
+      const clone = sourceNode.cloneNode(true);
+
+      clone.querySelectorAll(".action-buttons-group").forEach(el => el.remove());
+      clone.querySelectorAll(".live-preview-card").forEach(el => el.remove());
+
+      if (isSingleCard) {
+        const rect = sourceNode.getBoundingClientRect();
+        const cardWidth = Math.ceil(rect.width);
+        clone.style.width = `${cardWidth}px`;
+        clone.style.maxWidth = "none";
+        clone.style.height = "auto";
+        clone.style.boxSizing = "border-box";
+      } else if (isArchive) {
+        const savedCards = Array.from(archive.querySelectorAll(".pair-card:not(.live-preview-card)"));
+        const firstCard = savedCards[0];
+        const firstRect = firstCard ? firstCard.getBoundingClientRect() : sourceNode.getBoundingClientRect();
+        const cardWidth = Math.ceil(firstRect.width);
+        const gap = 24;
+        const colCount = currentLayout === "horizontal" ? Math.min(3, Math.max(1, savedCards.length)) : 1;
+        const boardWidth = cardWidth * colCount + gap * (colCount - 1);
+
+        clone.style.display = "grid";
+        clone.style.gridTemplateColumns = currentLayout === "horizontal"
+          ? `repeat(${colCount}, ${cardWidth}px)`
+          : `${cardWidth}px`;
+        clone.style.gap = `${gap}px`;
+        clone.style.alignItems = "start";
+        clone.style.width = `${boardWidth}px`;
+        clone.style.maxWidth = "none";
+        clone.style.overflow = "visible";
+      }
+
+      frame.appendChild(clone);
+      document.body.appendChild(frame);
+
+      await waitForImages(frame);
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      const rect = frame.getBoundingClientRect();
+      const captureWidth = Math.ceil(frame.scrollWidth || rect.width);
+      const captureHeight = Math.ceil(frame.scrollHeight || rect.height);
 
       try {
-        const canvas = await html2canvas(targetNode, {
+        const canvas = await html2canvas(frame, {
           backgroundColor: "#ffffff",
           scale: 2,
           width: captureWidth,
@@ -1292,9 +1358,9 @@
         console.error(err);
         showToast("PNG 저장에 실패했습니다.");
       } finally {
+        frame.remove();
         archive.style.gridTemplateColumns = prevArchiveGrid;
         archive.style.width = prevArchiveWidth;
-        document.body.style.backgroundColor = prevBodyBg;
         document.body.classList.remove("exporting");
       }
     }
