@@ -568,6 +568,80 @@
       background: #ffffff !important;
     }
 
+    /* mobile cp name overlap fix */
+
+    .pair-head {
+      min-width: 0;
+    }
+
+    .names {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .pair-name {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+      line-height: 1.28;
+    }
+
+    .au-title {
+      display: block;
+      margin-top: 8px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+    }
+
+    .archive.horizontal .pair-head {
+      display: block;
+    }
+
+    .archive.horizontal .type-badge {
+      display: inline-flex;
+      margin-top: 10px;
+    }
+
+    .archive.horizontal .pair-name {
+      font-size: 21px;
+      line-height: 1.3;
+      letter-spacing: -0.025em;
+    }
+
+    @media (max-width: 900px) {
+      .pair-head {
+        display: block;
+      }
+
+      .type-badge {
+        display: inline-flex;
+        margin-top: 10px;
+      }
+
+      .pair-name {
+        font-size: 22px;
+        line-height: 1.32;
+      }
+
+      .au-title {
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .pair-name {
+        font-size: 20px;
+        line-height: 1.35;
+      }
+
+      .au-title {
+        font-size: 13px;
+        line-height: 1.5;
+      }
+    }
+
     .toast {
       position: fixed;
       left: 50%;
