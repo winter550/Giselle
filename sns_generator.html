@@ -173,12 +173,15 @@ img{image-rendering:auto}
           <pre id="igTemplate">[OOC: 세계관 정보, PC와 NPC의 프로필, 둘의 관계성, 유저노트, 장기기억, 로어북, 말투 등을 참고하여 NPC의 Instagram 게시물을 10가지 이상 출력한다.
 단, PC의 행동·대사·감정은 임의로 확정하지 않는다.
 사진은 실제 이미지가 아니라 “사진 묘사”로 작성한다.
-좋아요, 댓글 수, 리그램 수 같은 숫자 항목은 SNS에서 보이는 짧은 형식으로 출력한다.
+좋아요, 댓글 수, 리그램 수, 공유 수 같은 숫자 항목은 SNS에서 보이는 짧은 형식으로 출력한다.
 예: 849.2K, 1.5M, 2.4만, 18.7만
 단, “개”, “명”, “회”, “건”, “likes” 같은 단위는 붙이지 않는다.
-리그램 게시물은 작성하지 않지만, 리그램 수 항목은 게시물마다 반드시 출력한다.
-댓글은 대표 댓글 1개만 작성한다. 여러 댓글을 길게 나열하지 않는다.
+리그램 게시물은 작성하지 않지만, 리그램 수와 공유 수 항목은 게시물마다 반드시 출력한다.
+댓글 내용은 출력하지 않고 댓글 수만 출력한다.
 리그램/재게시/인용 게시물은 작성하지 않는다.
+게시 시점은 실제 Instagram 피드처럼 짧게 출력한다.
+예: 방금 전, 3분 전, 2시간 전, 어제, 3일 전, 1주 전, 11월 21일
+2027.11.21, 2027-11-21, 2027년 11월 21일 같은 기록용 날짜 형식은 출력하지 않는다.
 각 묶음 앞에 제목이나 번호를 붙이지 않는다.
 [게시물], [일반 게시물], 게시물 1, 게시물 2 같은 문구를 출력하지 않는다.
 항목 사이에 빈 줄을 넣지 않는다.
@@ -191,8 +194,8 @@ img{image-rendering:auto}
 좋아요:
 댓글 수:
 리그램 수:
-댓글:
-날짜:
+공유 수:
+게시 시점:
 위 형식으로 10개 이상 작성한다.]</pre>
           <div id="igCopyOk" class="copy-ok"></div>
         </div>
@@ -318,7 +321,7 @@ function mediaHtml(cls,src,mode,text){
  if(text){return `<div class="media-box ${cls}"><div class="media-text">${esc(text)}</div></div>`;}
  return `<div class="media-box ${cls}"></div>`;
 }
-function defaultIg(){return{header:'',sub:'',mode:'text',image:null,images:[],desc:'',caption:'',likes:'0',comments:'',date:'방금 전',commentCount:'',regramCount:''};}
+function defaultIg(){return{header:'',sub:'',mode:'text',image:null,images:[],desc:'',caption:'',likes:'0',comments:'',date:'방금 전',commentCount:'',regramCount:'',shareCount:''};}
 function defaultTw(){return{mode:'text',image:null,images:[],desc:'',text:'',time:'2달 전',rt:'0',likes:'0'};}
 function renderEditors(){
  $('igEditors').innerHTML=state.igPosts.map((p,i)=>`<div class="post-editor" data-kind="ig" data-index="${i}">
@@ -329,8 +332,7 @@ function renderEditors(){
   <label>사진/장면 묘사</label><textarea data-field="desc">${esc(p.desc)}</textarea>
   <label>본문</label><textarea data-field="caption">${esc(p.caption)}</textarea>
   <div class="grid2"><div><label>좋아요</label><input data-field="likes" value="${esc(p.likes)}"></div><div><label>댓글 수</label><input data-field="commentCount" value="${esc(p.commentCount||'')}"></div></div>
-  <label>리그램 수</label><input data-field="regramCount" value="${esc(p.regramCount||'')}" placeholder="예: 849.2K, 1.5M, 2.4만">
-  <label>댓글</label><textarea data-field="comments" placeholder="대표 댓글 1개만 입력. 예: 이름: 댓글 내용">${esc(p.comments)}</textarea>
+  <div class="grid2"><div><label>리그램 수</label><input data-field="regramCount" value="${esc(p.regramCount||'')}" placeholder="예: 849.2K"></div><div><label>공유 수</label><input data-field="shareCount" value="${esc(p.shareCount||'')}" placeholder="예: 1.5M"></div></div>
   <label>날짜</label><input data-field="date" value="${esc(p.date)}">
  </div>`).join('');
  $('twEditors').innerHTML=state.twPosts.map((p,i)=>`<div class="post-editor" data-kind="tw" data-index="${i}">
@@ -348,10 +350,7 @@ function updatePreviewMode(){ return; }
 
 function igCommentsHtml(p){
  const count=stripUnit(p.commentCount||'');
- const line=String(p.comments||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
- let html=count?`<div class="muted">댓글 ${esc(count)}개 모두 보기</div>`:'';
- if(line){const m=line.match(/^([^:：]{1,18})[:：]\s*(.+)$/);html+=m?`<div class="ig-comment"><span class="ig-comment-name">${esc(m[1])}</span> ${esc(m[2])}</div>`:`<div class="ig-comment muted">${esc(line)}</div>`;}
- return html;
+ return count?`<div class="muted">댓글 ${esc(count)}개 모두 보기</div>`:'';
 }
 function renderPreviews(){
  applyViewSettings();
@@ -361,7 +360,7 @@ function renderPreviews(){
  $('igFeed').innerHTML=state.igPosts.map((p,i)=>`<div class="ig-post">
   <div class="ig-head">${avatarHtml('ig-avatar',state.igAvatar,'igAvatar')}<div><div class="ig-name">${esc(p.header||val('igName'))}<svg class="lock" viewBox="-2 -2 28 28"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor"/></svg></div>${p.sub?`<div class="ig-sub">${esc(p.sub)}</div>`:''}</div><div class="dots">⋮</div></div>
   ${mediaHtml('ig-media',(p.images&&p.images.length?p.images:p.image),p.mode,p.desc)}
-  <div class="ig-actions"><span class="act">${icons.heart}<b>${esc(stripUnit(p.likes))}</b></span><span class="act">${icons.comment}<b>${esc(stripUnit(p.commentCount||''))}</b></span><span class="act">${icons.rt}<b>${esc(stripUnit(p.regramCount||''))}</b></span><span class="act">${icons.send}</span><span class="save-icon">${icons.bookmark}</span></div>
+  <div class="ig-actions"><span class="act">${icons.heart}<b>${esc(stripUnit(p.likes))}</b></span><span class="act">${icons.comment}<b>${esc(stripUnit(p.commentCount||''))}</b></span><span class="act">${icons.rt}<b>${esc(stripUnit(p.regramCount||''))}</b></span><span class="act">${icons.send}<b>${esc(stripUnit(p.shareCount||''))}</b></span><span class="save-icon">${icons.bookmark}</span></div>
   <div class="ig-body"><div>${(p.header||val('igName'))?`<span class="cap-name">${esc(p.header||val('igName'))}</span> `:''}${esc(p.caption)}</div>${igCommentsHtml(p)}<div class="date">${esc(p.date)}</div></div>
  </div>`).join('');
  setImgBox($('twHeaderPreview'),state.twHeader,'twHeader'); setImgBox($('twAvatarPreview'),state.twAvatar,'twAvatar');
@@ -417,9 +416,10 @@ function parseOocText(raw){
   [/^(본문|글|내용|트윗|게시글|caption|text)$/i,'text'],
   [/^(좋아요|하트|마음|likes?|like)$/i,'likes'],
   [/^(댓글\s*수|댓글수|comment\s*count)$/i,'commentCount'],
-  [/^(리그램\s*수|리그램수|regram\s*count|repost\s*count|공유\s*수)$/i,'regramCount'],
+  [/^(리그램\s*수|리그램수|regram\s*count|repost\s*count)$/i,'regramCount'],
+  [/^(공유\s*수|공유수|share\s*count|shares?)$/i,'shareCount'],
   [/^(댓글|댓글\s*보기|comments?)$/i,'comments'],
-  [/^(날짜|시간|업로드|date|time)$/i,'date'],
+  [/^(날짜|시간|업로드|게시\s*시점|date|time)$/i,'date'],
   [/^(재게시|리트윗|알티|rt|retweet)$/i,'rt']
  ];
  function mk(k){k=k.replace(/^[#*\-\s]+/,'').replace(/\s+/g,' ').trim();for(const [re,v] of map){if(re.test(k))return v;}return'';}
@@ -448,6 +448,7 @@ function applyIgOoc(){
    if(d.comments) p.comments=String(d.comments).split(/\r?\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
    if(d.commentCount) p.commentCount=stripUnit(d.commentCount);
    if(d.regramCount) p.regramCount=stripUnit(d.regramCount);
+   if(d.shareCount) p.shareCount=stripUnit(d.shareCount);
    if(d.date) p.date=d.date;
    return p;
  });
