@@ -147,6 +147,19 @@
 .name{line-height:1.35!important;padding-top:0!important;padding-bottom:0!important;}
 .desc,.meta,.date,.input-fake,.sender-name{line-height:1.35!important;padding-top:0!important;padding-bottom:0!important;}
 
+
+
+/* final preview/html/png behavior split
+   preview + copied HTML: fixed phone with chat scroll
+   PNG save: JS expands only the cloned export target */
+.phone:not(.png-full-export){height:780px!important;min-height:0!important}
+.phone:not(.png-full-export) .screen{height:100%!important;overflow:hidden!important}
+.phone:not(.png-full-export) .chat{flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important}
+.phone.png-full-export{height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+.phone.png-full-export .screen{height:auto!important;min-height:0!important;overflow:visible!important}
+.phone.png-full-export .chat{flex:0 0 auto!important;height:auto!important;max-height:none!important;overflow:visible!important;overflow-y:visible!important;overflow-x:hidden!important}
+.phone.png-full-export .composer,.phone.png-full-export .home{flex:0 0 auto!important}
+
 </style>
 </head>
 <body>
@@ -199,6 +212,9 @@ async function copyTextSafe(text, okMsg='복사했습니다'){
 function standaloneHTML(){
   renderPreview();
   const clonedCapture=capture.cloneNode(true);
+  clonedCapture.classList.remove('capture-tall');
+  clonedCapture.classList.remove('png-full-export');
+  clonedCapture.querySelectorAll('.capture-tall,.png-full-export').forEach(el=>{el.classList.remove('capture-tall');el.classList.remove('png-full-export');});
   clonedCapture.style.transform='none';
   const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
   const fontLinks=[...document.querySelectorAll('link[rel="stylesheet"],link[rel="preconnect"]')].map(x=>x.outerHTML).join('\n');
@@ -215,6 +231,11 @@ html,body{margin:0;min-height:100%;background:#f4f6fb;display:flex;justify-conte
 ${css}
 body .app,body .side,body .stage{display:block;padding:0;margin:0;background:transparent;box-shadow:none;border:0}
 body .capture{transform:none!important;margin:0 auto}
+body .phone{height:780px!important;min-height:0!important;max-height:none!important}
+body .screen{height:100%!important;min-height:0!important;overflow:hidden!important}
+body .chat{flex:1 1 auto!important;overflow-y:auto!important;overflow-x:hidden!important;max-height:none!important}
+body .phone.capture-tall .screen{height:100%!important}
+body .phone.capture-tall .chat{overflow-y:auto!important;flex:1 1 auto!important}
 
 @media(max-width:560px){.preview-actions{position:sticky;top:0;right:auto;align-self:stretch;width:100%;justify-content:center;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);padding:8px;border-radius:18px;margin-top:-58px;margin-bottom:14px}.preview-actions .btn{min-width:0;flex:1;padding:9px 6px;font-size:11px}.stage{flex-direction:column;align-items:center}}
 
@@ -281,7 +302,7 @@ body .capture{transform:none!important;margin:0 auto}
 function avatarHTML(src=''){const n=($('themName').value||'N').trim().slice(0,1).toUpperCase();const image=src||state.avatarData;return image?`<img src="${image}" alt="">`:esc(n)}
 function oocText(){return `[OOC: 아래 형식으로 메신저 대화 로그를 출력한다. 세계관 정보, PC와 NPC의 프로필, 둘의 관계성, 유저노트, 장기기억, 로어북, 말투 등을 참고하여 10가지 종류 이상으로 서술한다. 결과는 코드블록 없이 바로 복사할 수 있게 작성한다.
 
-날짜가 바뀌거나 장면이 넘어갈 경우 반드시 DATE | 날짜 형식의 구분선을 사용한다. 대화는 반드시 '보낸이 | 시간 | 내용' 형식을 지킨다. 보낸이는 PC 또는 NPC로만 표기한다. 여러 줄 메시지는 한 줄 안에서 자연스럽게 이어 쓴다. 대화는 실제 메신저처럼 짧고 자연스럽게 작성한다.
+날짜가 바뀌거나 장면이 넘어갈 경우 반드시 DATE | 날짜 형식의 구분선을 사용한다. 대화는 반드시 '보낸이 | 시간 | 내용' 형식을 지킨다. 보낸 이 표기는 이름, 애칭, 캐릭터명, 닉네임을 절대 쓰지 않으며, PC 또는 NPC로만 표기한다. 여러 줄 메시지는 한 줄 안에서 자연스럽게 이어 쓴다. 대화는 실제 메신저처럼 짧고 자연스럽게 작성한다.
 
 형식 예시:
 DATE | 2026년 6월 1일
@@ -631,6 +652,39 @@ backupBtn.onclick=async()=>{const html=standaloneHTML();const copied=await copyT
     document.body.appendChild(holder);
     return {holder, clone};
   }
+  function prepareFullPngClone(clone){
+    const phoneEl = clone.classList && clone.classList.contains('phone') ? clone : clone.querySelector('.phone');
+    const shellEl = clone.classList && clone.classList.contains('phone-shell') ? clone : clone.querySelector('.phone-shell');
+    const screenEl = phoneEl ? phoneEl.querySelector('.screen') : null;
+    const chatEl = phoneEl ? phoneEl.querySelector('.chat') : null;
+    if(!phoneEl || !chatEl) return;
+    phoneEl.classList.remove('capture-tall');
+    phoneEl.classList.add('png-full-export');
+    clone.querySelectorAll('.capture-tall').forEach(el=>el.classList.remove('capture-tall'));
+    phoneEl.style.height='auto';
+    phoneEl.style.minHeight='0';
+    phoneEl.style.maxHeight='none';
+    phoneEl.style.overflow='hidden';
+    if(screenEl){
+      screenEl.style.height='auto';
+      screenEl.style.minHeight='0';
+      screenEl.style.overflow='visible';
+      screenEl.style.display='flex';
+      screenEl.style.flexDirection='column';
+    }
+    chatEl.style.flex='0 0 auto';
+    chatEl.style.height='auto';
+    chatEl.style.maxHeight='none';
+    chatEl.style.overflow='visible';
+    chatEl.style.overflowY='visible';
+    chatEl.style.overflowX='hidden';
+    if(shellEl){
+      shellEl.style.height='auto';
+      shellEl.style.maxHeight='none';
+      shellEl.style.overflow='hidden';
+    }
+  }
+
   async function renderBlob(){
     const ok=await ensureHtml2Canvas();
     if(!ok) throw new Error('PNG 저장 라이브러리 로딩 실패');
@@ -641,6 +695,7 @@ backupBtn.onclick=async()=>{const html=standaloneHTML();const copied=await copyT
     const oldCaptureFilter = byId('capture') ? byId('capture').style.filter : '';
     if(byId('capture')){ byId('capture').style.transform='none'; byId('capture').style.filter='none'; }
     const made=makeOffscreenClone(src);
+    prepareFullPngClone(made.clone);
     try{
       await waitReady();
       const canvas=await window.html2canvas(made.clone,{
