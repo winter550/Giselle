@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SNS 생성기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f6f7;color:#0f1419;font-family:var(--sns-font),-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Noto Sans KR",Arial,sans-serif}
+:root{--sns-font:Pretendard;--ig-text-size:14px;--tw-text-size:16px;--ig-media-text-size:18px;--tw-media-text-size:17px}
+button,input,textarea,select{font:inherit}
+.app{max-width:1220px;margin:0 auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+h1{font-size:21px;margin:0}
+.tabs{display:flex;gap:8px}.tab{border:1px solid #d8dde2;background:#fff;border-radius:999px;padding:9px 15px;font-weight:800;cursor:pointer}.tab.active{background:#e8f5ff;border-color:#99d2ff;color:#0969a5}
+.layout{display:grid;grid-template-columns:minmax(330px,450px) 1fr;gap:16px;align-items:start}
+.editor,.preview-shell{background:#fff;border:1px solid #dfe3e7;border-radius:18px;padding:15px;box-shadow:0 8px 22px rgba(0,0,0,.04)}
+.panel{display:none}.panel.active{display:block}
+.section-title{font-size:15px;font-weight:900;margin:15px 0 8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+label{display:block;font-size:12px;font-weight:800;color:#536471;margin:8px 0 5px}
+input,textarea,select{width:100%;border:1px solid #d7dce0;border-radius:12px;padding:10px 11px;background:#fff;outline:none}
+textarea{min-height:74px;resize:vertical}
+.file-row{display:flex;gap:8px}.file-row input[type=file]{padding:8px}.file-row button{white-space:nowrap}
+.btn,.small-btn,.save-btn,.add-btn{border:0;border-radius:12px;padding:10px 12px;font-weight:900;cursor:pointer}
+.small-btn{background:#f1f3f5}.add-btn{width:100%;background:#edf7ff;color:#0969a5;margin-top:8px}.save-btn{width:100%;background:#111;color:#fff;margin-top:10px}.save-top{margin:14px 0 8px}
+.post-editor,.paste-box,.template-card{border:1px solid #e1e5e8;border-radius:16px;padding:12px;margin:12px 0;background:#fbfcfd}.template-card pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #d7dce0;border-radius:12px;padding:12px;font-size:12px;line-height:1.55;max-height:360px;overflow:auto}.copy-ok{font-size:12px;color:#0969a5;font-weight:900;margin-top:6px}
+.post-head{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:13px}
+.delete-post{background:#ffecef;color:#c5163f;border:0;border-radius:999px;padding:6px 10px;font-weight:900}
+.range-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;border:1px solid #d7dce0;border-radius:13px;padding:10px 12px;font-size:13px;font-weight:800;margin-top:8px}.toggle-row input{width:auto}
+.note,.hint{font-size:12px;color:#536471;line-height:1.45;margin-top:6px}.ok{color:#0969a5;font-weight:900}
+.preview-shell{display:flex;justify-content:center;overflow:auto;min-height:680px}
+.preview-area{width:390px;max-width:100%}
+.avatar,.media-box,.header-box{position:relative;overflow:hidden;background:#cfd9de;flex:none}
+.avatar{border-radius:50%}
+.avatar img,.header-box img{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  image-rendering:auto;
+  display:none;
+  max-width:none;
+  transform:translate(-50%,-50%) scale(1);
+  transform-origin:center center;
+}
+.media-box img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:none;
+  max-width:none;
+  transform:none;
+}
+.avatar.has-img img,.media-box.has-img img,.header-box.has-img img{display:block}
+.avatar:not(.has-img)::before{content:"";position:absolute;width:38%;height:38%;border-radius:50%;background:#9aa7b1;left:31%;top:18%}
+.avatar:not(.has-img)::after{content:"";position:absolute;width:66%;height:36%;border-radius:50% 50% 0 0;background:#9aa7b1;left:17%;bottom:7%}
+.lock,.tw-lock{display:none;width:16px;min-width:16px;height:16px;vertical-align:-3px;margin-left:4px;overflow:visible;flex:0 0 auto}.protected .lock{display:inline-flex}.tw-card.protected .tw-lock{display:inline-flex}.ig-name,.tw-name,.tw-post-name{overflow:visible;align-items:center;line-height:1.35}.ig-head,.tw-post-top{overflow:visible}
+
+/* Instagram */
+.ig-card{width:390px;background:#fff;border:1px solid #dbdbdb;color:#000}
+.ig-top{height:45px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;border-bottom:1px solid #efefef}
+.ig-post{border-bottom:1px solid #efefef;background:#fff}
+.ig-head{display:flex;align-items:center;gap:10px;padding:11px 12px}
+.ig-avatar{width:36px;height:36px}
+.ig-story-ring{padding:2px;border-radius:50%;background:linear-gradient(45deg,#f58529,#dd2a7b,#8134af,#515bd4)}.ig-story-ring .ig-avatar{border:2px solid #fff}
+.ig-name{font-size:14px;font-weight:900;line-height:1.25;display:inline-flex;align-items:center;gap:3px;overflow:visible}.ig-sub{font-size:12px;color:#262626;margin-top:2px;line-height:1.2;white-space:pre-wrap;word-break:break-word}.dots{margin-left:auto;font-weight:900}
+.ig-media{width:100%;aspect-ratio:1/1;background:#efefef;min-height:1px;flex:none}
+.media-text{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;padding:24px;color:#333;line-height:1.6;font-size:var(--media-text-size,18px)}
+.ig-media .media-text{font-size:var(--ig-media-text-size,18px)}
+.tw-media .media-text{font-size:var(--tw-media-text-size,17px)}
+.ig-actions{display:flex;align-items:center;gap:18px;padding:10px 12px 0;color:#000}.act{display:flex;align-items:center;gap:5px}.act svg,.save-icon svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.act b{font-size:14px;font-weight:500}
+.red{color:#ed4956}.red svg{fill:#ed4956;stroke:#ed4956}.green{color:#00ba7c}.blue{color:#1d9bf0}.blue svg{fill:#1d9bf0;stroke:#1d9bf0}.save-icon{margin-left:auto}
+.ig-body{font-size:var(--ig-text-size,14px);line-height:1.45;padding:8px 12px 14px;word-break:break-word}.cap-name{font-weight:900}.muted{color:#8e8e8e}.ig-comment{margin-top:4px}.ig-comment-name{font-weight:900;color:#000}.date{font-size:11px;color:#8e8e8e;margin-top:8px}
+
+/* Twitter */
+.tw-card{width:390px;background:#fff;border:1px solid #cfd9de;color:#0f1419}
+.tw-nav{height:48px;display:flex;align-items:center;gap:18px;padding:0 14px;border-bottom:1px solid #eff3f4;font-weight:900}
+.tw-header{width:100%;height:130px;flex:none}
+.tw-main{padding:0 16px 16px}.tw-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:-36px}.tw-main-avatar{width:78px;height:78px;border:4px solid #fff}
+.follow{border:1px solid #cfd9de;background:#fff;border-radius:999px;padding:7px 16px;font-weight:900}
+.tw-name{font-size:21px;font-weight:900;line-height:1.2;margin-top:12px}.tw-id,.tw-meta{font-size:14px;color:#536471;line-height:1.45}.tw-bio{white-space:pre-wrap;line-height:1.55;font-size:14px;margin-top:12px}.tw-meta{margin-top:10px}
+.tw-feed{border-top:1px solid #eff3f4}.repost{color:#536471;font-size:13px;font-weight:700;margin:12px 0 4px 50px}
+.tw-post{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #eff3f4}.tw-post-avatar{width:40px;height:40px}.tw-post-main{min-width:0;flex:1}.tw-post-top{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tw-post-name{font-weight:900}
+.tw-text{font-size:var(--tw-text-size,16px);line-height:1.55;white-space:pre-wrap;word-break:break-word}.tw-media{margin-top:10px;border:1px solid #cfd9de;border-radius:16px;aspect-ratio:16/10;min-height:1px;flex:none}
+.tw-actions{display:flex;justify-content:space-between;max-width:310px;color:#536471;margin-top:14px;font-size:14px}.tw-actions span{display:flex;align-items:center;gap:4px}.tw-actions svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.carousel-dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:4px;pointer-events:none}.carousel-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 2px rgba(0,0,0,.35)}.carousel-count{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.55);color:#fff;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:800}
+
+.pc.ig-card{width:900px}.pc.ig-card .ig-top{height:62px;font-size:24px}.pc.ig-card .ig-head{padding:18px 22px;gap:14px}.pc.ig-card .ig-avatar{width:54px;height:54px}.pc.ig-card .ig-name{font-size:17px}.pc.ig-card .ig-sub{font-size:14px}.pc.ig-card .ig-media{aspect-ratio:16/9}.pc.ig-card .ig-actions{padding:16px 22px 0}.pc.ig-card .ig-body{padding:12px 22px 22px;font-size:calc(var(--ig-text-size,14px) + 2px)}
+.pc.tw-card{width:760px}.pc.tw-card .tw-header{height:240px}.pc.tw-card .tw-main-avatar{width:120px;height:120px}.pc.tw-card .tw-media{aspect-ratio:16/9}.pc.tw-card .tw-post-avatar{width:48px;height:48px}
+footer{max-width:1220px;margin:18px auto;padding:14px 16px;border:1px solid #dfe3e7;border-radius:16px;background:#fff;color:#536471;font-size:12px;line-height:1.6}
+@media(max-width:820px){.app{padding:12px}.top{display:block}.tabs{margin-top:10px}.tab{flex:1}.layout{grid-template-columns:1fr}.preview-area,.ig-card,.tw-card{width:100%}.ig-card,.tw-card{max-width:390px;margin:auto}.range-row{grid-template-columns:1fr}}
+
+/* save/render safety */
+.media-box{contain:layout paint;overflow:hidden}
+.media-box img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;max-width:none!important;max-height:none!important;transform:none!important}
+.header-box img,.avatar img{max-width:none!important;max-height:none!important}
+
+
+/* final stability patch */
+.ig-card,.tw-card{font-family:var(--sns-font),-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}
+.ig-name,.tw-post-top,.tw-name{overflow:visible}
+.ig-body,.tw-text,.tw-bio,.media-text{word-break:break-word;overflow-wrap:anywhere}
+.ig-head>div:nth-child(2),.tw-post-main{min-width:0}
+.ig-sub{max-width:285px}
+.tw-post-top{line-height:1.35}
+.tw-meta{row-gap:4px}
+img{image-rendering:auto}
+
+
+.tw-media img,.ig-media img{image-rendering:auto!important;object-fit:cover!important;transform:none!important;backface-visibility:hidden;}
+.tw-name,.tw-post-name{display:inline-flex;align-items:center;gap:3px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><h1>SNS 생성기</h1><div class="tabs"><button class="tab active" data-tab="ig">Instagram</button><button class="tab" data-tab="tw">Twitter / X</button><button class="tab" data-tab="ooc">OOC 템플릿</button></div></div>
+  <div class="layout">
+    <div class="editor">
+      <div id="igPanel" class="panel active">
+        <div class="section-title">공통 설정</div>
+        <label>폰트</label><select id="snsFont"><option value="Pretendard">Pretendard</option><option value="SUIT">SUIT</option><option value="Noto Sans KR">Noto Sans KR</option><option value="IBM Plex Sans KR">IBM Plex Sans KR</option><option value="Gowun Dodum">Gowun Dodum</option><option value="Nanum Gothic">Nanum Gothic</option><option value="-apple-system">기본 시스템</option></select>
+        <div class="section-title">인스타 직접 설정</div>
+        <label>기본 계정 이름</label><input id="igName" placeholder="이름">
+        <label>프로텍트 계정</label><div class="toggle-row"><span>자물쇠 표시</span><input id="igProtected" type="checkbox"></div><div class="grid2"><div><label>인스타 본문 글자 크기</label><input id="igTextSize" type="range" min="12" max="22" value="14"></div><div><label>인스타 사진묘사 글자 크기</label><input id="igMediaTextSize" type="range" min="13" max="26" value="18"></div></div>
+        <label>인장 사진</label><div class="file-row"><input id="igAvatarFile" type="file" accept="image/*"><button class="small-btn" data-clear="igAvatar">삭제</button></div><div id="igAvatarNote"></div>
+        <div class="range-row"><div><label>인장 확대</label><input id="igAvatarScale" type="range" min="1" max="3" step=".01" value="1"></div><div><label>좌우</label><input id="igAvatarX" type="range" min="0" max="100" value="50"></div><div><label>상하</label><input id="igAvatarY" type="range" min="0" max="100" value="50"></div></div>
+        <button class="save-btn save-top" data-save="ig">인스타 PNG 저장</button>
+
+        <div class="section-title">인스타 OOC 붙여넣기</div>
+        <div class="paste-box"><textarea id="igOoc" placeholder="OOC 결과를 여기에 붙여넣기"></textarea><button class="add-btn" id="applyIgOoc">OOC 자동 반영</button><div class="hint">반영 후 아래 입력칸에서 내용·사진을 다시 수정할 수 있어.</div></div>
+
+        <div class="section-title">인스타 게시물 수정</div><div id="igEditors"></div><button class="add-btn" id="addIg">+ 인스타 게시물 추가</button>
+      </div>
+
+      <div id="twPanel" class="panel">
+        <div class="section-title">공통 설정</div>
+        <label>폰트</label><select id="snsFontTw"><option value="Pretendard">Pretendard</option><option value="SUIT">SUIT</option><option value="Noto Sans KR">Noto Sans KR</option><option value="IBM Plex Sans KR">IBM Plex Sans KR</option><option value="Gowun Dodum">Gowun Dodum</option><option value="Nanum Gothic">Nanum Gothic</option><option value="-apple-system">기본 시스템</option></select>
+        <div class="section-title">트위터 직접 설정</div>
+        <div class="grid2"><div><label>이름</label><input id="twName"></div><div><label>아이디</label><input id="twId" placeholder="@id"></div></div>
+        <label>프로텍트 계정</label><div class="toggle-row"><span>자물쇠 표시</span><input id="twProtected" type="checkbox"></div>
+        <label>소개</label><textarea id="twBio"></textarea><div class="grid2"><div><label>트위터 본문 글자 크기</label><input id="twTextSize" type="range" min="13" max="24" value="16"></div><div><label>트위터 사진묘사 글자 크기</label><input id="twMediaTextSize" type="range" min="13" max="26" value="17"></div></div>
+        <div class="grid2"><div><label>위치</label><input id="twLoc"></div><div><label>팔로잉</label><input id="twFollowing"></div></div>
+        <label>팔로워</label><input id="twFollowers">
+        <label>헤더 사진</label><div class="file-row"><input id="twHeaderFile" type="file" accept="image/*"><button class="small-btn" data-clear="twHeader">삭제</button></div><div id="twHeaderNote"></div>
+        <div class="range-row"><div><label>헤더 확대</label><input id="twHeaderScale" type="range" min="1" max="3" step=".01" value="1"></div><div><label>좌우</label><input id="twHeaderX" type="range" min="0" max="100" value="50"></div><div><label>상하</label><input id="twHeaderY" type="range" min="0" max="100" value="50"></div></div>
+        <label>인장 사진</label><div class="file-row"><input id="twAvatarFile" type="file" accept="image/*"><button class="small-btn" data-clear="twAvatar">삭제</button></div><div id="twAvatarNote"></div>
+        <div class="range-row"><div><label>인장 확대</label><input id="twAvatarScale" type="range" min="1" max="3" step=".01" value="1"></div><div><label>좌우</label><input id="twAvatarX" type="range" min="0" max="100" value="50"></div><div><label>상하</label><input id="twAvatarY" type="range" min="0" max="100" value="50"></div></div>
+        <button class="save-btn save-top" data-save="tw">트위터 PNG 저장</button>
+
+        <div class="section-title">트위터 OOC 붙여넣기</div>
+        <div class="paste-box"><textarea id="twOoc" placeholder="OOC 결과를 여기에 붙여넣기"></textarea><button class="add-btn" id="applyTwOoc">OOC 자동 반영</button><div class="hint">반영 후 아래 입력칸에서 내용·사진을 다시 수정할 수 있어.</div></div>
+
+        <div class="section-title">트위터 글 수정</div><div id="twEditors"></div><button class="add-btn" id="addTw">+ 트위터 글 추가</button>
+      </div>
+
+      <div id="oocPanel" class="panel">
+        <div class="section-title">OOC 템플릿 바로 복사</div>
+        <div class="template-card">
+          <div class="post-head"><span>Instagram용 OOC</span><button class="small-btn" data-copy-template="ig">복사</button></div>
+          <pre id="igTemplate">[OOC: 세계관 정보, PC와 NPC의 프로필, 둘의 관계성, 유저노트, 장기기억, 로어북, 말투 등을 참고하여 NPC의 Instagram 게시물을 10가지 이상 출력한다.
+단, PC의 행동·대사·감정은 임의로 확정하지 않는다.
+사진은 실제 이미지가 아니라 “사진 묘사”로 작성한다.
+좋아요, 댓글 수, 리그램 수 같은 숫자 항목은 SNS에서 보이는 짧은 형식으로 출력한다.
+예: 849.2K, 1.5M, 2.4만, 18.7만
+단, “개”, “명”, “회”, “건”, “likes” 같은 단위는 붙이지 않는다.
+리그램 게시물은 작성하지 않지만, 리그램 수 항목은 게시물마다 반드시 출력한다.
+댓글은 대표 댓글 1개만 작성한다. 여러 댓글을 길게 나열하지 않는다.
+리그램/재게시/인용 게시물은 작성하지 않는다.
+각 묶음 앞에 제목이나 번호를 붙이지 않는다.
+[게시물], [일반 게시물], 게시물 1, 게시물 2 같은 문구를 출력하지 않는다.
+항목 사이에 빈 줄을 넣지 않는다.
+게시물과 게시물 사이에도 빈 줄을 넣지 않는다.
+아래 항목 묶음만 공백 줄 없이 반복해서 바로 출력한다.
+계정 이름:
+위치/음원/스폰서:
+사진 묘사:
+본문:
+좋아요:
+댓글 수:
+리그램 수:
+댓글:
+날짜:
+위 형식으로 10개 이상 작성한다.]</pre>
+          <div id="igCopyOk" class="copy-ok"></div>
+        </div>
+
+        <div class="template-card">
+          <div class="post-head"><span>Twitter(X)용 OOC</span><button class="small-btn" data-copy-template="tw">복사</button></div>
+          <pre id="twTemplate">[OOC: 세계관 정보, PC와 NPC의 프로필, 둘의 관계성, 유저노트, 장기기억, 로어북, 말투 등을 참고하여 NPC의 Twitter(X) 게시물을 10가지 이상 출력한다.
+단, PC의 행동·대사·감정은 임의로 확정하지 않는다.
+사진은 실제 이미지가 아니라 “사진 묘사”로 작성한다.
+좋아요, 재게시, 팔로잉, 팔로워 같은 숫자 항목은 SNS에서 보이는 짧은 형식으로 출력한다.
+예: 849.2K, 1.5M, 2.4만, 18.7만
+단, “개”, “명”, “회”, “건”, “likes” 같은 단위는 붙이지 않는다.
+재게시/인용 게시물은 작성하지 않는다.
+각 묶음 앞에 제목이나 번호를 붙이지 않는다.
+[게시물], [일반 게시물], 게시물 1, 게시물 2 같은 문구를 출력하지 않는다.
+항목 사이에 빈 줄을 넣지 않는다.
+게시물과 게시물 사이에도 빈 줄을 넣지 않는다.
+먼저 프로필 정보를 한 번만 출력한 뒤, 게시물 항목 묶음만 공백 줄 없이 반복해서 바로 출력한다.
+프로필 이름:
+프로필 아이디:
+소개:
+위치:
+팔로잉:
+팔로워:
+본문:
+사진 묘사:
+날짜:
+재게시:
+좋아요:
+위 형식으로 10개 이상 작성한다.]</pre>
+          <div id="twCopyOk" class="copy-ok"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="preview-shell">
+      <div class="preview-area">
+        <div id="igPreview" class="ig-card"><div class="ig-top">Instagram</div><div id="igFeed"></div></div>
+        <div id="twPreview" class="tw-card" style="display:none">
+          <div class="tw-nav">‹ 프로필</div>
+          <div id="twHeaderPreview" class="header-box tw-header"><img></div>
+          <div class="tw-main">
+            <div class="tw-row"><div id="twAvatarPreview" class="avatar tw-main-avatar"><img></div><button class="follow">팔로우</button></div>
+            <div id="twNameView" class="tw-name"></div><div id="twIdView" class="tw-id"></div><div id="twBioView" class="tw-bio"></div><div id="twMetaView" class="tw-meta"></div>
+          </div>
+          <div id="twFeed" class="tw-feed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+<strong>⚠️ 안내 사항 (Disclaimer)</strong>
+<p>본 프로젝트는 가상 캐릭터 및 창작 콘텐츠의 SNS 연출·미리보기를 위해 제작된 비공식 오픈소스 툴입니다.</p>
+<p>Instagram 및 X(Twitter)의 공식 서비스, 기업, 브랜드와는 어떠한 제휴·승인·후원 관계도 없습니다.</p>
+<p>본 도구를 통해 생성된 결과물의 사용 및 공유에 대한 책임은 사용자에게 있습니다.</p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const state={igAvatar:null,twHeader:null,twAvatar:null,igPosts:[],twPosts:[]};
+const icons={
+heart:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-8.8-5.2-8.8-11.2C3.2 6 5.4 3.8 8.2 3.8c1.7 0 3.1.9 3.8 2.1.7-1.2 2.1-2.1 3.8-2.1 2.8 0 5 2.2 5 5.5 0 6-8.8 11.2-8.8 11.2z"/></svg>',
+comment:'<svg viewBox="0 0 24 24"><path d="M20.5 11.2c0 4.4-3.7 7.9-8.3 7.9-1 0-2.1-.2-3-.5L4 20l1.4-4.4c-.8-1.2-1.2-2.7-1.2-4.3 0-4.4 3.7-7.9 8.3-7.9s8 3.4 8 7.8z"/></svg>',
+rt:'<svg viewBox="0 0 24 24"><path d="M17 2.8 21.2 7 17 11.2"/><path d="M3.5 11V9.8C3.5 8.3 4.8 7 6.3 7h14.4"/><path d="M7 21.2 2.8 17 7 12.8"/><path d="M20.5 13v1.2c0 1.5-1.3 2.8-2.8 2.8H3.3"/></svg>',
+send:'<svg viewBox="0 0 24 24"><path d="M21.5 2.8 10.7 13.1"/><path d="m21.5 2.8-6.6 18.4-4.2-8.1-8.2-4 19-6.3z"/></svg>',
+bookmark:'<svg viewBox="0 0 24 24"><path d="M6.5 3.5h11v17L12 16.8l-5.5 3.7v-17z"/></svg>'
+};
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function val(id){return ($(id)?.value||'').trim()}
+function stripUnit(v){return String(v||'').trim().replace(/\s+/g,'').replace(/(개|명|회|건|장|번|팔로잉|팔로워|likes?)$/gi,'')}
+function applyViewSettings(){
+ const font=val('snsFontTw')||val('snsFont')||'Pretendard';
+ document.documentElement.style.setProperty('--sns-font', font);
+ $('igPreview')?.style.setProperty('--sns-font', val('snsFont')||font);
+ $('twPreview')?.style.setProperty('--sns-font', val('snsFontTw')||font);
+ $('igPreview')?.style.setProperty('--ig-text-size', (val('igTextSize')||14)+'px');
+ $('twPreview')?.style.setProperty('--tw-text-size', (val('twTextSize')||16)+'px');
+ $('igPreview')?.style.setProperty('--ig-media-text-size', (val('igMediaTextSize')||18)+'px');
+ $('twPreview')?.style.setProperty('--tw-media-text-size', (val('twMediaTextSize')||17)+'px');
+}
+function readFile(file,cb){const r=new FileReader();r.onload=e=>cb(e.target.result);r.readAsDataURL(file);}
+function readFiles(files,cb){const list=[...files];if(!list.length)return;Promise.all(list.map(f=>new Promise(res=>readFile(f,res)))).then(cb);}
+function mark(id,count){$(id).innerHTML='<div class="note ok">사진 첨부됨'+(count&&count>1?' · '+count+'장':'')+'</div>'}
+function setImgBox(box,src,prefix){
+ const img=box.querySelector('img');
+ if(!src){
+  box.classList.remove('has-img');
+  if(img) img.removeAttribute('src');
+  return;
+ }
+ box.classList.add('has-img');
+ img.src=src;
+ const s=Number($(prefix+'Scale')?.value||1);
+ const x=Number($(prefix+'X')?.value||50);
+ const y=Number($(prefix+'Y')?.value||50);
+ const moveX=(50-x)*1.4;
+ const moveY=(50-y)*1.4;
+ img.style.width='100%';
+ img.style.height='100%';
+ img.style.objectFit='contain';
+ img.style.left='50%';
+ img.style.top='50%';
+ img.style.transform=`translate(-50%,-50%) translate(${moveX}%, ${moveY}%) scale(${s})`;
+ img.style.transformOrigin='center center';
+}
+function avatarHtml(cls,src,prefix){
+ const s=Number($(prefix+'Scale')?.value||1);
+ const x=Number($(prefix+'X')?.value||50);
+ const y=Number($(prefix+'Y')?.value||50);
+ const moveX=(50-x)*1.4;
+ const moveY=(50-y)*1.4;
+ const style=`width:100%;height:100%;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%) translate(${moveX}%, ${moveY}%) scale(${s});transform-origin:center center;`;
+ return `<div class="avatar ${cls} ${src?'has-img':''}"><img src="${src||''}" style="${style}"></div>`;
+}
+function mediaHtml(cls,src,mode,text){
+ const imgs=Array.isArray(src)?src:(src?[src]:[]);
+ if(mode==='image'&&imgs.length){
+   const dots=imgs.length>1?`<div class="carousel-count">1/${imgs.length}</div><div class="carousel-dots">${imgs.map(()=>'<i></i>').join('')}</div>`:'';
+   return `<div class="media-box ${cls} has-img"><img src="${imgs[0]}">${dots}</div>`;
+ }
+ if(text){return `<div class="media-box ${cls}"><div class="media-text">${esc(text)}</div></div>`;}
+ return `<div class="media-box ${cls}"></div>`;
+}
+function defaultIg(){return{header:'',sub:'',mode:'text',image:null,images:[],desc:'',caption:'',likes:'0',comments:'',date:'방금 전',commentCount:'',regramCount:''};}
+function defaultTw(){return{mode:'text',image:null,images:[],desc:'',text:'',time:'2달 전',rt:'0',likes:'0'};}
+function renderEditors(){
+ $('igEditors').innerHTML=state.igPosts.map((p,i)=>`<div class="post-editor" data-kind="ig" data-index="${i}">
+  <div class="post-head"><span>인스타 게시물 ${i+1}</span>${state.igPosts.length>1?`<button class="delete-post" data-del-ig="${i}">삭제</button>`:''}</div>
+  <div class="grid2"><div><label>계정 이름</label><input data-field="header" value="${esc(p.header)}"></div><div><label>위치 · 음원 · 스폰서</label><input data-field="sub" value="${esc(p.sub)}"></div></div>
+  <label>표시 방식</label><select data-field="mode"><option value="text" ${p.mode==='text'?'selected':''}>글 묘사</option><option value="image" ${p.mode==='image'?'selected':''}>사진 첨부</option></select>
+  <label>사진</label><div class="file-row"><input type="file" accept="image/*" multiple data-file="igPost"><button class="small-btn" data-clear-ig-img="${i}">삭제</button></div>${(p.images&&p.images.length)?`<div class="note ok">사진 첨부됨 · ${p.images.length}장</div>`:(p.image?'<div class="note ok">사진 첨부됨</div>':'')}
+  <label>사진/장면 묘사</label><textarea data-field="desc">${esc(p.desc)}</textarea>
+  <label>본문</label><textarea data-field="caption">${esc(p.caption)}</textarea>
+  <div class="grid2"><div><label>좋아요</label><input data-field="likes" value="${esc(p.likes)}"></div><div><label>댓글 수</label><input data-field="commentCount" value="${esc(p.commentCount||'')}"></div></div>
+  <label>리그램 수</label><input data-field="regramCount" value="${esc(p.regramCount||'')}" placeholder="예: 849.2K, 1.5M, 2.4만">
+  <label>댓글</label><textarea data-field="comments" placeholder="대표 댓글 1개만 입력. 예: 이름: 댓글 내용">${esc(p.comments)}</textarea>
+  <label>날짜</label><input data-field="date" value="${esc(p.date)}">
+ </div>`).join('');
+ $('twEditors').innerHTML=state.twPosts.map((p,i)=>`<div class="post-editor" data-kind="tw" data-index="${i}">
+  <div class="post-head"><span>트위터 글 ${i+1}</span>${state.twPosts.length>1?`<button class="delete-post" data-del-tw="${i}">삭제</button>`:''}</div>
+  <label>표시 방식</label><select data-field="mode"><option value="text" ${p.mode==='text'?'selected':''}>글 묘사</option><option value="image" ${p.mode==='image'?'selected':''}>사진 첨부</option></select>
+  <label>사진</label><div class="file-row"><input type="file" accept="image/*" multiple data-file="twPost"><button class="small-btn" data-clear-tw-img="${i}">삭제</button></div>${(p.images&&p.images.length)?`<div class="note ok">사진 첨부됨 · ${p.images.length}장</div>`:(p.image?'<div class="note ok">사진 첨부됨</div>':'')}
+  <label>사진/장면 묘사</label><textarea data-field="desc">${esc(p.desc)}</textarea>
+  <label>본문</label><textarea data-field="text">${esc(p.text)}</textarea>
+  <div class="grid2"><div><label>날짜</label><input data-field="time" value="${esc(p.time)}"></div><div><label>재게시 수</label><input data-field="rt" value="${esc(p.rt)}"></div></div>
+  <label>좋아요</label><input data-field="likes" value="${esc(p.likes)}">
+ </div>`).join('');
+}
+
+function updatePreviewMode(){ return; }
+
+function igCommentsHtml(p){
+ const count=stripUnit(p.commentCount||'');
+ const line=String(p.comments||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
+ let html=count?`<div class="muted">댓글 ${esc(count)}개 모두 보기</div>`:'';
+ if(line){const m=line.match(/^([^:：]{1,18})[:：]\s*(.+)$/);html+=m?`<div class="ig-comment"><span class="ig-comment-name">${esc(m[1])}</span> ${esc(m[2])}</div>`:`<div class="ig-comment muted">${esc(line)}</div>`;}
+ return html;
+}
+function renderPreviews(){
+ applyViewSettings();
+ updatePreviewMode();
+ $('igPreview').classList.toggle('protected',$('igProtected').checked);
+ $('twPreview').classList.toggle('protected',$('twProtected')?.checked||false);
+ $('igFeed').innerHTML=state.igPosts.map((p,i)=>`<div class="ig-post">
+  <div class="ig-head">${avatarHtml('ig-avatar',state.igAvatar,'igAvatar')}<div><div class="ig-name">${esc(p.header||val('igName'))}<svg class="lock" viewBox="-2 -2 28 28"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor"/></svg></div>${p.sub?`<div class="ig-sub">${esc(p.sub)}</div>`:''}</div><div class="dots">⋮</div></div>
+  ${mediaHtml('ig-media',(p.images&&p.images.length?p.images:p.image),p.mode,p.desc)}
+  <div class="ig-actions"><span class="act">${icons.heart}<b>${esc(stripUnit(p.likes))}</b></span><span class="act">${icons.comment}<b>${esc(stripUnit(p.commentCount||''))}</b></span><span class="act">${icons.rt}<b>${esc(stripUnit(p.regramCount||''))}</b></span><span class="act">${icons.send}</span><span class="save-icon">${icons.bookmark}</span></div>
+  <div class="ig-body"><div>${(p.header||val('igName'))?`<span class="cap-name">${esc(p.header||val('igName'))}</span> `:''}${esc(p.caption)}</div>${igCommentsHtml(p)}<div class="date">${esc(p.date)}</div></div>
+ </div>`).join('');
+ setImgBox($('twHeaderPreview'),state.twHeader,'twHeader'); setImgBox($('twAvatarPreview'),state.twAvatar,'twAvatar');
+ const tidRaw=val('twId'); const tid=tidRaw ? (tidRaw.startsWith('@')?tidRaw:'@'+tidRaw) : '';
+ $('twNameView').innerHTML=esc(val('twName'))+'<svg class="lock tw-lock" viewBox="-2 -2 28 28"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor"/></svg>'; $('twIdView').textContent=tid; $('twBioView').textContent=val('twBio');
+ $('twMetaView').textContent=[val('twLoc')&&'📍 '+val('twLoc'),val('twFollowing')&&stripUnit(val('twFollowing'))+' 팔로잉',val('twFollowers')&&stripUnit(val('twFollowers'))+' 팔로워'].filter(Boolean).join(' · ');
+ $('twFeed').innerHTML=state.twPosts.map((p,i)=>{return `<div class="tw-post">${avatarHtml('tw-post-avatar',state.twAvatar,'twAvatar')}<div class="tw-post-main"><div class="tw-post-top"><span class="tw-post-name">${esc(val('twName'))}<svg class="lock tw-lock" viewBox="-2 -2 28 28"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor"/></svg></span> ${tid?`<span class="tw-id">${esc(tid)}</span>`:''}${p.time?` · <span class="tw-id">${esc(p.time)}</span>`:''}</div><div class="tw-text">${esc(p.text)}</div>${mediaHtml('tw-media',(p.images&&p.images.length?p.images:p.image),p.mode,p.desc)}<div class="tw-actions"><span>${icons.comment}</span><span>${icons.rt}<b>${esc(stripUnit(p.rt))}</b></span><span>${icons.heart}<b>${esc(stripUnit(p.likes))}</b></span><span>${icons.bookmark}</span></div></div></div>`}).join('');
+}
+
+function parseOocBlocks(raw){
+ const text=String(raw||'').replace(/^\s*\[OOC:\s*/i,'').replace(/\]\s*$/,'').trim();
+ const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(x=>x && !/^[─\-_=]{3,}$/.test(x));
+ const blocks=[];
+ let cur=[];
+ const startKeys=/^(계정\s*이름|계정명|본문|글|내용|트윗|게시글|caption|text)$/i;
+ const skipLine=/^(\[.*게시물.*\]|게시물\s*\d+|일반\s*게시물\s*\d*|SNS\s*게시물\s*\d*)$/i;
+ function getKey(line){
+   const m=line.match(/^(.{1,28}?)[\s]*[:：=|][\s]*(.*)$/);
+   return m ? m[1].replace(/^[#*\-\s]+/,'').replace(/\s+/g,' ').trim() : '';
+ }
+ function hasSameKey(arr,key){
+   const safe=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+   const re=new RegExp('^'+safe+'[\\s]*[:：=|]','i');
+   return arr.some(x=>re.test(x.trim()));
+ }
+ for(const line of lines){
+   if(skipLine.test(line)) continue;
+   const key=getKey(line);
+   if(key && startKeys.test(key) && cur.length && hasSameKey(cur,key)){
+     const joined=cur.join('\n');
+     if(/[:：=|]/.test(joined)) blocks.push(joined);
+     cur=[line];
+   }else{
+     cur.push(line);
+   }
+ }
+ if(cur.join('').trim() && /[:：=|]/.test(cur.join('\n'))) blocks.push(cur.join('\n'));
+ return blocks.map(parseOocText).filter(o=>Object.keys(o).length);
+}
+
+function parseOocText(raw){
+ const result={}; const lines=String(raw||'').split(/\r?\n/).map(x=>x.trim()).filter(x=>x && !/^\[.*게시물.*\]$/.test(x) && !/^[─\-_=]{3,}$/.test(x)); let last='';
+ const map=[
+  [/^(계정\s*이름|계정명|작성자|이름|name)$/i,'name'],
+  [/^(프로필\s*아이디|아이디|계정\s*아이디|id|username|handle)$/i,'id'],
+  [/^(프로필\s*이름)$/i,'profileName'],
+  [/^(프로텍트\s*여부|비공개\s*여부|보호\s*여부|protected|private)$/i,'protected'],
+  [/^(소개|프로필\s*소개|bio)$/i,'bio'],
+  [/^(팔로잉|following)$/i,'following'],
+  [/^(팔로워|followers?)$/i,'followers'],
+  [/^(위치\/음원\/스폰서|위치\s*·\s*음원\s*·\s*스폰서|위치|장소|location|음원|노래|music|bgm|스폰서|협찬|sponsored)$/i,'sub'],
+  [/^(사진\s*묘사|이미지\s*묘사|사진|이미지|장면|media|image)$/i,'desc'],
+  [/^(본문|글|내용|트윗|게시글|caption|text)$/i,'text'],
+  [/^(좋아요|하트|마음|likes?|like)$/i,'likes'],
+  [/^(댓글\s*수|댓글수|comment\s*count)$/i,'commentCount'],
+  [/^(리그램\s*수|리그램수|regram\s*count|repost\s*count|공유\s*수)$/i,'regramCount'],
+  [/^(댓글|댓글\s*보기|comments?)$/i,'comments'],
+  [/^(날짜|시간|업로드|date|time)$/i,'date'],
+  [/^(재게시|리트윗|알티|rt|retweet)$/i,'rt']
+ ];
+ function mk(k){k=k.replace(/^[#*\-\s]+/,'').replace(/\s+/g,' ').trim();for(const [re,v] of map){if(re.test(k))return v;}return'';}
+ for(const line of lines){
+  if(/^게시물\s*\d+/i.test(line)) continue;
+  const m=line.match(/^(.{1,28}?)[\s]*[:：=|][\s]*(.*)$/);
+  if(m){const k=mk(m[1]); if(k){if(k==='sub'&&result.sub)result.sub+=' · '+m[2].trim();else result[k]=m[2].trim();last=k;continue;}}
+  if(last&&['text','desc'].includes(last))result[last]+='\n'+line; else if(!result.text){result.text=line;last='text';}
+ }
+ return result;
+}
+function applyIgOoc(){
+ const blocks=parseOocBlocks($('igOoc').value);
+ if(!blocks.length) return;
+ const profile=parseOocText($('igOoc').value);
+ const firstName=(profile.profileName||profile.name||(blocks[0]&&(blocks[0].profileName||blocks[0].name))||'').trim();
+ if(firstName && !$('igName').value) $('igName').value=firstName;
+ state.igPosts = blocks.filter(d=>d.text||d.desc||d.date||d.likes||d.commentCount||d.comments).map(d=>{
+   const p=defaultIg();
+   if(d.name) p.header=d.name;
+   else if(firstName) p.header=firstName;
+   if(d.sub) p.sub=d.sub;
+   if(d.desc){p.desc=d.desc;p.mode='text';}
+   if(d.text) p.caption=d.text;
+   if(d.likes) p.likes=stripUnit(d.likes);
+   if(d.comments) p.comments=String(d.comments).split(/\r?\n/).map(x=>x.trim()).filter(Boolean)[0]||'';
+   if(d.commentCount) p.commentCount=stripUnit(d.commentCount);
+   if(d.regramCount) p.regramCount=stripUnit(d.regramCount);
+   if(d.date) p.date=d.date;
+   return p;
+ });
+ renderEditors();renderPreviews();
+}
+function extractOocProfile(raw){
+ return parseOocText(raw);
+}
+function applyTwOoc(){
+ const profile=extractOocProfile($('twOoc').value);
+ if(profile.profileName||profile.name) $('twName').value=profile.profileName||profile.name;
+ if(profile.id) $('twId').value=profile.id;
+ if(profile.protected) $('twProtected').checked=/예|yes|true|on|보호|비공개|플텍/i.test(profile.protected);
+ if(profile.bio) $('twBio').value=profile.bio;
+ if(profile.sub) $('twLoc').value=profile.sub;
+ if(profile.following) $('twFollowing').value=stripUnit(profile.following);
+ if(profile.followers) $('twFollowers').value=stripUnit(profile.followers);
+ const blocks=parseOocBlocks($('twOoc').value).filter(d=>d.text||d.desc||d.date||d.rt||d.likes);
+ if(!blocks.length) return;
+ state.twPosts = blocks.map((d,idx)=>{
+   const p=defaultTw();
+   if(d.desc){p.desc=d.desc;p.mode='text';}
+   if(d.text) p.text=d.text;
+   if(d.date) p.time=d.date;
+   if(d.rt) p.rt=stripUnit(d.rt);
+   if(d.likes) p.likes=stripUnit(d.likes);
+   return p;
+ });
+ renderEditors();renderPreviews();
+}
+document.addEventListener('input',e=>{const ed=e.target.closest('.post-editor');if(!ed){renderPreviews();return}const arr=ed.dataset.kind==='ig'?state.igPosts:state.twPosts;const p=arr[Number(ed.dataset.index)];const k=e.target.dataset.field;if(k){p[k]=e.target.type==='checkbox'?e.target.checked:e.target.value;renderPreviews();}});
+document.addEventListener('change',e=>{
+ if(e.target.type!=='file')return;
+ const ed=e.target.closest('.post-editor'); const f=e.target.files[0]; if(!f)return;
+ if(ed&&e.target.dataset.file==='igPost'){
+  readFiles(e.target.files,imgs=>{const p=state.igPosts[Number(ed.dataset.index)];p.images=imgs;p.image=imgs[0]||null;p.mode='image';ed.querySelector('[data-field="mode"]').value='image';renderEditors();renderPreviews();});
+  return;
+ }
+ if(ed&&e.target.dataset.file==='twPost'){
+  readFiles(e.target.files,imgs=>{const p=state.twPosts[Number(ed.dataset.index)];p.images=imgs;p.image=imgs[0]||null;p.mode='image';ed.querySelector('[data-field="mode"]').value='image';renderEditors();renderPreviews();});
+  return;
+ }
+ readFile(f,d=>{
+  if(e.target.id==='igAvatarFile'){state.igAvatar=d;mark('igAvatarNote');}
+  else if(e.target.id==='twHeaderFile'){state.twHeader=d;mark('twHeaderNote');}
+  else if(e.target.id==='twAvatarFile'){state.twAvatar=d;mark('twAvatarNote');}
+  renderPreviews();
+ });
+});
+document.addEventListener('click',e=>{
+ if(e.target.dataset.delIg!==undefined){state.igPosts.splice(Number(e.target.dataset.delIg),1);renderEditors();renderPreviews();}
+ if(e.target.dataset.delTw!==undefined){state.twPosts.splice(Number(e.target.dataset.delTw),1);renderEditors();renderPreviews();}
+ if(e.target.dataset.clear==='igAvatar'){state.igAvatar=null;$('igAvatarFile').value='';$('igAvatarNote').innerHTML='';renderPreviews();}
+ if(e.target.dataset.clear==='twHeader'){state.twHeader=null;$('twHeaderFile').value='';$('twHeaderNote').innerHTML='';renderPreviews();}
+ if(e.target.dataset.clear==='twAvatar'){state.twAvatar=null;$('twAvatarFile').value='';$('twAvatarNote').innerHTML='';renderPreviews();}
+ if(e.target.dataset.clearIgImg!==undefined){const p=state.igPosts[Number(e.target.dataset.clearIgImg)];p.image=null;p.images=[];p.mode='text';renderEditors();renderPreviews();}
+ if(e.target.dataset.clearTwImg!==undefined){const p=state.twPosts[Number(e.target.dataset.clearTwImg)];p.image=null;p.images=[];p.mode='text';renderEditors();renderPreviews();}
+});
+$('addIg').onclick=()=>{state.igPosts.push(defaultIg());renderEditors();renderPreviews();}
+$('addTw').onclick=()=>{state.twPosts.push(defaultTw());renderEditors();renderPreviews();}
+$('applyIgOoc').onclick=applyIgOoc; $('applyTwOoc').onclick=applyTwOoc;
+document.addEventListener('click',e=>{
+ if(e.target.dataset.copyTemplate){
+   const type=e.target.dataset.copyTemplate;
+   const text=$(type==='ig'?'igTemplate':'twTemplate').innerText;
+   navigator.clipboard.writeText(text).then(()=>{
+     $(type==='ig'?'igCopyOk':'twCopyOk').textContent='복사 완료';
+   }).catch(()=>{
+     const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+     $(type==='ig'?'igCopyOk':'twCopyOk').textContent='복사 완료';
+   });
+ }
+});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');const t=b.dataset.tab;$('igPanel').classList.toggle('active',t==='ig');$('twPanel').classList.toggle('active',t==='tw');$('oocPanel').classList.toggle('active',t==='ooc');$('igPreview').style.display=t==='ig'?'block':'none';$('twPreview').style.display=t==='tw'?'block':'none';});
+document.querySelectorAll('[data-save]').forEach(btn=>btn.onclick=()=>saveCard(btn.dataset.save));
+function waitImages(root){const imgs=[...root.querySelectorAll('img')].filter(i=>i.src);return Promise.all(imgs.map(img=>img.complete?Promise.resolve():new Promise(res=>{img.onload=res;img.onerror=res;setTimeout(res,800)})))}
+
+function loadImageForExport(src){
+ return new Promise(res=>{
+  const img=new Image();
+  img.onload=()=>res(img);
+  img.onerror=()=>res(null);
+  img.src=src;
+ });
+}
+function parseExportTransform(transformText){
+ const text=String(transformText||'');
+ const scaleMatch=[...text.matchAll(/scale\(([-0-9.]+)\)/g)].pop();
+ const scale=scaleMatch?Number(scaleMatch[1])||1:1;
+ const translateMatches=[...text.matchAll(/translate\(([-0-9.]+)%\s*,\s*([-0-9.]+)%\)/g)];
+ let tx=0, ty=0;
+ if(translateMatches.length>1){
+  tx=Number(translateMatches[1][1])||0;
+  ty=Number(translateMatches[1][2])||0;
+ }
+ return {scale,tx,ty};
+}
+async function rasterizeImagesForExport(root, source, qualityScale){
+ const selector='.media-box.has-img,.header-box.has-img,.avatar.has-img';
+ const sourceBoxes=[...source.querySelectorAll(selector)];
+ const cloneBoxes=[...root.querySelectorAll(selector)];
+ for(let i=0;i<cloneBoxes.length;i++){
+  const srcBox=sourceBoxes[i];
+  const cloneBox=cloneBoxes[i];
+  if(!srcBox||!cloneBox) continue;
+  const srcImg=srcBox.querySelector('img');
+  const cloneImg=cloneBox.querySelector('img');
+  if(!srcImg||!cloneImg||!srcImg.src) continue;
+  const r=srcBox.getBoundingClientRect();
+  const w=Math.max(1, Math.round(r.width));
+  const h=Math.max(1, Math.round(r.height));
+  cloneBox.style.width=w+'px';
+  cloneBox.style.height=h+'px';
+  cloneBox.style.minHeight=h+'px';
+  const loaded=await loadImageForExport(srcImg.src);
+  if(!loaded) continue;
+  const exportScale=Math.max(3, qualityScale||4);
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.round(w*exportScale);
+  canvas.height=Math.round(h*exportScale);
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.fillStyle=getComputedStyle(srcBox).backgroundColor||'#cfd9de';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.scale(exportScale, exportScale);
+  if(srcBox.classList.contains('avatar')){
+   ctx.beginPath();
+   ctx.arc(w/2,h/2,Math.min(w,h)/2,0,Math.PI*2);
+   ctx.clip();
+  }
+  const iw=loaded.naturalWidth||loaded.width;
+  const ih=loaded.naturalHeight||loaded.height;
+  const computed=getComputedStyle(srcImg);
+  const fit=(srcImg.style.objectFit||computed.objectFit||'cover').trim();
+  const fitScale=fit==='contain'?Math.min(w/iw,h/ih):Math.max(w/iw,h/ih);
+  let dw=iw*fitScale, dh=ih*fitScale;
+  let dx=(w-dw)/2, dy=(h-dh)/2;
+  if(!srcBox.classList.contains('media-box')){
+   const t=parseExportTransform(srcImg.style.transform||computed.transform);
+   dw*=t.scale; dh*=t.scale;
+   dx=(w-dw)/2+(t.tx/100)*w;
+   dy=(h-dh)/2+(t.ty/100)*h;
+  }
+  ctx.drawImage(loaded, dx, dy, dw, dh);
+  ctx.restore();
+  cloneImg.src=canvas.toDataURL('image/png');
+  cloneImg.style.cssText='position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;max-width:none!important;max-height:none!important;transform:none!important;display:block!important;';
+ }
+}
+
+function freezeExportBoxes(root, source){
+ const sourceBoxes=[...source.querySelectorAll('.media-box,.header-box,.avatar')];
+ const cloneBoxes=[...root.querySelectorAll('.media-box,.header-box,.avatar')];
+ cloneBoxes.forEach((box,i)=>{
+  const src=sourceBoxes[i]; if(!src) return;
+  const r=src.getBoundingClientRect();
+  if(r.width&&r.height){box.style.width=Math.round(r.width)+'px';box.style.height=Math.round(r.height)+'px';box.style.minHeight=Math.round(r.height)+'px';}
+  const img=box.querySelector('img'); const srcImg=src.querySelector('img');
+  if(img&&srcImg){img.style.cssText=srcImg.style.cssText; img.style.display=srcImg.style.display || getComputedStyle(srcImg).display;}
+ });
+}
+async function saveCard(type){
+ renderPreviews();
+ const source=type==='ig'?$('igPreview'):$('twPreview');
+ const clone=source.cloneNode(true);
+
+ clone.style.display='block';
+ clone.style.position='fixed';
+ clone.style.left='-10000px';
+ clone.style.top='0';
+ clone.style.margin='0';
+ const rect=source.getBoundingClientRect();
+ const exportWidth=Math.round(rect.width||390);
+ clone.style.width=exportWidth+'px';
+ clone.style.maxWidth=exportWidth+'px';
+ clone.style.background='#fff';
+ clone.classList.remove('pc');
+
+ document.body.appendChild(clone);
+ freezeExportBoxes(clone, source);
+ await waitImages(clone);
+ await rasterizeImagesForExport(clone, source, 4);
+ await waitImages(clone);
+ await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ await new Promise(r=>setTimeout(r,150));
+
+ const canvas=await html2canvas(clone,{
+  backgroundColor:'#fff',
+  scale:4,
+  useCORS:true,
+  allowTaint:true,
+  foreignObjectRendering:false,
+  logging:false,
+  width:exportWidth,
+  height:clone.scrollHeight,
+  windowWidth:exportWidth,
+  windowHeight:clone.scrollHeight
+ });
+
+ clone.remove();
+ const a=document.createElement('a');
+ a.download=`${type}-mobile.png`;
+ a.href=canvas.toDataURL('image/png');
+ a.click();
+}
+
+document.querySelectorAll('input[type="range"]').forEach(r=>{
+ r.addEventListener('input', renderPreviews);
+});
+
+state.igPosts.push(defaultIg()); state.twPosts.push(defaultTw()); renderEditors(); renderPreviews();
+</script>
+<!-- checked: mobile-only save, direct img capture, free font selectors -->
+</body>
+</html>
