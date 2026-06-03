@@ -27,7 +27,7 @@ label{display:block;margin:0 0 7px;color:#5c4636;font-size:12px;font-weight:800}
 input,textarea,select{width:100%;border:1px solid var(--line);background:#fffdf8;color:var(--ink);border-radius:12px;padding:11px 12px;font:inherit;outline:none}
 textarea{min-height:310px;resize:vertical;line-height:1.62}
 input:focus,textarea:focus,select:focus{border-color:#9b765d;box-shadow:0 0 0 2px rgba(155,118,93,.12)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.row.single-row{grid-template-columns:1fr}
 .buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 button{border:1px solid var(--accent);border-radius:12px;padding:11px 10px;font-weight:800;cursor:pointer;background:var(--accent);color:#fffaf2}
 button.ghost{background:#fffdf8;color:var(--accent);border-color:var(--line)}
@@ -49,11 +49,632 @@ button.ghost{background:#fffdf8;color:var(--accent);border-color:var(--line)}
 .amount{min-width:120px;text-align:right;white-space:nowrap}.amount .type{font-size:11px;color:#777;margin-bottom:3px}.amount .money{font-weight:900}.amount.in .money{color:#1b6b3a}.amount.out .money{color:#111}
 .note{margin-top:8px;color:#555;font-size:12px;white-space:pre-wrap;word-break:break-word}.balance{display:none}.foot{margin-top:14px;color:#666;font-size:12px;text-align:center}
 .sheet-mode .receipt-wrap{width:min(860px,100%);border-radius:14px}.sheet-mode .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:14px;padding:26px 28px}.sheet-mode .r-center{text-align:left}.sheet-mode .r-title{letter-spacing:-.04em}.sheet-mode .item{padding:14px 0}
-.card-mode .receipt-wrap{width:min(690px,100%);border-radius:18px}.card-mode .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;padding:28px}
+.card-mode .receipt-wrap{width:min(690px,100%);border-radius:22px;background:#17120f;color:#fff;border:1px solid rgba(255,255,255,.18);overflow:hidden}.card-mode .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;padding:30px;background:linear-gradient(145deg,#17120f,#2a1d16 58%,#5b3b28);color:#fff}.card-mode .r-title{color:#fff;letter-spacing:.04em}.card-mode .r-sub,.card-mode .product,.card-mode .date,.card-mode .note,.card-mode .foot,.card-mode .amount .type{color:rgba(255,255,255,.72)}.card-mode .dash,.card-mode .item{border-color:rgba(255,255,255,.32)}.card-mode .amount.out .money{color:#ffe0ad}.card-mode .amount.in .money{color:#9ff0b7}.card-mode .meta-row,.card-mode .total-row{color:#fff}.card-mode .store{color:#fff}
 .font-receipt .receipt{font-family:"Courier New","Courier","Apple SD Gothic Neo","Noto Sans KR",monospace}.font-system .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}.font-serif .receipt{font-family:"Noto Serif KR","Gowun Batang","Batang",serif}.font-round .receipt{font-family:"NanumSquareRound","Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}.font-mono .receipt{font-family:"Courier New","Courier","D2Coding","Apple SD Gothic Neo",monospace}.font-freesent .receipt{font-family:"Pretendard","IBM Plex Sans KR",sans-serif}.font-plex .receipt{font-family:"IBM Plex Sans KR",sans-serif}.font-gowun .receipt{font-family:"Gowun Dodum",sans-serif}
 .hidden{display:none}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 15px;border-radius:999px;background:#2d2119;color:#fff;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:10}.toast.show{opacity:1}
 @media(min-width:901px){#inputTab textarea{min-height:355px}}
 @media(max-width:900px){.app{grid-template-columns:1fr;gap:10px;padding:10px}.panel,.preview{min-height:auto;border-radius:16px}textarea{min-height:250px}.stage{padding:18px 10px}.receipt-wrap{width:100%}.receipt{padding:21px 14px 18px;font-size:13px}.item-top{grid-template-columns:minmax(0,1fr) 116px}}
+
+/* --- Distinct preview modes update --- */
+.sheet-mode .receipt-wrap{
+  width:min(860px,100%);
+  border-radius:22px;
+  background:#f7f9fc;
+  border:1px solid #dfe6ee;
+}
+.sheet-mode .receipt{
+  background:#f7f9fc;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  padding:26px;
+  color:#20242a;
+}
+.sheet-mode .r-center{
+  text-align:left;
+  padding:2px 4px 12px;
+}
+.sheet-mode .r-title{
+  font-size:24px;
+  letter-spacing:-.05em;
+  color:#1d2733;
+}
+.sheet-mode .r-sub{
+  color:#7b8794;
+}
+.sheet-mode .dash{
+  display:none;
+}
+.sheet-mode .meta{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:6px 0 16px;
+}
+.sheet-mode .meta-row{
+  display:block;
+  background:#fff;
+  border:1px solid #e1e7ef;
+  border-radius:16px;
+  padding:12px 13px;
+  margin:0;
+}
+.sheet-mode .meta-row span:first-child{
+  display:block;
+  font-size:11px;
+  color:#7b8794;
+  margin-bottom:5px;
+}
+.sheet-mode .meta-row span:last-child{
+  font-weight:800;
+  color:#222b36;
+}
+.sheet-mode .items{
+  display:grid;
+  gap:10px;
+}
+.sheet-mode .item{
+  background:#fff;
+  border:1px solid #e1e7ef;
+  border-radius:18px;
+  padding:14px 16px;
+}
+.sheet-mode .item-top{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:14px;
+}
+.sheet-mode .store{
+  font-size:15px;
+  color:#1d2733;
+}
+.sheet-mode .product{
+  color:#546171;
+}
+.sheet-mode .date{
+  color:#8b96a4;
+}
+.sheet-mode .amount{
+  min-width:126px;
+}
+.sheet-mode .amount .type{
+  display:inline-block;
+  border-radius:999px;
+  padding:3px 8px;
+  background:#eef2f7;
+  color:#6d7886;
+}
+.sheet-mode .amount.in .type{background:#e7f7ed;color:#257144}
+.sheet-mode .amount.out .type{background:#f2f3f5;color:#646b75}
+.sheet-mode .amount .money{
+  margin-top:6px;
+  font-size:17px;
+}
+.sheet-mode .note{
+  background:#f7f9fc;
+  border-radius:12px;
+  padding:9px 10px;
+  color:#667281;
+}
+.sheet-mode .total{
+  margin-top:12px;
+  background:#fff;
+  border:1px solid #e1e7ef;
+  border-radius:18px;
+  padding:13px 15px;
+}
+.sheet-mode .foot{
+  display:none;
+}
+
+.card-mode .receipt-wrap{
+  width:min(690px,100%);
+  border-radius:22px;
+  background:#17120f;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.18);
+  overflow:hidden;
+}
+.card-mode .receipt{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  padding:30px;
+  background:linear-gradient(145deg,#17120f,#2a1d16 58%,#5b3b28);
+  color:#fff;
+}
+.card-mode .r-title{color:#fff;letter-spacing:.04em}
+.card-mode .r-sub,.card-mode .product,.card-mode .date,.card-mode .note,.card-mode .foot,.card-mode .amount .type{color:rgba(255,255,255,.72)}
+.card-mode .dash,.card-mode .item{border-color:rgba(255,255,255,.32)}
+.card-mode .amount.out .money{color:#ffe0ad}
+.card-mode .amount.in .money{color:#9ff0b7}
+.card-mode .meta-row,.card-mode .total-row{color:#fff}
+.card-mode .store{color:#fff}
+
+.allowance-mode .receipt-wrap{
+  width:min(680px,100%);
+  border-radius:28px;
+  background:#fff9fb;
+  border:1px solid #f1d8e2;
+  overflow:hidden;
+}
+.allowance-mode .receipt{
+  font-family:"Gowun Dodum","IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif;
+  padding:28px;
+  background:
+    radial-gradient(circle at 16px 16px, rgba(255,179,204,.22) 0 4px, transparent 5px),
+    linear-gradient(135deg,#fff8fb,#f9fbff 55%,#fffaf0);
+  background-size:34px 34px, auto;
+  color:#55443f;
+}
+.allowance-mode .r-center{
+  text-align:left;
+  background:rgba(255,255,255,.72);
+  border:1px solid #f0d7e0;
+  border-radius:22px;
+  padding:18px 18px 14px;
+  margin-bottom:14px;
+}
+.allowance-mode .r-title{
+  font-size:24px;
+  letter-spacing:-.04em;
+  color:#7b4f62;
+}
+.allowance-mode .r-title:before{
+  content:"🌸 ";
+}
+.allowance-mode .r-sub{
+  color:#a78691;
+}
+.allowance-mode .dash{
+  display:none;
+}
+.allowance-mode .meta{
+  display:none;
+}
+.allowance-mode .items{
+  display:grid;
+  gap:12px;
+}
+.allowance-mode .item{
+  border:0;
+  background:rgba(255,255,255,.82);
+  border:1px solid #f1d8e2;
+  border-radius:22px;
+  padding:15px 16px;
+}
+.allowance-mode .item:nth-child(3n+1){background:#fff7fb}
+.allowance-mode .item:nth-child(3n+2){background:#f7fbff}
+.allowance-mode .item:nth-child(3n){background:#fffdf4}
+.allowance-mode .item-top{
+  grid-template-columns:minmax(0,1fr) auto;
+}
+.allowance-mode .store{
+  color:#7b4f62;
+  font-size:13px;
+}
+.allowance-mode .store:before{content:"✦ "}
+.allowance-mode .product{
+  color:#403a36;
+  font-size:17px;
+  font-weight:800;
+}
+.allowance-mode .date{
+  color:#aa8e98;
+}
+.allowance-mode .amount .type{
+  color:#a78691;
+}
+.allowance-mode .amount .money{
+  color:#7b4f62;
+  font-size:17px;
+}
+.allowance-mode .amount.in .money{
+  color:#4f9b73;
+}
+.allowance-mode .note{
+  background:rgba(255,255,255,.55);
+  border-radius:14px;
+  padding:9px 11px;
+  color:#7b6961;
+}
+.allowance-mode .total{
+  margin-top:14px;
+  background:rgba(255,255,255,.76);
+  border:1px solid #f1d8e2;
+  border-radius:22px;
+  padding:13px 15px;
+}
+.allowance-mode .total-row span:first-child,
+.allowance-mode .total-row strong:first-child{
+  color:#7b4f62;
+}
+.allowance-mode .foot{
+  display:none;
+}
+
+
+/* --- toned-down sheet / allowance redesign --- */
+.sheet-mode .receipt-wrap{
+  width:min(840px,100%);
+  border-radius:6px;
+  background:#fff;
+  color:#1f252b;
+  border:1px solid #d9dde3;
+}
+.sheet-mode .receipt{
+  background:#fff;
+  color:#1f252b;
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  padding:24px 26px;
+  font-size:14px;
+  line-height:1.48;
+}
+.sheet-mode .r-center{
+  text-align:left;
+  padding:0 0 14px;
+  margin:0;
+  border:0;
+  background:transparent;
+}
+.sheet-mode .r-title{
+  font-size:22px;
+  letter-spacing:-.04em;
+  color:#20252b;
+  margin:0 0 4px;
+}
+.sheet-mode .r-sub{
+  color:#8a929c;
+  font-size:12px;
+  margin:0;
+}
+.sheet-mode .dash{
+  display:block;
+  border-top:1px solid #d9dde3;
+  margin:0;
+}
+.sheet-mode .meta{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
+  margin:0;
+  border-bottom:1px solid #d9dde3;
+}
+.sheet-mode .meta-row{
+  display:block;
+  background:transparent;
+  border:0;
+  border-right:1px solid #e7eaf0;
+  border-radius:0;
+  padding:12px 10px;
+  margin:0;
+}
+.sheet-mode .meta-row:last-child{border-right:0}
+.sheet-mode .meta-row span:first-child{
+  display:block;
+  font-size:11px;
+  color:#8a929c;
+  margin-bottom:4px;
+}
+.sheet-mode .meta-row span:last-child{
+  font-weight:700;
+  color:#252a30;
+}
+.sheet-mode .items{
+  display:block;
+}
+.sheet-mode .item{
+  background:transparent;
+  border:0;
+  border-bottom:1px solid #e7eaf0;
+  border-radius:0;
+  padding:14px 2px;
+}
+.sheet-mode .item-top{
+  display:grid;
+  grid-template-columns:96px minmax(0,1fr) 130px;
+  gap:14px;
+  align-items:center;
+}
+.sheet-mode .date{
+  grid-column:1;
+  grid-row:1 / span 2;
+  margin:0;
+  color:#777f89;
+  font-size:13px;
+}
+.sheet-mode .store{
+  grid-column:2;
+  color:#20252b;
+  font-size:14px;
+  font-weight:800;
+}
+.sheet-mode .product{
+  grid-column:2;
+  color:#68717c;
+  font-size:13px;
+  margin:3px 0 0;
+}
+.sheet-mode .amount{
+  grid-column:3;
+  grid-row:1 / span 2;
+  min-width:0;
+  text-align:right;
+}
+.sheet-mode .amount .type{
+  display:block;
+  background:transparent;
+  color:#858d96;
+  padding:0;
+  font-size:11px;
+}
+.sheet-mode .amount .money{
+  margin-top:4px;
+  color:#20252b;
+  font-size:15px;
+  font-weight:900;
+}
+.sheet-mode .amount.in .money{color:#28744b}
+.sheet-mode .note{
+  margin:8px 0 0 110px;
+  padding:0;
+  background:transparent;
+  color:#7a828b;
+  font-size:12px;
+}
+.sheet-mode .total{
+  margin:0;
+  background:#fafbfc;
+  border:0;
+  border-top:1px solid #d9dde3;
+  border-radius:0;
+  padding:13px 2px 0;
+}
+.sheet-mode .foot{display:none}
+
+.allowance-mode .receipt-wrap{
+  width:min(620px,100%);
+  border-radius:12px;
+  background:#fffdf9;
+  color:#2f2924;
+  border:1px solid #e5d8c8;
+  overflow:hidden;
+}
+.allowance-mode .receipt{
+  background:#fffdf9;
+  color:#2f2924;
+  font-family:"Gowun Dodum","IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif;
+  padding:26px 24px;
+  font-size:14px;
+  line-height:1.55;
+}
+.allowance-mode .r-center{
+  text-align:left;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  padding:0 0 13px;
+  margin:0;
+}
+.allowance-mode .r-title{
+  font-size:22px;
+  letter-spacing:-.04em;
+  color:#5f4939;
+  margin:0 0 4px;
+}
+.allowance-mode .r-title:before{content:""}
+.allowance-mode .r-sub{
+  color:#9a8b7e;
+  margin:0;
+}
+.allowance-mode .dash{
+  display:block;
+  border-top:1px solid #e5d8c8;
+  margin:0;
+}
+.allowance-mode .meta{
+  display:none;
+}
+.allowance-mode .items{
+  display:grid;
+  gap:8px;
+  padding-top:12px;
+}
+.allowance-mode .item,
+.allowance-mode .item:nth-child(3n+1),
+.allowance-mode .item:nth-child(3n+2),
+.allowance-mode .item:nth-child(3n){
+  background:#fff;
+  border:1px solid #eadfd2;
+  border-radius:12px;
+  padding:12px 13px;
+}
+.allowance-mode .item-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:start;
+}
+.allowance-mode .store{
+  color:#7c6a5c;
+  font-size:12px;
+  font-weight:700;
+}
+.allowance-mode .store:before{content:""}
+.allowance-mode .product{
+  color:#2f2924;
+  font-size:15px;
+  font-weight:800;
+  margin-top:3px;
+}
+.allowance-mode .date{
+  color:#9a8b7e;
+  font-size:12px;
+}
+.allowance-mode .amount{
+  min-width:110px;
+}
+.allowance-mode .amount .type{
+  color:#9a8b7e;
+  font-size:11px;
+}
+.allowance-mode .amount .money{
+  color:#5f4939;
+  font-size:15px;
+  font-weight:900;
+}
+.allowance-mode .amount.in .money{color:#3f7a58}
+.allowance-mode .note{
+  margin-top:8px;
+  padding:0;
+  background:transparent;
+  color:#7c6a5c;
+  font-size:12px;
+}
+.allowance-mode .total{
+  margin-top:12px;
+  background:#f8f0e7;
+  border:1px solid #eadfd2;
+  border-radius:12px;
+  padding:12px 13px;
+}
+.allowance-mode .total-row span:first-child,
+.allowance-mode .total-row strong:first-child{
+  color:#5f4939;
+}
+.allowance-mode .foot{display:none}
+
+
+/* --- remove top meta / passbook-like statement --- */
+.meta{display:none!important}
+
+.receipt .items:first-of-type{
+  margin-top:0;
+}
+
+.sheet-mode .receipt-wrap{
+  width:min(900px,100%);
+  border-radius:4px;
+  background:#fff;
+  border:1px solid #cfd6df;
+}
+.sheet-mode .receipt{
+  background:#fff;
+  color:#1f252b;
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+  padding:24px 26px;
+  font-size:13px;
+  line-height:1.42;
+}
+.sheet-mode .r-center{
+  text-align:left;
+  padding:0 0 14px;
+  border-bottom:2px solid #343a40;
+}
+.sheet-mode .r-title{
+  font-size:22px;
+  letter-spacing:-.04em;
+  color:#1f252b;
+  margin:0;
+}
+.sheet-mode .r-sub{
+  margin-top:4px;
+  color:#7a828b;
+  font-size:12px;
+}
+.sheet-mode .dash{
+  display:none;
+}
+.sheet-mode .items{
+  display:block;
+  border-top:1px solid #343a40;
+}
+.sheet-mode .items:before{
+  content:"일자    구분        적요 / 품목                              금액";
+  display:grid;
+  grid-template-columns:90px 70px minmax(0,1fr) 140px;
+  gap:12px;
+  padding:10px 4px;
+  border-bottom:1px solid #cfd6df;
+  color:#68717c;
+  font-size:12px;
+  white-space:pre;
+}
+.sheet-mode .item{
+  background:#fff;
+  border:0;
+  border-bottom:1px solid #e2e6eb;
+  border-radius:0;
+  padding:11px 4px;
+}
+.sheet-mode .item-top{
+  display:grid;
+  grid-template-columns:90px 70px minmax(0,1fr) 140px;
+  gap:12px;
+  align-items:center;
+}
+.sheet-mode .date{
+  grid-column:1;
+  grid-row:1 / span 2;
+  margin:0;
+  color:#59636f;
+  font-size:12px;
+}
+.sheet-mode .amount{
+  grid-column:4;
+  grid-row:1 / span 2;
+  min-width:0;
+  text-align:right;
+}
+.sheet-mode .amount .type{
+  display:block;
+  background:transparent;
+  color:#6d7886;
+  padding:0;
+  font-size:12px;
+  margin:0;
+}
+.sheet-mode .amount .money{
+  margin-top:3px;
+  font-size:15px;
+  font-weight:900;
+  color:#1f252b;
+}
+.sheet-mode .amount.in .money{color:#226943}
+.sheet-mode .store{
+  grid-column:3;
+  color:#1f252b;
+  font-size:14px;
+  font-weight:800;
+}
+.sheet-mode .store:before{
+  content:"";
+}
+.sheet-mode .product{
+  grid-column:3;
+  color:#59636f;
+  font-size:12px;
+  margin:3px 0 0;
+}
+.sheet-mode .note{
+  margin:7px 0 0 172px;
+  padding:0;
+  background:transparent;
+  color:#7a828b;
+  font-size:12px;
+}
+.sheet-mode .total{
+  margin-top:0;
+  padding:12px 4px 0;
+  border-top:2px solid #343a40;
+  background:#fff;
+  border-radius:0;
+}
+.sheet-mode .foot{display:none}
+
+.receipt .r-center + .dash{
+  margin-top:12px;
+}
+
+/* receipt mode also no top meta gap */
+.receipt-wrap .meta + .dash{display:none}
+
 </style>
 </head>
 <body>
@@ -94,11 +715,11 @@ button.ghost{background:#fffdf8;color:var(--accent);border-color:var(--line)}
 * 거래 내역 전체를 순서대로 나열하거나 설명하지 않는다.
 * 특히 인상 깊은 일부 항목만 자연스럽게 언급할 수 있다.</textarea><div class="buttons"><button type="button" onclick="copyOOC()">OOC 복사</button><button class="ghost" type="button" onclick="applyType()">종류 반영</button></div><div class="help"></div></div>
 <div id="inputTab" class="area hidden"><label>AI가 출력한 내역서 붙여넣기</label><textarea id="rawInput" placeholder="2027.06.02, 출금, 소원시 문구점, 고양이 스티커, 3,000원, 책갈피 옆에 붙이려고 구매
-2027.06.03, 입금, 카드 환불, 중복 결제 취소, 1,800원, 잘못 찍힌 결제 환불"></textarea><div class="row"><div><label>상단 이름</label><input id="receiptTitle" placeholder="예: NPC BLACK CARD"></div><div><label>승인번호</label><input id="receiptNo" placeholder="비우면 자동"></div></div><div class="buttons"><button type="button" onclick="renderReceipt()">영수증 반영</button><button class="ghost" type="button" onclick="clearInput()">입력 비우기</button></div><div class="help"></div></div>
+2027.06.03, 입금, 카드 환불, 중복 결제 취소, 1,800원, 잘못 찍힌 결제 환불"></textarea><div class="row single-row"><div><label>상단 이름</label><input id="receiptTitle" placeholder="예: NPC BLACK CARD"></div></div><div class="buttons"><button type="button" onclick="renderReceipt()">영수증 반영</button><button class="ghost" type="button" onclick="clearInput()">입력 비우기</button></div><div class="help"></div></div>
 <div class="settings">
 <p class="settings-title">보기 설정</p>
 <div class="settings-grid">
-<select id="viewMode" onchange="renderReceipt()"><option value="receipt">흰 영수증</option><option value="sheet">거래내역서</option><option value="card">카드내역</option></select>
+<select id="viewMode" onchange="renderReceipt()"><option value="receipt">흰 영수증</option><option value="sheet">거래내역서</option><option value="card">카드내역</option><option value="allowance">용돈기입장</option></select>
 <select id="sortMode" onchange="renderReceipt()"><option value="keep">붙여넣은 순서</option><option value="date">날짜순 정렬</option></select>
 <select id="fontMode" onchange="renderReceipt()">
 <option value="receipt">영수증 기본</option>
@@ -171,12 +792,12 @@ function moneyFormat(n){return(n||0).toLocaleString("ko-KR")+"원"}
 function parseCommaLine(line){const p=protectMoneyCommas(line.trim());const parts=p.split(/\s*,\s*/).map(v=>restoreMoneyCommas(v.trim())).filter(Boolean);if(parts.length>=6){return{date:normalizeDate(parts[0]),type:/입금/.test(parts[1])?"입금":"출금",store:parts[2]||"미기재",product:parts[3]||"대표 품목",amount:parseMoney(parts[4])||parts[4]||"0원",balance:"",note:parts.slice(5).join(", ")}}if(parts.length>=5){return{date:normalizeDate(parts[0]),type:"출금",store:parts[1]||"미기재",product:parts[2]||"대표 품목",amount:parseMoney(parts[3])||parts[3]||"0원",balance:"",note:parts.slice(4).join(", ")}}return null}
 function parseLines(raw){const lines=raw.split(/\n+/).map(v=>v.trim()).filter(v=>v&&!/^[-─━=]{3,}$/.test(v)&&!/^날짜\s*,/.test(v));const items=[];for(const line of lines){const item=parseCommaLine(line);if(item)items.push(item)}return items}
 function sortItems(items){return $("sortMode").value==="date"?[...items].sort((a,b)=>(a.date||"").localeCompare(b.date||"")):items}
-function renderReceipt(){const raw=$("rawInput").value.trim(),out=$("output");if(!raw){parsedItems=[];out.className="empty";out.innerHTML="내역서를 붙여넣으면 여기에 영수증 형태로 표시됨.";return}parsedItems=sortItems(parseLines(raw));const mode=$("viewMode").value,title=$("receiptTitle").value.trim()||"OOC RECEIPT",no=$("receiptNo").value.trim()||autoNo();out.className="";out.classList.toggle("sheet-mode",mode==="sheet");out.classList.toggle("card-mode",mode==="card");const font=$("fontMode")?.value||"receipt";out.classList.toggle("font-system",font==="system");out.classList.toggle("font-serif",font==="serif");out.classList.toggle("font-round",font==="round");out.classList.toggle("font-mono",font==="mono");out.classList.toggle("font-freesent",font==="freesent");out.classList.toggle("font-plex",font==="plex");out.classList.toggle("font-gowun",font==="gowun");if(!parsedItems.length){out.innerHTML=`<div class="empty">인식된 내역이 없음.<br>날짜, 구분, 상점명/적요, 품목명, 금액, 메모 형식으로 붙여넣어줘.</div>`;return}const income=parsedItems.filter(i=>i.type==="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const outcome=parsedItems.filter(i=>i.type!=="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const finalBalance="";const itemsHTML=parsedItems.map((it,idx)=>`<div class="item"><div class="item-top"><div><div class="store">${escapeHTML(it.store)}</div><div class="product">${escapeHTML(it.product)}</div><div class="date">${escapeHTML(it.date||todayDot())} · NO.${String(idx+1).padStart(2,"0")}</div></div><div class="amount ${it.type==="입금"?"in":"out"}"><div class="type">${escapeHTML(it.type)}</div><div class="money">${it.type==="입금"?"+":"-"}${escapeHTML(it.amount)}</div></div></div>${it.note?`<div class="note">${escapeHTML(it.note)}</div>`:""}</div>`).join("");out.innerHTML=`<div class="receipt-wrap" id="receiptCard"><div class="receipt"><div class="r-center"><div class="r-title">${escapeHTML(title)}</div><div class="r-sub">ROLEPLAY OOC BACKUP RECEIPT</div></div><div class="dash"></div><div class="meta"><div class="meta-row"><span>거래일</span><span>${todayDot()}</span></div><div class="meta-row"><span>승인번호</span><span>${escapeHTML(no)}</span></div><div class="meta-row"><span>항목수</span><span>${parsedItems.length}건</span></div></div><div class="dash"></div><div class="items">${itemsHTML}</div><div class="dash"></div><div class="total"><div class="total-row"><span>총 거래 건수</span><span>${parsedItems.length}건</span></div><div class="total-row"><span>총입금</span><span>${moneyFormat(income)}</span></div><div class="total-row"><strong>총출금</strong><strong>${moneyFormat(outcome)}</strong></div></div><div class="foot">THANK YOU<br>BACKUP COMPLETE</div></div></div>`}
+function renderReceipt(){const raw=$("rawInput").value.trim(),out=$("output");if(!raw){parsedItems=[];out.className="empty";out.innerHTML="내역서를 붙여넣으면 여기에 영수증 형태로 표시됨.";return}parsedItems=sortItems(parseLines(raw));const mode=$("viewMode").value,title=$("receiptTitle").value.trim()||"OOC RECEIPT",no="";out.className="";out.classList.toggle("sheet-mode",mode==="sheet");out.classList.toggle("card-mode",mode==="card");out.classList.toggle("allowance-mode",mode==="allowance");const font=$("fontMode")?.value||"receipt";out.classList.toggle("font-system",font==="system");out.classList.toggle("font-serif",font==="serif");out.classList.toggle("font-round",font==="round");out.classList.toggle("font-mono",font==="mono");out.classList.toggle("font-freesent",font==="freesent");out.classList.toggle("font-plex",font==="plex");out.classList.toggle("font-gowun",font==="gowun");if(!parsedItems.length){out.innerHTML=`<div class="empty">인식된 내역이 없음.<br>날짜, 구분, 상점명/적요, 품목명, 금액, 메모 형식으로 붙여넣어줘.</div>`;return}const income=parsedItems.filter(i=>i.type==="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const outcome=parsedItems.filter(i=>i.type!=="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const finalBalance="";const itemsHTML=parsedItems.map((it,idx)=>`<div class="item"><div class="item-top"><div><div class="store">${escapeHTML(it.store)}</div><div class="product">${escapeHTML(it.product)}</div><div class="date">${escapeHTML(it.date||todayDot())} · NO.${String(idx+1).padStart(2,"0")}</div></div><div class="amount ${it.type==="입금"?"in":"out"}"><div class="type">${escapeHTML(it.type)}</div><div class="money">${it.type==="입금"?"+":"-"}${escapeHTML(it.amount)}</div></div></div>${it.note?`<div class="note">${escapeHTML(it.note)}</div>`:""}</div>`).join("");out.innerHTML=`<div class="receipt-wrap" id="receiptCard"><div class="receipt"><div class="r-center"><div class="r-title">${escapeHTML(title)}</div></div><div class="dash"></div><div class="items">${itemsHTML}</div><div class="dash"></div><div class="total"><div class="total-row"><span>총 거래 건수</span><span>${parsedItems.length}건</span></div><div class="total-row"><span>총입금</span><span>${moneyFormat(income)}</span></div><div class="total-row"><strong>총출금</strong><strong>${moneyFormat(outcome)}</strong></div></div></div></div>`}
 function renderedText(){if(!parsedItems.length)return"";let txt=`${$("receiptTitle").value.trim()||"OOC RECEIPT"}\n승인번호 ${$("receiptNo").value.trim()||autoNo()}\n────────────────────\n`;parsedItems.forEach((it,i)=>{txt+=`${String(i+1).padStart(2,"0")}. ${it.date||todayDot()} ${it.type}\n${it.store}\n${it.product}\n${it.amount}\n${it.note||""}\n────────────────────\n`});return txt}
 async function copyRenderedText(){renderReceipt();const txt=renderedText();if(!txt){toast("복사할 내역이 없음");return}const ok=await copyText(txt,$("rawInput"));toast(ok?"영수증 텍스트 복사 완료":"자동 복사 실패")}
 function clearInput(){$("rawInput").value="";parsedItems=[];lastReceiptNo="";renderReceipt();toast("입력 비움")}
 async function savePNG(){renderReceipt();const target=document.getElementById("receiptCard");if(!target){toast("저장할 영수증이 없음");return}if(typeof html2canvas==="undefined"){toast("PNG 저장 라이브러리 로딩 실패");return}toast("PNG 저장 중");try{const canvas=await html2canvas(target,{scale:3,backgroundColor:"#ffffff",useCORS:true,allowTaint:true,scrollX:0,scrollY:0,windowWidth:document.documentElement.scrollWidth,windowHeight:document.documentElement.scrollHeight});canvas.toBlob(function(blob){if(!blob){toast("PNG 생성 실패");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ooc_receipt_"+Date.now()+".png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("PNG 저장 완료")},"image/png")}catch(e){toast("PNG 저장 실패")}}
-$("rawInput").addEventListener("input",renderReceipt);$("receiptTitle").addEventListener("input",renderReceipt);$("receiptNo").addEventListener("input",renderReceipt);
+$("rawInput").addEventListener("input",renderReceipt);$("receiptTitle").addEventListener("input",renderReceipt);
 </script>
 </body>
 </html>
