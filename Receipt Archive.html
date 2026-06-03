@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Receipt Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=Gowun+Dodum&family=Gowun+Batang&family=Poor+Story&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+:root{--bg:#f5efe7;--panel:#fffaf2;--paper:#fff;--ink:#201c18;--muted:#8a7a6a;--line:#dfd0bd;--accent:#69462f}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:linear-gradient(90deg,rgba(105,70,47,.035) 1px,transparent 1px),linear-gradient(rgba(105,70,47,.035) 1px,transparent 1px),var(--bg);background-size:30px 30px}
+.app{width:min(1500px,100%);min-height:100vh;margin:0 auto;padding:14px;display:grid;grid-template-columns:390px minmax(0,1fr);gap:14px}
+.panel,.preview{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden}
+.panel{min-height:calc(100vh - 28px);display:flex;flex-direction:column}
+.preview{min-height:calc(100vh - 28px);display:flex;flex-direction:column;background:#fbf6ef}
+.head{padding:18px 18px 14px;border-bottom:1px solid var(--line);background:#fffdf8}
+.head h1{margin:0;font-size:22px;letter-spacing:-.04em;line-height:1.1}.head p{display:none}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid var(--line);background:#f2e8db}
+.tab{border:1px solid var(--line);background:#fffdf8;color:var(--accent);border-radius:12px;padding:11px 8px;font-weight:800;cursor:pointer}
+.tab.active{background:var(--accent);color:#fffaf2;border-color:var(--accent)}
+.area{padding:14px;overflow:auto}
+label{display:block;margin:0 0 7px;color:#5c4636;font-size:12px;font-weight:800}
+input,textarea,select{width:100%;border:1px solid var(--line);background:#fffdf8;color:var(--ink);border-radius:12px;padding:11px 12px;font:inherit;outline:none}
+textarea{min-height:310px;resize:vertical;line-height:1.62}
+input:focus,textarea:focus,select:focus{border-color:#9b765d;box-shadow:0 0 0 2px rgba(155,118,93,.12)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+button{border:1px solid var(--accent);border-radius:12px;padding:11px 10px;font-weight:800;cursor:pointer;background:var(--accent);color:#fffaf2}
+button.ghost{background:#fffdf8;color:var(--accent);border-color:var(--line)}
+.help{display:none}
+.settings{padding:14px;border-top:1px solid var(--line);background:#fff7ec}
+.settings-title{margin:0 0 10px;font-size:13px;font-weight:900;color:#5c4636}
+.settings-grid{display:grid;gap:9px}.save-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+.toolbar{display:none}
+.stage{flex:1;overflow:auto;padding:32px;display:flex;align-items:flex-start;justify-content:center}
+.empty{width:min(600px,100%);min-height:260px;margin:0 auto;border:1px dashed var(--line);border-radius:16px;background:#fffdf8;display:flex;align-items:center;justify-content:center;color:transparent}
+.empty:after{content:"미리보기";color:#6b5443;font-weight:800}
+.receipt-wrap{width:min(600px,100%);margin:0 auto;background:#fff;color:#111;border:1px solid #e5ded6;border-radius:0;overflow:hidden}
+.receipt{padding:26px 24px 22px;background:#fff;font-family:"Courier New","Courier","Apple SD Gothic Neo","Noto Sans KR",monospace;font-size:15px;line-height:1.5;letter-spacing:-.02em}
+.r-center{text-align:center}.r-title{font-size:22px;font-weight:900;letter-spacing:.06em;margin-bottom:5px}.r-sub{font-size:12px;color:#666;margin-bottom:13px}
+.dash{border-top:1px dashed #333;margin:12px 0}.meta{font-size:13px}.meta-row,.total-row{display:flex;justify-content:space-between;gap:12px;margin:5px 0}
+.item{padding:12px 0;border-bottom:1px dashed #c9c0b8}.item:last-child{border-bottom:0}
+.item-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+.store{font-weight:900;word-break:break-word}.product{margin-top:4px;color:#333;word-break:break-word}.date{margin-top:5px;color:#777;font-size:12px}
+.amount{min-width:120px;text-align:right;white-space:nowrap}.amount .type{font-size:11px;color:#777;margin-bottom:3px}.amount .money{font-weight:900}.amount.in .money{color:#1b6b3a}.amount.out .money{color:#111}
+.note{margin-top:8px;color:#555;font-size:12px;white-space:pre-wrap;word-break:break-word}.balance{display:none}.foot{margin-top:14px;color:#666;font-size:12px;text-align:center}
+.sheet-mode .receipt-wrap{width:min(860px,100%);border-radius:14px}.sheet-mode .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:14px;padding:26px 28px}.sheet-mode .r-center{text-align:left}.sheet-mode .r-title{letter-spacing:-.04em}.sheet-mode .item{padding:14px 0}
+.card-mode .receipt-wrap{width:min(690px,100%);border-radius:18px}.card-mode .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;padding:28px}
+.font-receipt .receipt{font-family:"Courier New","Courier","Apple SD Gothic Neo","Noto Sans KR",monospace}.font-system .receipt{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}.font-serif .receipt{font-family:"Noto Serif KR","Gowun Batang","Batang",serif}.font-round .receipt{font-family:"NanumSquareRound","Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif}.font-mono .receipt{font-family:"Courier New","Courier","D2Coding","Apple SD Gothic Neo",monospace}.font-freesent .receipt{font-family:"Pretendard","IBM Plex Sans KR",sans-serif}.font-plex .receipt{font-family:"IBM Plex Sans KR",sans-serif}.font-gowun .receipt{font-family:"Gowun Dodum",sans-serif}
+.hidden{display:none}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 15px;border-radius:999px;background:#2d2119;color:#fff;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:10}.toast.show{opacity:1}
+@media(min-width:901px){#inputTab textarea{min-height:355px}}
+@media(max-width:900px){.app{grid-template-columns:1fr;gap:10px;padding:10px}.panel,.preview{min-height:auto;border-radius:16px}textarea{min-height:250px}.stage{padding:18px 10px}.receipt-wrap{width:100%}.receipt{padding:21px 14px 18px;font-size:13px}.item-top{grid-template-columns:minmax(0,1fr) 116px}}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="panel">
+<div class="head"><h1>Receipt Archive</h1></div>
+<div class="tabs"><button id="tabOoc" class="tab active" type="button" onclick="showTab('ooc')">OOC 복사</button><button id="tabInput" class="tab" type="button" onclick="showTab('input')">내역서 붙여넣기</button></div>
+<div id="oocTab" class="area"><label>내역서 종류</label><input id="oocType" placeholder="예: 카드 사용 / 통장 입출금 / 영수증 / 거래명세서"><label style="margin-top:14px">복사용 OOC</label><textarea id="oocText">[OOC: 역할극을 중단한다.
+
+세계관 정보, PC/NPC 프로필, 관계성, 유저노트, 장기기억, 로어북을 참고하여 ________ 내역서를 출력한다.
+
+[내역서]
+- 내역서만 출력한다. 소설 서술, 장면 묘사, 반응 서술은 금지한다.
+- 거래 항목은 반드시 6개 이상 작성한다.
+- 각 항목은 반드시 한 줄로 작성한다.
+- 형식은 반드시 아래 순서를 따른다.
+
+날짜, 구분, 상점명 또는 적요, 품목명, 금액, 메모
+
+- 구분은 입금/출금 중 하나만 사용한다.
+- 카드 사용, 구매, 결제, 소비는 출금으로 작성한다.
+- 환불, 충전, 정산, 되돌아온 금액은 입금으로 작성한다.
+- 금액에는 쉼표 사용이 가능하다.
+- 금액 외 항목에는 쉼표를 사용하지 않는다.
+- 품목명은 대표 품목 1개만 작성한다.
+- 메모는 30자 이내로 작성한다.
+- 편의점 소액결제 반복을 지양하고 금액과 품목을 다양하게 구성한다.
+- 빈 줄, 번호, 표 제목, 불릿, 추가 설명 없이 내역만 출력한다.
+
+예시:
+2027.06.02, 출금, 소원시 문구점, 고양이 스티커, 3,000원, 책갈피 옆에 붙이려고 구매
+2027.06.03, 입금, 카드 환불, 중복 결제 취소, 1,800원, 잘못 찍힌 결제 환불
+
+[후일담]
+
+* 내역서 출력 후 별도 항목으로 작성한다.
+* 해당 내역서를 본 NPC의 반응을 짧은 후일담 형식으로 1000단어 이상 서술한다.
+* 거래 내역 전체를 순서대로 나열하거나 설명하지 않는다.
+* 특히 인상 깊은 일부 항목만 자연스럽게 언급할 수 있다.</textarea><div class="buttons"><button type="button" onclick="copyOOC()">OOC 복사</button><button class="ghost" type="button" onclick="applyType()">종류 반영</button></div><div class="help"></div></div>
+<div id="inputTab" class="area hidden"><label>AI가 출력한 내역서 붙여넣기</label><textarea id="rawInput" placeholder="2027.06.02, 출금, 소원시 문구점, 고양이 스티커, 3,000원, 책갈피 옆에 붙이려고 구매
+2027.06.03, 입금, 카드 환불, 중복 결제 취소, 1,800원, 잘못 찍힌 결제 환불"></textarea><div class="row"><div><label>상단 이름</label><input id="receiptTitle" placeholder="예: NPC BLACK CARD"></div><div><label>승인번호</label><input id="receiptNo" placeholder="비우면 자동"></div></div><div class="buttons"><button type="button" onclick="renderReceipt()">영수증 반영</button><button class="ghost" type="button" onclick="clearInput()">입력 비우기</button></div><div class="help"></div></div>
+<div class="settings">
+<p class="settings-title">보기 설정</p>
+<div class="settings-grid">
+<select id="viewMode" onchange="renderReceipt()"><option value="receipt">흰 영수증</option><option value="sheet">거래내역서</option><option value="card">카드내역</option></select>
+<select id="sortMode" onchange="renderReceipt()"><option value="keep">붙여넣은 순서</option><option value="date">날짜순 정렬</option></select>
+<select id="fontMode" onchange="renderReceipt()">
+<option value="receipt">영수증 기본</option>
+<option value="freesent">FreeSent</option>
+<option value="plex">IBM Plex Sans KR</option>
+<option value="gowun">고운돋움</option>
+<option value="system">시스템 고딕</option>
+</select>
+</div>
+<div class="save-row"><button type="button" onclick="savePNG()">PNG 저장</button><button class="ghost" type="button" onclick="clearInput()">입력 비우기</button></div>
+</div></section>
+<section class="preview"><div class="stage"><div id="output" class="empty"></div></div></section>
+</div><div id="toast" class="toast"></div>
+<script>
+const $=id=>document.getElementById(id);let parsedItems=[],lastReceiptNo="";
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700)}
+function showTab(name){$("oocTab").classList.toggle("hidden",name!=="ooc");$("inputTab").classList.toggle("hidden",name!=="input");$("tabOoc").classList.toggle("active",name==="ooc");$("tabInput").classList.toggle("active",name==="input")}
+function currentOOC(type){
+const target = type || "________";
+return `[OOC: 역할극을 중단한다.
+
+세계관 정보, PC/NPC 프로필, 관계성, 유저노트, 장기기억, 로어북을 참고하여 ${target} 내역서를 출력한다.
+
+[내역서]
+- 내역서만 출력한다. 소설 서술, 장면 묘사, 반응 서술은 금지한다.
+- 거래 항목은 반드시 6개 이상 작성한다.
+- 각 항목은 반드시 한 줄로 작성한다.
+- 형식은 반드시 아래 순서를 따른다.
+
+날짜, 구분, 상점명 또는 적요, 품목명, 금액, 메모
+
+- 구분은 입금/출금 중 하나만 사용한다.
+- 카드 사용, 구매, 결제, 소비는 출금으로 작성한다.
+- 환불, 충전, 정산, 되돌아온 금액은 입금으로 작성한다.
+- 금액에는 쉼표 사용이 가능하다.
+- 금액 외 항목에는 쉼표를 사용하지 않는다.
+- 품목명은 대표 품목 1개만 작성한다.
+- 메모는 30자 이내로 작성한다.
+- 편의점 소액결제 반복을 지양하고 금액과 품목을 다양하게 구성한다.
+- 빈 줄, 번호, 표 제목, 불릿, 추가 설명 없이 내역만 출력한다.
+
+예시:
+2027.06.02, 출금, 소원시 문구점, 고양이 스티커, 3,000원, 책갈피 옆에 붙이려고 구매
+2027.06.03, 입금, 카드 환불, 중복 결제 취소, 1,800원, 잘못 찍힌 결제 환불
+
+[후일담]
+
+* 내역서 출력 후 별도 항목으로 작성한다.
+* 해당 내역서를 본 NPC의 반응을 짧은 후일담 형식으로 1000단어 이상 서술한다.
+* 거래 내역 전체를 순서대로 나열하거나 설명하지 않는다.
+* 특히 인상 깊은 일부 항목만 자연스럽게 언급할 수 있다.`;
+}
+function applyType(){$("oocText").value=currentOOC($("oocType").value.trim()||"________");toast("종류 반영 완료")}
+async function copyText(text,targetEl){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true}}catch(e){}try{targetEl.focus();targetEl.select();targetEl.setSelectionRange(0,text.length);return document.execCommand("copy")}catch(e){return false}}
+async function copyOOC(){
+const el=$("oocText");
+const text=el.value;
+const ok=await copyText(text,el);
+toast(ok?"OOC 복사 완료":"자동 복사 실패. 선택된 OOC를 직접 복사해줘");
+}
+function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function autoNo(){if(!lastReceiptNo)lastReceiptNo=Math.floor(100000+Math.random()*900000).toString();return lastReceiptNo}
+function todayDot(){const d=new Date();return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."+String(d.getDate()).padStart(2,"0")}
+function normalizeDate(v){return(v||"").trim().replace(/[년월]/g,".").replace(/일/g,"").replace(/-/g,".").replace(/\//g,".").replace(/\s+/g,"")}
+function protectMoneyCommas(line){let prev;do{prev=line;line=line.replace(/(\d{1,3}),(\d{3})(?=(?:,\d{3})*\s*원)/g,"$1§$2")}while(prev!==line);return line}
+function restoreMoneyCommas(text){return String(text||"").replace(/§/g,",")}
+function parseMoney(v){const s=String(v||"");const m=s.match(/[-+]?\s*₩?\s*\d{1,3}(?:,\d{3})*(?:\s*원)?|[-+]?\s*\d+\s*원/);return m?m[0].replace(/\s+/g,""):""}
+function moneyNumber(v){const n=parseInt(String(v||"").replace(/[^\d-]/g,""),10);return isNaN(n)?0:n}
+function moneyFormat(n){return(n||0).toLocaleString("ko-KR")+"원"}
+function parseCommaLine(line){const p=protectMoneyCommas(line.trim());const parts=p.split(/\s*,\s*/).map(v=>restoreMoneyCommas(v.trim())).filter(Boolean);if(parts.length>=6){return{date:normalizeDate(parts[0]),type:/입금/.test(parts[1])?"입금":"출금",store:parts[2]||"미기재",product:parts[3]||"대표 품목",amount:parseMoney(parts[4])||parts[4]||"0원",balance:"",note:parts.slice(5).join(", ")}}if(parts.length>=5){return{date:normalizeDate(parts[0]),type:"출금",store:parts[1]||"미기재",product:parts[2]||"대표 품목",amount:parseMoney(parts[3])||parts[3]||"0원",balance:"",note:parts.slice(4).join(", ")}}return null}
+function parseLines(raw){const lines=raw.split(/\n+/).map(v=>v.trim()).filter(v=>v&&!/^[-─━=]{3,}$/.test(v)&&!/^날짜\s*,/.test(v));const items=[];for(const line of lines){const item=parseCommaLine(line);if(item)items.push(item)}return items}
+function sortItems(items){return $("sortMode").value==="date"?[...items].sort((a,b)=>(a.date||"").localeCompare(b.date||"")):items}
+function renderReceipt(){const raw=$("rawInput").value.trim(),out=$("output");if(!raw){parsedItems=[];out.className="empty";out.innerHTML="내역서를 붙여넣으면 여기에 영수증 형태로 표시됨.";return}parsedItems=sortItems(parseLines(raw));const mode=$("viewMode").value,title=$("receiptTitle").value.trim()||"OOC RECEIPT",no=$("receiptNo").value.trim()||autoNo();out.className="";out.classList.toggle("sheet-mode",mode==="sheet");out.classList.toggle("card-mode",mode==="card");const font=$("fontMode")?.value||"receipt";out.classList.toggle("font-system",font==="system");out.classList.toggle("font-serif",font==="serif");out.classList.toggle("font-round",font==="round");out.classList.toggle("font-mono",font==="mono");out.classList.toggle("font-freesent",font==="freesent");out.classList.toggle("font-plex",font==="plex");out.classList.toggle("font-gowun",font==="gowun");if(!parsedItems.length){out.innerHTML=`<div class="empty">인식된 내역이 없음.<br>날짜, 구분, 상점명/적요, 품목명, 금액, 메모 형식으로 붙여넣어줘.</div>`;return}const income=parsedItems.filter(i=>i.type==="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const outcome=parsedItems.filter(i=>i.type!=="입금").reduce((s,i)=>s+moneyNumber(i.amount),0);const finalBalance="";const itemsHTML=parsedItems.map((it,idx)=>`<div class="item"><div class="item-top"><div><div class="store">${escapeHTML(it.store)}</div><div class="product">${escapeHTML(it.product)}</div><div class="date">${escapeHTML(it.date||todayDot())} · NO.${String(idx+1).padStart(2,"0")}</div></div><div class="amount ${it.type==="입금"?"in":"out"}"><div class="type">${escapeHTML(it.type)}</div><div class="money">${it.type==="입금"?"+":"-"}${escapeHTML(it.amount)}</div></div></div>${it.note?`<div class="note">${escapeHTML(it.note)}</div>`:""}</div>`).join("");out.innerHTML=`<div class="receipt-wrap" id="receiptCard"><div class="receipt"><div class="r-center"><div class="r-title">${escapeHTML(title)}</div><div class="r-sub">ROLEPLAY OOC BACKUP RECEIPT</div></div><div class="dash"></div><div class="meta"><div class="meta-row"><span>거래일</span><span>${todayDot()}</span></div><div class="meta-row"><span>승인번호</span><span>${escapeHTML(no)}</span></div><div class="meta-row"><span>항목수</span><span>${parsedItems.length}건</span></div></div><div class="dash"></div><div class="items">${itemsHTML}</div><div class="dash"></div><div class="total"><div class="total-row"><span>총 거래 건수</span><span>${parsedItems.length}건</span></div><div class="total-row"><span>총입금</span><span>${moneyFormat(income)}</span></div><div class="total-row"><strong>총출금</strong><strong>${moneyFormat(outcome)}</strong></div></div><div class="foot">THANK YOU<br>BACKUP COMPLETE</div></div></div>`}
+function renderedText(){if(!parsedItems.length)return"";let txt=`${$("receiptTitle").value.trim()||"OOC RECEIPT"}\n승인번호 ${$("receiptNo").value.trim()||autoNo()}\n────────────────────\n`;parsedItems.forEach((it,i)=>{txt+=`${String(i+1).padStart(2,"0")}. ${it.date||todayDot()} ${it.type}\n${it.store}\n${it.product}\n${it.amount}\n${it.note||""}\n────────────────────\n`});return txt}
+async function copyRenderedText(){renderReceipt();const txt=renderedText();if(!txt){toast("복사할 내역이 없음");return}const ok=await copyText(txt,$("rawInput"));toast(ok?"영수증 텍스트 복사 완료":"자동 복사 실패")}
+function clearInput(){$("rawInput").value="";parsedItems=[];lastReceiptNo="";renderReceipt();toast("입력 비움")}
+async function savePNG(){renderReceipt();const target=document.getElementById("receiptCard");if(!target){toast("저장할 영수증이 없음");return}if(typeof html2canvas==="undefined"){toast("PNG 저장 라이브러리 로딩 실패");return}toast("PNG 저장 중");try{const canvas=await html2canvas(target,{scale:3,backgroundColor:"#ffffff",useCORS:true,allowTaint:true,scrollX:0,scrollY:0,windowWidth:document.documentElement.scrollWidth,windowHeight:document.documentElement.scrollHeight});canvas.toBlob(function(blob){if(!blob){toast("PNG 생성 실패");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="ooc_receipt_"+Date.now()+".png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("PNG 저장 완료")},"image/png")}catch(e){toast("PNG 저장 실패")}}
+$("rawInput").addEventListener("input",renderReceipt);$("receiptTitle").addEventListener("input",renderReceipt);$("receiptNo").addEventListener("input",renderReceipt);
+</script>
+</body>
+</html>
