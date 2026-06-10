@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>발췌 카드 메이커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+KR:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;500&family=IBM+Plex+Sans+KR:wght@300;400;500&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Gowun+Batang&family=Gowun+Dodum&family=Black+Han+Sans&family=Hahmlet:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F0F2F7;--sf:#fff;--p1:#F6F7FB;--p2:#ECEEF5;
+  --b1:#E0E3EE;--b2:#C8CCDE;
+  --ac:#5B4FE8;--ac-lt:#EAE8FF;--ac-md:#7B72F0;
+  --t1:#1A1A2E;--t2:#5A5A7A;--t3:#9898B8;
+  --tr:.15s ease;--hh:52px;--pmob:56vw;--rsm:7px;
+}
+html,body{height:100%;}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t1);display:flex;flex-direction:column;font-size:13px;min-height:100vh;}
+header{height:var(--hh);display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:var(--sf);border-bottom:1px solid var(--b1);position:sticky;top:0;z-index:200;flex-shrink:0;box-shadow:0 1px 8px rgba(60,60,120,.07);}
+.logo{font-size:14px;font-weight:600;color:var(--ac);display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.lic{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--ac),var(--ac-md));display:flex;align-items:center;justify-content:center;}
+.lic svg{color:#fff;}
+.hbtns{display:flex;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--rsm);font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all var(--tr);font-family:inherit;line-height:1;}
+.bg{background:var(--p1);color:var(--t2);border:1.5px solid var(--b2);}
+.bg:hover{border-color:var(--ac);color:var(--ac);background:var(--ac-lt);}
+.ba{background:var(--ac);color:#fff;box-shadow:0 2px 10px rgba(91,79,232,.28);}
+.ba:hover{background:#4a3fd4;}
+.bsm{padding:5px 10px;font-size:11px;}
+.app{display:flex;flex:1;height:calc(100vh - var(--hh));overflow:hidden;}
+.lp{width:300px;min-width:260px;max-width:360px;background:var(--sf);border-right:1px solid var(--b1);overflow-y:auto;overflow-x:hidden;flex-shrink:0;}
+.lp::-webkit-scrollbar{width:3px;}
+.lp::-webkit-scrollbar-thumb{background:var(--b1);border-radius:2px;}
+.rp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;overflow:hidden;background:var(--bg);}
+.cw{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;overflow:hidden;}
+#cv{display:block;border-radius:6px;box-shadow:0 12px 40px rgba(40,40,80,.18),0 0 0 1px rgba(0,0,0,.05);}
+.cbtns{display:flex;gap:8px;flex-shrink:0;}
+.rh{width:4px;background:var(--b1);cursor:col-resize;flex-shrink:0;transition:background var(--tr);}
+.rh:hover{background:var(--ac);}
+.sec{border-bottom:1px solid var(--b1);}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;}
+.sh:hover{background:var(--p1);}
+.st{font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--t3);}
+.sa{color:var(--t3);font-size:9px;transition:transform .2s;}
+.sec.closed .sa{transform:rotate(-90deg);}
+.sb{padding:4px 16px 14px;}
+.sec.closed .sb{display:none;}
+label.lbl{display:block;font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--t3);margin-bottom:5px;text-transform:uppercase;}
+.r2{display:flex;gap:10px;margin-bottom:10px;}
+.r2:last-child{margin-bottom:0;}
+.c1{flex:1;min-width:0;}
+textarea,select,input[type=number],input[type=text]{width:100%;background:var(--p1);border:1.5px solid var(--b1);border-radius:var(--rsm);color:var(--t1);font-family:inherit;font-size:13px;padding:8px 10px;outline:none;transition:border-color var(--tr),box-shadow var(--tr);}
+textarea{resize:vertical;min-height:88px;line-height:1.6;}
+textarea:focus,select:focus,input[type=number]:focus,input[type=text]:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(91,79,232,.11);}
+textarea::placeholder{color:var(--t3);}
+select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239898B8' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:26px;}
+select option{background:#fff;color:var(--t1);}
+input[type=number]::-webkit-inner-spin-button{opacity:.4;}
+.sr{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.sr:last-child{margin-bottom:0;}
+.slb{font-size:11px;color:var(--t2);width:62px;flex-shrink:0;}
+.sv{font-size:11px;color:var(--t2);width:36px;text-align:right;flex-shrink:0;}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--p2);border-radius:2px;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(91,79,232,.4);}
+.cr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cr:last-child{margin-bottom:0;}
+.csw{width:30px;height:30px;border-radius:var(--rsm);border:1.5px solid var(--b2);overflow:hidden;flex-shrink:0;cursor:pointer;}
+.csw input[type=color]{width:42px;height:42px;margin:-6px;border:none;cursor:pointer;padding:0;}
+.clb{font-size:12px;color:var(--t2);}
+.seg{display:flex;background:var(--p2);border-radius:var(--rsm);padding:3px;gap:2px;margin-bottom:10px;}
+.sgb{flex:1;padding:6px 4px;text-align:center;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--t2);transition:all var(--tr);}
+.sgb.on{background:#fff;color:var(--ac);box-shadow:0 1px 4px rgba(0,0,0,.10);font-weight:600;}
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{padding:5px 10px;border-radius:20px;border:1.5px solid var(--b1);background:var(--p1);font-size:11px;font-weight:500;color:var(--t2);cursor:pointer;transition:all var(--tr);}
+.chip:hover{border-color:var(--ac);color:var(--ac);}
+.chip.on{background:var(--ac-lt);border-color:var(--ac);color:var(--ac);}
+.ibs{display:flex;gap:5px;}
+.ib{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--rsm);border:1.5px solid var(--b1);background:var(--p1);cursor:pointer;color:var(--t2);transition:all var(--tr);}
+.ib:hover,.ib.on{border-color:var(--ac);color:var(--ac);background:var(--ac-lt);}
+.gps{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;}
+.gp{display:flex;align-items:center;gap:6px;padding:4px 8px 4px 4px;border-radius:20px;border:1.5px solid var(--b1);background:var(--p1);cursor:pointer;transition:all var(--tr);font-size:11px;font-weight:500;color:var(--t2);}
+.gp:hover{border-color:var(--ac);color:var(--ac);}
+.gp.on{border-color:var(--ac);background:var(--ac-lt);color:var(--ac);}
+.gpd{width:20px;height:20px;border-radius:50%;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15);}
+.flb{padding:6px 12px;background:var(--p1);border:1.5px solid var(--b1);border-radius:var(--rsm);font-size:11px;font-weight:500;color:var(--t2);cursor:pointer;white-space:nowrap;transition:all var(--tr);}
+.flb:hover{border-color:var(--ac);color:var(--ac);}
+.fnm{font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ckr{display:flex;align-items:center;gap:7px;cursor:pointer;margin-bottom:7px;}
+.ckr:last-child{margin-bottom:0;}
+.ckr input[type=checkbox]{accent-color:var(--ac);width:14px;height:14px;cursor:pointer;}
+.ckr span{font-size:12px;color:var(--t2);}
+.note{font-size:10px;color:var(--t3);margin-top:5px;line-height:1.5;}
+.pf{margin-bottom:6px;}
+.pfh{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10px;font-weight:600;color:var(--t3);padding:3px 0;user-select:none;}
+.pfh:hover{color:var(--t2);}
+.pfa{font-size:9px;transition:transform .2s;}
+.pf.closed .pfa{transform:rotate(-90deg);}
+.pf.closed .pfb{display:none;}
+.pfb{display:flex;flex-wrap:wrap;gap:5px;padding-top:4px;}
+.pch{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;background:var(--p2);border:1.5px solid var(--b1);font-size:11px;color:var(--t2);cursor:pointer;transition:all var(--tr);}
+.pch:hover{border-color:var(--ac);color:var(--ac);}
+.pch .del{font-size:13px;line-height:1;color:var(--t3);margin-left:2px;}
+.pch .del:hover{color:#e55;}
+.mpg{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.mpb{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:var(--rsm);border:1.5px solid var(--b1);background:var(--p1);cursor:pointer;color:var(--t2);font-size:11px;font-weight:500;transition:all var(--tr);}
+.mpb:hover,.mpb.on{border-color:var(--ac);color:var(--ac);background:var(--ac-lt);}
+.mpb.r{justify-content:flex-end;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--t1);color:#fff;padding:10px 20px;border-radius:20px;font-size:12px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* ── 리치텍스트 에디터 ── */
+#editor{
+  width:100%;min-height:120px;max-height:260px;
+  background:var(--p1);border:1.5px solid var(--b1);border-radius:var(--rsm);
+  color:var(--t1);font-family:inherit;font-size:13px;
+  padding:10px 12px;outline:none;overflow-y:auto;
+  line-height:1.75;word-break:break-all;
+  transition:border-color var(--tr),box-shadow var(--tr);
+  margin-bottom:0;
+}
+#editor:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(91,79,232,.11);}
+#editor:empty::before{content:attr(data-placeholder);color:var(--t3);pointer-events:none;}
+
+/* 팝업 툴바 — 선택 시 등장 */
+/* ── 서식 툴바 ── */
+#popBar{
+  display:flex;flex-wrap:wrap;gap:3px;align-items:center;
+  background:#2c2c3e;border:1px solid rgba(255,255,255,.15);
+  border-radius:10px;padding:6px 8px;margin-bottom:6px;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);
+}
+.pb-btn{
+  min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;
+  color:#e8e6ff;background:transparent;
+  padding:0 6px;white-space:nowrap;
+  user-select:none;-webkit-user-select:none;
+}
+.pb-btn:active{background:rgba(255,255,255,.22);}
+.pb-sep{width:1px;height:22px;background:rgba(255,255,255,.18);margin:0 3px;flex-shrink:0;}
+
+/* 팔레트 패널 */
+.pal-wrap{
+  background:#f0f0f8;border:1.5px solid var(--b1);
+  border-radius:8px;padding:8px 10px;margin-bottom:5px;
+}
+.pal-lbl{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.05em;margin-bottom:7px;}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pc-dot{
+  width:28px;height:28px;border-radius:50%;cursor:pointer;
+  border:2.5px solid transparent;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+}
+@media(max-width:768px){
+  .pc-dot{width:32px;height:32px;}
+  .pal-row{gap:10px;}
+}
+.pc-dot:active{transform:scale(1.12);}
+.pc-dot.on{border-color:var(--t1);}
+.pc-x{
+  background:var(--p2)!important;
+  border:1.5px solid var(--b2)!important;
+  font-size:12px;color:var(--t2);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:none!important;
+}
+
+@media(max-width:768px){
+  :root{--hh:48px;}
+  .app{flex-direction:column;height:auto;overflow:visible;}
+  .lp{width:100%!important;max-width:none;overflow:visible;height:auto;border-right:none;order:2;}
+  .rp{order:1;height:var(--pmob);min-height:200px;flex:none;padding:8px;position:sticky;top:var(--hh);z-index:100;background:var(--bg);border-bottom:1px solid var(--b1);overflow:hidden;transition:height .25s ease;}
+  .rp.peek{height:calc(var(--pmob) + 16vw);}
+  .rh{display:none;}.cbtns{display:none;}
+  body{overflow:auto;}
+  header .btn-label{display:none;}
+  .sb{padding:4px 14px 12px;}
+}
+@media(max-width:480px){
+  :root{--pmob:64vw;}
+  .r2{flex-direction:column;gap:8px;}
+  .r2.kr{flex-direction:row!important;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="lic"><svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.4"/><path d="M5 6h6M5 8.5h4M5 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+    발췌 카드 메이커
+  </div>
+  <div class="hbtns">
+    <button class="btn bg" id="hCp"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="btn-label">복사</span></button>
+    <button class="btn ba" id="hDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">PNG 저장</span></button>
+  </div>
+</header>
+<div class="app">
+<div class="lp" id="lp">
+
+  <!-- 내용 입력 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">내용 입력</span><span class="sa">▾</span></div>
+    <div class="sb" style="padding-bottom:12px;">
+      <!-- 서식 툴바: 항상 보임 -->
+      <div id="popBar">
+        <span class="pb-btn" onmousedown="pbFmt(event,'bold')"          title="굵게"><b>B</b></span>
+        <span class="pb-btn" onmousedown="pbFmt(event,'italic')"        title="기울임"><i style="font-style:italic">I</i></span>
+        <span class="pb-btn" onmousedown="pbFmt(event,'underline')"     title="밑줄"><u>U</u></span>
+        <span class="pb-btn" onmousedown="pbFmt(event,'strikethrough')" title="취소선"><s>S</s></span>
+        <div class="pb-sep"></div>
+        <span class="pb-btn" onmousedown="pbClear(event)" style="font-size:10px;padding:0 8px;">지우기</span>
+      </div>
+      <!-- 형광펜 색상 — 항상 표시 -->
+      <div class="pal-wrap">
+        <div class="pal-lbl">🖊 형광펜</div>
+        <div class="pal-row" id="hlRow">
+          <div class="pc-dot on" style="background:#FFE066" onmousedown="pbHL(event,'#FFE066')" ontouchend="pbHL(event,'#FFE066')"></div>
+          <div class="pc-dot"   style="background:#A8F0A0" onmousedown="pbHL(event,'#A8F0A0')" ontouchend="pbHL(event,'#A8F0A0')"></div>
+          <div class="pc-dot"   style="background:#A0CFFF" onmousedown="pbHL(event,'#A0CFFF')" ontouchend="pbHL(event,'#A0CFFF')"></div>
+          <div class="pc-dot"   style="background:#FFB3D1" onmousedown="pbHL(event,'#FFB3D1')" ontouchend="pbHL(event,'#FFB3D1')"></div>
+          <div class="pc-dot"   style="background:#FFD0A0" onmousedown="pbHL(event,'#FFD0A0')" ontouchend="pbHL(event,'#FFD0A0')"></div>
+          <div class="pc-dot"   style="background:#D8B4FE" onmousedown="pbHL(event,'#D8B4FE')" ontouchend="pbHL(event,'#D8B4FE')"></div>
+          <div class="pc-dot"   style="background:#99F6E4" onmousedown="pbHL(event,'#99F6E4')" ontouchend="pbHL(event,'#99F6E4')"></div>
+          <div class="pc-dot pc-x" onmousedown="pbHL(event,'none')" ontouchend="pbHL(event,'none')" title="제거">✕</div>
+        </div>
+      </div>
+      <!-- 글자색 — 항상 표시 -->
+      <div class="pal-wrap">
+        <div class="pal-lbl">A 글자색</div>
+        <div class="pal-row" id="tcRow">
+          <div class="pc-dot on" style="background:#ffffff;border:1.5px solid #ccc" onmousedown="pbTC(event,'#ffffff')" ontouchend="pbTC(event,'#ffffff')"></div>
+          <div class="pc-dot"   style="background:#cccccc" onmousedown="pbTC(event,'#cccccc')" ontouchend="pbTC(event,'#cccccc')"></div>
+          <div class="pc-dot"   style="background:#111111" onmousedown="pbTC(event,'#111111')" ontouchend="pbTC(event,'#111111')"></div>
+          <div class="pc-dot"   style="background:#FFE066" onmousedown="pbTC(event,'#FFE066')" ontouchend="pbTC(event,'#FFE066')"></div>
+          <div class="pc-dot"   style="background:#ff6b6b" onmousedown="pbTC(event,'#ff6b6b')" ontouchend="pbTC(event,'#ff6b6b')"></div>
+          <div class="pc-dot"   style="background:#4dabf7" onmousedown="pbTC(event,'#4dabf7')" ontouchend="pbTC(event,'#4dabf7')"></div>
+          <div class="pc-dot"   style="background:#69db7c" onmousedown="pbTC(event,'#69db7c')" ontouchend="pbTC(event,'#69db7c')"></div>
+          <div class="pc-dot"   style="background:#da77f2" onmousedown="pbTC(event,'#da77f2')" ontouchend="pbTC(event,'#da77f2')"></div>
+          <div class="pc-dot"   style="background:#63e6be" onmousedown="pbTC(event,'#63e6be')" ontouchend="pbTC(event,'#63e6be')"></div>
+          <div class="pc-dot"   style="background:#ffa94d" onmousedown="pbTC(event,'#ffa94d')" ontouchend="pbTC(event,'#ffa94d')"></div>
+        </div>
+      </div>
+      <div id="editor" contenteditable="true" data-placeholder="여기에 문구를 입력하세요." spellcheck="false"></div>
+      <div class="note" style="margin-top:6px;">텍스트 드래그 선택 → 위 버튼으로 서식 적용</div>
+    </div>
+  </div>
+
+  <!-- 프리셋 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">프리셋 저장</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div id="pFolders"></div>
+      <div class="r2 kr" style="align-items:flex-end;margin-top:6px;">
+        <div class="c1"><label class="lbl">프리셋 이름</label><input type="text" id="pName" placeholder="이름 입력..."></div>
+        <button class="btn ba bsm" onclick="saveP()" style="flex-shrink:0;height:34px;">저장</button>
+      </div>
+      <div class="note">제작자·캐릭터 포함 전체 설정 저장. 3개↑ 폴더로 묶음.</div>
+    </div>
+  </div>
+
+  <!-- 캔버스 비율 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">캔버스 비율</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div class="chips" id="ratioC">
+        <span class="chip on" data-r="1:1"     onclick="setR(this)">1:1</span>
+        <span class="chip"    data-r="4:5"     onclick="setR(this)">4:5</span>
+        <span class="chip"    data-r="16:9"    onclick="setR(this)">16:9</span>
+        <span class="chip"    data-r="twitter" onclick="setR(this)">트위터 헤더</span>
+        <span class="chip"    data-r="a6"      onclick="setR(this)">A6</span>
+        <span class="chip"    data-r="custom"  onclick="setR(this)">자유</span>
+      </div>
+      <div id="customRow" class="r2 kr" style="display:none;margin-top:8px;">
+        <div class="c1"><label class="lbl">너비</label><input type="number" id="cW" value="800" min="100" max="4000" oninput="rc()"></div>
+        <div class="c1"><label class="lbl">높이</label><input type="number" id="cH" value="800" min="100" max="4000" oninput="rc()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 텍스트 스타일 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">텍스트 스타일</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div class="r2 kr">
+        <div class="c1"><label class="lbl">폰트</label>
+          <select id="ff" onchange="onFf()">
+            <option value="'Pretendard',sans-serif" selected>Pretendard</option>
+            <option value="'Noto Serif KR',serif">Noto Serif KR</option>
+            <option value="'Hahmlet',serif">함렛 (Hahmlet)</option>
+            <option value="'Gowun Batang',serif">고운바탕</option>
+            <option value="'Nanum Myeongjo',serif">나눔명조</option>
+            <option value="'Noto Sans KR',sans-serif">Noto Sans KR</option>
+            <option value="'IBM Plex Sans KR',sans-serif">IBM Plex Sans KR</option>
+            <option value="'Nanum Gothic',sans-serif">나눔고딕</option>
+            <option value="'Gowun Dodum',sans-serif">고운돋움</option>
+            <option value="Georgia,serif">Georgia</option>
+          </select>
+        </div>
+        <div class="c1"><label class="lbl">기본 굵기</label>
+          <select id="fw" onchange="rc()">
+            <option value="300">Light</option>
+            <option value="400" selected>Regular</option>
+            <option value="600">SemiBold</option>
+          </select>
+        </div>
+      </div>
+      <div class="sr"><span class="slb">글자 크기</span><input type="range" id="fs" min="10" max="80" value="16" oninput="sv(this,'fsV','px')"><span class="sv" id="fsV">16px</span></div>
+      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="0" max="120" value="18" oninput="sv(this,'psV','px')"><span class="sv" id="psV">18px</span></div>
+      <div class="sr"><span class="slb">여백</span><input type="range" id="pad" min="20" max="300" value="70" oninput="sv(this,'padV','px')"><span class="sv" id="padV">70px</span></div>
+      <div class="sr"><span class="slb">자간</span><input type="range" id="ls" min="-2" max="20" step="0.5" value="1" oninput="sv(this,'lsV','px')"><span class="sv" id="lsV">1px</span></div>
+      <div class="cr" style="margin-top:8px;">
+        <div class="csw"><input type="color" id="tc" value="#ffffff" onchange="rc()"></div>
+        <span class="clb">기본 글씨 색</span>
+        <input type="range" id="tOp" min="0" max="100" value="100" oninput="sv(this,'tOpV','%')" style="flex:1;margin-left:10px;">
+        <span class="sv" id="tOpV">100%</span>
+      </div>
+      <div class="r2 kr" style="margin-top:10px;">
+        <div class="c1"><label class="lbl">가로 정렬</label>
+          <div class="ibs" id="aB">
+            <span class="ib on" data-a="left"    onclick="setA(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 3h12M1 7h8M1 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+            <span class="ib"    data-a="center"  onclick="setA(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 3h12M3 7h8M2 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+            <span class="ib"    data-a="right"   onclick="setA(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 3h12M5 7h8M3 11h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+            <span class="ib"    data-a="justify" onclick="setA(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 3h12M1 7h12M1 11h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+          </div>
+        </div>
+        <div class="c1"><label class="lbl">세로 위치</label>
+          <div class="ibs" id="vB">
+            <span class="ib"    data-v="top"    onclick="setV(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 1h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 4v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.5 6.5L7 4l2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="ib on" data-v="middle" onclick="setV(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 7h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="2 1"/><path d="M7 2v4M7 8v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span>
+            <span class="ib"    data-v="bottom" onclick="setV(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 2v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.5 7.5L7 10l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 분위기 필터 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">분위기 필터</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div class="chips" id="moodC">
+        <span class="chip on" data-m="none"    onclick="setM(this)">없음</span>
+        <span class="chip"    data-m="warm"    onclick="setM(this)">따뜻함</span>
+        <span class="chip"    data-m="cool"    onclick="setM(this)">차가움</span>
+        <span class="chip"    data-m="vintage" onclick="setM(this)">빈티지</span>
+        <span class="chip"    data-m="dreamy"  onclick="setM(this)">몽환</span>
+        <span class="chip"    data-m="night"   onclick="setM(this)">밤</span>
+        <span class="chip"    data-m="mist"    onclick="setM(this)">안개</span>
+        <span class="chip"    data-m="sepia"   onclick="setM(this)">세피아</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 배경 스타일 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">배경 스타일</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div class="seg" id="bgSeg">
+        <button class="sgb on" data-bm="solid"    onclick="setBg(this)">단색</button>
+        <button class="sgb"    data-bm="gradient" onclick="setBg(this)">그라데이션</button>
+      </div>
+      <div id="solidP"><div class="cr"><div class="csw"><input type="color" id="solidC" value="#0d1b2a" onchange="rc()"></div><span class="clb">배경 색상</span></div></div>
+      <div id="gradP" style="display:none;">
+        <div class="cr"><div class="csw"><input type="color" id="gS" value="#0d1b2a" onchange="rc()"></div><span class="clb">시작 색상</span></div>
+        <div class="cr"><div class="csw"><input type="color" id="gE" value="#1a3550" onchange="rc()"></div><span class="clb">끝 색상</span></div>
+        <select id="gDir" onchange="rc()" style="margin-bottom:8px;">
+          <option value="to bottom">세로 (위→아래)</option>
+          <option value="to right">가로 (좌→우)</option>
+          <option value="135deg" selected>대각선 ↘</option>
+          <option value="45deg">대각선 ↗</option>
+          <option value="radial">방사형</option>
+        </select>
+      </div>
+      <label class="lbl" style="margin-bottom:6px;">그라데이션 프리셋</label>
+      <div class="gps">
+        <div class="gp on" data-s="#0d1b2a" data-e="#1a3550" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#0d1b2a,#1a3550)"></span><span>우주</span></div>
+        <div class="gp" data-s="#003a4a" data-e="#00c8e0" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#003a4a,#00c8e0)"></span><span>시안</span></div>
+        <div class="gp" data-s="#0d1b3a" data-e="#1a3a6a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#0d1b3a,#1a3a6a)"></span><span>미드나잇블루</span></div>
+        <div class="gp" data-s="#1a3a5c" data-e="#8ec8e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#1a3a5c,#8ec8e8)"></span><span>오션</span></div>
+        <div class="gp" data-s="#a8d8ea" data-e="#d8f4f8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#a8d8ea,#d8f4f8)"></span><span>하늘</span></div>
+        <div class="gp" data-s="#dce4f2" data-e="#c8d0e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#dce4f2,#c8d0e8)"></span><span>새벽</span></div>
+        <div class="gp" data-s="#ede9fe" data-e="#c4b5fd" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#ede9fe,#c4b5fd)"></span><span>라벤더</span></div>
+        <div class="gp" data-s="#f0dce8" data-e="#e8c8d8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#f0dce8,#e8c8d8)"></span><span>로즈</span></div>
+        <div class="gp" data-s="#fdf4ec" data-e="#f0d8b8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#fdf4ec,#f0d8b8)"></span><span>연주황</span></div>
+        <div class="gp" data-s="#e8f5e9" data-e="#b8dfc0" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#e8f5e9,#b8dfc0)"></span><span>연두</span></div>
+        <div class="gp" data-s="#c8e8e4" data-e="#90ccc8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#c8e8e4,#90ccc8)"></span><span>민트</span></div>
+        <div class="gp" data-s="#f5e8cc" data-e="#e8d0a0" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#f5e8cc,#e8d0a0)"></span><span>골든</span></div>
+        <div class="gp" data-s="#f0c0b0" data-e="#f8d8c8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#f0c0b0,#f8d8c8)"></span><span>코랄</span></div>
+      </div>
+      <label class="lbl" style="margin-top:12px;margin-bottom:6px;">단색 프리셋</label>
+      <div class="gps">
+        <div class="gp" data-s="#0d1b2a" data-e="#0d1b2a" onclick="apP(this)"><span class="gpd" style="background:#0d1b2a"></span><span>딥네이비</span></div>
+        <div class="gp" data-s="#1c2b4a" data-e="#1c2b4a" onclick="apP(this)"><span class="gpd" style="background:#1c2b4a"></span><span>미드나잇블루</span></div>
+        <div class="gp" data-s="#00a8c8" data-e="#00a8c8" onclick="apP(this)"><span class="gpd" style="background:#00a8c8"></span><span>시안</span></div>
+        <div class="gp" data-s="#1a1a2e" data-e="#1a1a2e" onclick="apP(this)"><span class="gpd" style="background:#1a1a2e"></span><span>다크</span></div>
+        <div class="gp" data-s="#2a2a2a" data-e="#2a2a2a" onclick="apP(this)"><span class="gpd" style="background:#2a2a2a"></span><span>모노</span></div>
+        <div class="gp" data-s="#7a7a8a" data-e="#7a7a8a" onclick="apP(this)"><span class="gpd" style="background:#7a7a8a"></span><span>회색</span></div>
+        <div class="gp" data-s="#fafafa" data-e="#fafafa" onclick="apP(this)"><span class="gpd" style="background:#fafafa;border:1px solid #ddd"></span><span>밀크</span></div>
+        <div class="gp" data-s="#f4efe8" data-e="#f4efe8" onclick="apP(this)"><span class="gpd" style="background:#f4efe8;border:1px solid #ddd"></span><span>크림</span></div>
+        <div class="gp" data-s="#e6e0f0" data-e="#e6e0f0" onclick="apP(this)"><span class="gpd" style="background:#e6e0f0"></span><span>라일락</span></div>
+        <div class="gp" data-s="#fce8e8" data-e="#fce8e8" onclick="apP(this)"><span class="gpd" style="background:#fce8e8"></span><span>핑크</span></div>
+        <div class="gp" data-s="#e8f4f0" data-e="#e8f4f0" onclick="apP(this)"><span class="gpd" style="background:#e8f4f0"></span><span>세이지</span></div>
+      </div>
+      <label class="lbl" style="margin-top:10px;margin-bottom:6px;">배경 이미지</label>
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px;">
+        <button class="btn bg bsm" id="bgPickBtn">📂 파일 선택</button>
+        <input type="file" id="bgFile" accept="image/*" style="display:none">
+        <span class="fnm" id="bgFn">선택된 파일 없음</span>
+      </div>
+      <div id="bgImgCtrls" style="display:none;">
+        <label class="lbl" style="margin-bottom:6px;">위치 조정</label>
+        <div id="bgPad" style="position:relative;width:100%;height:90px;background:var(--p2);border-radius:8px;border:1.5px solid var(--b1);cursor:crosshair;margin-bottom:10px;overflow:hidden;touch-action:none;">
+          <div style="position:absolute;top:50%;left:0;width:100%;height:1px;background:var(--b2);transform:translateY(-50%);"></div>
+          <div style="position:absolute;left:50%;top:0;width:1px;height:100%;background:var(--b2);transform:translateX(-50%);"></div>
+          <div id="bgDot" style="position:absolute;width:16px;height:16px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%);left:50%;top:50%;"></div>
+        </div>
+        <div class="sr"><span class="slb">크기</span><input type="range" id="bgScale" min="30" max="300" value="100" oninput="sv(this,'bgScV','%')"><span class="sv" id="bgScV">100%</span></div>
+        <div class="sr"><span class="slb">어둡게</span><input type="range" id="bgDark" min="0" max="90" value="0" oninput="sv(this,'bgDkV','%')"><span class="sv" id="bgDkV">0%</span></div>
+        <div class="sr"><span class="slb">흐림</span><input type="range" id="bgBlur" min="0" max="40" value="0" oninput="sv(this,'bgBlV','px')"><span class="sv" id="bgBlV">0px</span></div>
+        <button class="btn bg bsm" onclick="clrBg()" style="margin-top:8px;">이미지 제거</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 텍스트 박스 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">텍스트 박스</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <label class="ckr"><input type="checkbox" id="showBox" onchange="rc()"><span>텍스트 박스 표시</span></label>
+      <div class="cr"><div class="csw"><input type="color" id="boxC" value="#000000" onchange="rc()"></div><span class="clb">박스 색상</span></div>
+      <div class="sr" style="margin-top:6px;"><span class="slb">투명도</span><input type="range" id="boxOp" min="0" max="100" value="30" oninput="sv(this,'boxOpV','%')"><span class="sv" id="boxOpV">30%</span></div>
+      <div class="sr"><span class="slb">모서리</span><input type="range" id="boxR" min="0" max="40" value="8" oninput="sv(this,'boxRV','px')"><span class="sv" id="boxRV">8px</span></div>
+    </div>
+  </div>
+
+  <!-- 제작자/캐릭터 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">제작자 / 캐릭터</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <div class="r2 kr">
+        <div class="c1"><label class="lbl">제작자</label><input type="text" id="author" placeholder="닉네임" oninput="rc()"></div>
+        <div class="c1"><label class="lbl">캐릭터</label><input type="text" id="chara" placeholder="캐릭터명" oninput="rc()"></div>
+      </div>
+      <label class="lbl" style="margin-top:10px;margin-bottom:6px;">구분자</label>
+      <div class="chips" id="sepC">
+        <span class="chip"    data-sep=" / " onclick="setSep(this)">A / B</span>
+        <span class="chip on" data-sep=" | " onclick="setSep(this)">A | B</span>
+        <span class="chip"    data-sep=" · " onclick="setSep(this)">A · B</span>
+        <span class="chip"    data-sep=" — " onclick="setSep(this)">A — B</span>
+        <span class="chip"    data-sep="  "  onclick="setSep(this)">A  B</span>
+      </div>
+      <label class="lbl" style="margin-top:10px;margin-bottom:6px;">표시 위치</label>
+      <div class="mpg" id="mpB">
+        <span class="mpb"      data-mp="tl" onclick="setMP(this)"><svg width="10" height="10" fill="none" viewBox="0 0 12 12"><path d="M1 1v4M1 1h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>좌상단</span>
+        <span class="mpb r"    data-mp="tr" onclick="setMP(this)">우상단<svg width="10" height="10" fill="none" viewBox="0 0 12 12"><path d="M11 1v4M11 1H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="mpb"      data-mp="bl" onclick="setMP(this)"><svg width="10" height="10" fill="none" viewBox="0 0 12 12"><path d="M1 11v-4M1 11h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>좌하단</span>
+        <span class="mpb r on" data-mp="br" onclick="setMP(this)">우하단<svg width="10" height="10" fill="none" viewBox="0 0 12 12"><path d="M11 11v-4M11 11H7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      </div>
+      <div class="sr" style="margin-top:10px;"><span class="slb">메타 크기</span><input type="range" id="metaFs" min="8" max="48" value="22" oninput="sv(this,'metaFsV','px')"><span class="sv" id="metaFsV">22px</span></div>
+      <div class="cr"><div class="csw"><input type="color" id="metaC" value="#aaaaaa" onchange="rc()"></div><span class="clb">메타 색상</span></div>
+    </div>
+  </div>
+
+  <!-- 장식 -->
+  <div class="sec">
+    <div class="sh" onclick="ts(this)"><span class="st">장식</span><span class="sa">▾</span></div>
+    <div class="sb">
+      <label class="ckr"><input type="checkbox" id="showPg" onchange="rc()"><span>페이지 번호</span></label>
+      <div class="sr" style="margin-top:4px;"><span class="slb">페이지 번호</span><input type="range" id="pgN" min="1" max="999" value="1" oninput="sv(this,'pgV','',false)"><span class="sv" id="pgV">1</span></div>
+    </div>
+  </div>
+
+</div>
+<div class="rh" id="rh"></div>
+<div class="rp" id="rp">
+  <div class="cw" id="cw"><canvas id="cv"></canvas></div>
+  <div class="cbtns">
+    <button class="btn bg" id="rCp"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>이미지 복사</button>
+    <button class="btn ba" id="rDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>PNG 저장</button>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── STATE ── */
+const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',mp:'br',sep:' | ',bgImg:null};
+const RATIOS={'1:1':[800,800],'4:5':[800,1000],'16:9':[800,450],'twitter':[900,300],'a6':[561,794]};
+const SAVE_RATIOS={'1:1':[1080,1080],'4:5':[1080,1350],'16:9':[1600,900],'twitter':[1500,500],'a6':[1122,1587]};
+const g=id=>document.getElementById(id);
+const gi=id=>parseInt(g(id).value);
+const gf=id=>parseFloat(g(id).value);
+const gc=id=>g(id).value;
+function getDim(){return S.ratio==='custom'?[parseInt(gc('cW'))||800,parseInt(gc('cH'))||800]:RATIOS[S.ratio]||[800,800];}
+function getSaveDim(){return S.ratio==='custom'?getDim():SAVE_RATIOS[S.ratio]||getDim();}
+
+function sv(el,vid,sfx='px',a=true){g(vid).textContent=a?el.value+sfx:el.value;rc();}
+function ts(h){h.closest('.sec').classList.toggle('closed');}
+function setR(el){g('ratioC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.ratio=el.dataset.r;g('customRow').style.display=S.ratio==='custom'?'flex':'none';rc();}
+function setA(el){g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.align=el.dataset.a;rc();}
+function setV(el){g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
+function setM(el){g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
+function setSep(el){g('sepC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.sep=el.dataset.sep;rc();}
+function setMP(el){g('mpB').querySelectorAll('.mpb').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.mp=el.dataset.mp;rc();}
+function setBg(el){
+  g('bgSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.bgMode=el.dataset.bm;
+  g('solidP').style.display=S.bgMode==='solid'?'':'none';
+  g('gradP').style.display=S.bgMode==='gradient'?'':'none';rc();
+}
+function apP(el){
+  document.querySelectorAll('.gp').forEach(d=>d.classList.remove('on'));el.classList.add('on');
+  const s=el.dataset.s,e=el.dataset.e,d=el.dataset.d||'to bottom';
+  g('solidC').value=s;g('gS').value=s;g('gE').value=e;if(g('gDir'))g('gDir').value=d;
+  if(s!==e)setBg(g('bgSeg').querySelector('[data-bm="gradient"]'));
+  else setBg(g('bgSeg').querySelector('[data-bm="solid"]'));
+}
+function onFf(){const ff=gc('ff'),fs=gc('fs')+'px';document.fonts.load(`400 ${fs} ${ff}`).finally(()=>rc());}
+
+/* ── 서식 툴바 ── */
+let savedRange=null;
+
+function saveRange(){
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount>0&&!sel.isCollapsed)savedRange=sel.getRangeAt(0).cloneRange();
+}
+function restoreRange(){
+  if(!savedRange)return false;
+  const sel=window.getSelection();
+  try{sel.removeAllRanges();sel.addRange(savedRange);}catch(e){}
+  return true;
+}
+
+function pbFmt(e,cmd){
+  e.preventDefault();
+  restoreRange();
+  document.execCommand(cmd,false,null);
+  savedRange=null;rc();
+}
+function pbClear(e){
+  e.preventDefault();
+  restoreRange();
+  document.execCommand('removeFormat',false,null);
+  savedRange=null;rc();
+}
+function pbHL(e,color){
+  e.preventDefault();e.stopPropagation();
+  restoreRange();
+  if(color==='none')document.execCommand('hiliteColor',false,'transparent');
+  else document.execCommand('hiliteColor',false,color);
+  g('hlRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  if(color!=='none')e.currentTarget.classList.add('on');
+  savedRange=null;rc();
+}
+function pbTC(e,color){
+  e.preventDefault();e.stopPropagation();
+  restoreRange();
+  document.execCommand('foreColor',false,color);
+  g('tcRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  e.currentTarget.classList.add('on');
+  savedRange=null;rc();
+}
+
+g('editor').addEventListener('mouseup',()=>setTimeout(saveRange,10));
+g('editor').addEventListener('touchend',()=>setTimeout(saveRange,100));
+g('editor').addEventListener('input',rc);
+g('editor').addEventListener('focus',()=>{if(window.innerWidth<=768)g('rp').classList.add('peek');});
+g('editor').addEventListener('blur',e=>{
+  if(window.innerWidth<=768)g('rp').classList.remove('peek');
+});
+
+g('editor').addEventListener('input',rc);
+g('editor').addEventListener('focus',()=>{if(window.innerWidth<=768)g('rp').classList.add('peek');});
+g('editor').addEventListener('blur',e=>{
+  // 팝업 버튼 클릭이면 blur 무시
+  if(window.innerWidth<=768)g('rp').classList.remove('peek');
+});
+
+/* ── 리치텍스트 → canvas 렌더용 파싱 ── */
+/* 각 텍스트 노드를 span 단위로 분해해 서식 정보 추출 */
+function parseRichText(){
+  const ed=g('editor');
+  const segments=[];
+  function walk(node,fmt){
+    if(node.nodeType===3){
+      // text node
+      if(node.textContent)segments.push({...fmt,text:node.textContent});
+      return;
+    }
+    if(node.nodeType!==1)return;
+    const tag=node.tagName.toUpperCase();
+    const st=window.getComputedStyle?null:null;
+    const inlineStyle=node.style||{};
+    let nf={...fmt};
+    if(tag==='B'||tag==='STRONG'||inlineStyle.fontWeight==='bold'||inlineStyle.fontWeight==='700'||inlineStyle.fontWeight==='600')nf.bold=true;
+    if(tag==='I'||tag==='EM')nf.italic=true;
+    if(tag==='U')nf.underline=true;
+    if(tag==='S'||tag==='STRIKE'||tag==='DEL')nf.strike=true;
+    if(tag==='BR'){segments.push({...nf,text:'\n'});return;}
+    if(tag==='DIV'||tag==='P'){
+      if(segments.length&&segments[segments.length-1].text!=='\n')segments.push({...nf,text:'\n'});
+    }
+    // FONT 태그: execCommand foreColor/hiliteColor가 생성
+    if(tag==='FONT'){
+      if(node.color)nf.color=node.color;
+      if(node.getAttribute&&node.getAttribute('color'))nf.color=node.getAttribute('color');
+    }
+    // inline style 색상
+    if(inlineStyle.backgroundColor&&inlineStyle.backgroundColor!=='transparent'&&inlineStyle.backgroundColor!=='rgba(0, 0, 0, 0)'){
+      nf.hl=cssColorToHex(inlineStyle.backgroundColor);
+    }
+    if(inlineStyle.color&&inlineStyle.color!=='inherit'&&inlineStyle.color!==''){
+      nf.color=cssColorToHex(inlineStyle.color);
+    }
+    for(const child of node.childNodes)walk(child,nf);
+    if(tag==='DIV'||tag==='P'){
+      if(segments.length&&segments[segments.length-1].text!=='\n')segments.push({...nf,text:'\n'});
+    }
+  }
+  walk(ed,{bold:false,italic:false,underline:false,strike:false,hl:null,color:null});
+  // 끝 중복 \n 제거
+  while(segments.length&&segments[segments.length-1].text==='\n')segments.pop();
+  return segments;
+}
+function cssColorToHex(css){
+  if(!css||css==='transparent')return null;
+  if(css.startsWith('#'))return css;
+  const m=css.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if(!m)return css;
+  return '#'+[1,2,3].map(i=>parseInt(m[i]).toString(16).padStart(2,'0')).join('');
+}
+
+/* ── BG IMAGE ── */
+const BG={x:0.5,y:0.5,filter:'none'};
+g('bgPickBtn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();g('bgFile').click();});
+g('bgFile').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  g('bgFn').textContent=f.name;
+  const r=new FileReader();
+  r.onload=ev=>{const i=new Image();i.onload=()=>{S.bgImg=i;BG.x=0.5;BG.y=0.5;moveDot(0.5,0.5);g('bgImgCtrls').style.display='';rc();};i.src=ev.target.result;};
+  r.readAsDataURL(f);
+});
+function clrBg(){S.bgImg=null;g('bgFn').textContent='선택된 파일 없음';g('bgFile').value='';g('bgImgCtrls').style.display='none';rc();}
+function moveDot(nx,ny){const d=g('bgDot');d.style.left=(nx*100)+'%';d.style.top=(ny*100)+'%';}
+function padCoords(e,pad){
+  const r=pad.getBoundingClientRect();
+  const cl=e.touches?e.touches[0].clientX:e.clientX;
+  const ct=e.touches?e.touches[0].clientY:e.clientY;
+  return{nx:Math.max(0,Math.min(1,(cl-r.left)/r.width)),ny:Math.max(0,Math.min(1,(ct-r.top)/r.height))};
+}
+(()=>{
+  const pad=g('bgPad');let drag=false;
+  function mv(e){if(!drag)return;e.preventDefault();const{nx,ny}=padCoords(e,pad);BG.x=nx;BG.y=ny;moveDot(nx,ny);rc();}
+  pad.addEventListener('mousedown',e=>{drag=true;const{nx,ny}=padCoords(e,pad);BG.x=nx;BG.y=ny;moveDot(nx,ny);rc();});
+  pad.addEventListener('touchstart',e=>{drag=true;const{nx,ny}=padCoords(e,pad);BG.x=nx;BG.y=ny;moveDot(nx,ny);rc();},{passive:false});
+  document.addEventListener('mousemove',mv);
+  document.addEventListener('touchmove',mv,{passive:false});
+  document.addEventListener('mouseup',()=>drag=false);
+  document.addEventListener('touchend',()=>drag=false);
+})();
+
+/* ── PRESETS ── */
+let presets=[];try{presets=JSON.parse(localStorage.getItem('qcm6')||'[]');}catch(_){}
+function getSet(){
+  return{ratio:S.ratio,bgMode:S.bgMode,align:S.align,vpos:S.vpos,mood:S.mood,mp:S.mp,sep:S.sep,
+    fs:gc('fs'),ps:gc('ps'),pad:gc('pad'),ls:gc('ls'),
+    tc:gc('tc'),tOp:gc('tOp'),ff:gc('ff'),fw:gc('fw'),
+    solidC:gc('solidC'),gS:gc('gS'),gE:gc('gE'),gDir:gc('gDir'),
+    showBox:g('showBox').checked,boxC:gc('boxC'),boxOp:gc('boxOp'),boxR:gc('boxR'),
+    showPg:g('showPg').checked,pgN:gc('pgN'),
+    author:gc('author'),chara:gc('chara'),metaC:gc('metaC'),metaFs:gc('metaFs'),
+    bgScale:gc('bgScale'),bgDark:gc('bgDark'),bgBlur:gc('bgBlur'),
+    editorHTML:g('editor').innerHTML};
+}
+function apSet(c){
+  if(!c)return;
+  const m={fs:'fs',ps:'ps',pad:'pad',ls:'ls',tc:'tc',tOp:'tOp',ff:'ff',fw:'fw',
+    solidC:'solidC',gS:'gS',gE:'gE',gDir:'gDir',boxC:'boxC',boxOp:'boxOp',boxR:'boxR',
+    pgN:'pgN',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',
+    bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur'};
+  for(const[k,id]of Object.entries(m))if(c[k]!=null&&g(id))g(id).value=c[k];
+  const ch={showBox:'showBox',showPg:'showPg'};
+  for(const[k,id]of Object.entries(ch))if(c[k]!=null&&g(id))g(id).checked=c[k];
+  const svs=[['fs','fsV','px'],['ps','psV','px'],['pad','padV','px'],
+    ['ls','lsV','px'],['tOp','tOpV','%'],['bgScale','bgScV','%'],
+    ['bgDark','bgDkV','%'],['bgBlur','bgBlV','px'],['boxOp','boxOpV','%'],
+    ['boxR','boxRV','px'],['pgN','pgV','',false],['metaFs','metaFsV','px']];
+  svs.forEach(([id,vid,sfx,a=true])=>{if(g(id)&&g(vid))g(vid).textContent=a?g(id).value+sfx:g(id).value;});
+  if(c.ratio){const b=g('ratioC').querySelector(`[data-r="${c.ratio}"]`);if(b)setR(b);}
+  if(c.align){const b=g('aB').querySelector(`[data-a="${c.align}"]`);if(b)setA(b);}
+  if(c.vpos){const b=g('vB').querySelector(`[data-v="${c.vpos}"]`);if(b)setV(b);}
+  if(c.mood){const b=g('moodC').querySelector(`[data-m="${c.mood}"]`);if(b)setM(b);}
+  if(c.mp){const b=g('mpB').querySelector(`[data-mp="${c.mp}"]`);if(b)setMP(b);}
+  if(c.sep){const b=[...g('sepC').querySelectorAll('.chip')].find(x=>x.dataset.sep===c.sep);if(b)setSep(b);else S.sep=c.sep;}
+  if(c.bgMode){const b=g('bgSeg').querySelector(`[data-bm="${c.bgMode}"]`);if(b)setBg(b);}
+  if(c.editorHTML!=null)g('editor').innerHTML=c.editorHTML;
+}
+function saveP(){
+  const n=gc('pName').trim();if(!n){toast('이름을 입력하세요.');return;}
+  const cfg=getSet();cfg._n=n;
+  const i=presets.findIndex(p=>p._n===n);
+  if(i>=0)presets[i]=cfg;else presets.push(cfg);
+  try{localStorage.setItem('qcm6',JSON.stringify(presets));}catch(_){}
+  g('pName').value='';renderP();toast(`"${n}" 저장 완료`);
+}
+function loadP(n){const c=presets.find(p=>p._n===n);if(c){apSet(c);rc();toast(`"${n}" 불러오기`);}}
+function delP(n){presets=presets.filter(p=>p._n!==n);try{localStorage.setItem('qcm6',JSON.stringify(presets));}catch(_){}renderP();}
+function renderP(){
+  const el=g('pFolders');
+  if(!presets.length){el.innerHTML='<p style="font-size:11px;color:var(--t3);margin-bottom:6px;">저장된 프리셋 없음</p>';return;}
+  const e=n=>n.replace(/'/g,"\\'").replace(/</g,'&lt;');
+  if(presets.length<=2){
+    el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">'+
+      presets.map(p=>`<div class="pch" onclick="loadP('${e(p._n)}')">${p._n}<span class="del" onclick="event.stopPropagation();delP('${e(p._n)}')">×</span></div>`).join('')+'</div>';return;
+  }
+  let h='';
+  for(let i=0;i<presets.length;i+=4){
+    const ch=presets.slice(i,i+4),fi=Math.floor(i/4)+1;
+    h+=`<div class="pf${i>0?' closed':''}"><div class="pfh" onclick="this.closest('.pf').classList.toggle('closed')"><span class="pfa">▾</span>폴더 ${fi} (${ch.length}개)</div><div class="pfb">`+
+      ch.map(p=>`<div class="pch" onclick="loadP('${e(p._n)}')">${p._n}<span class="del" onclick="event.stopPropagation();delP('${e(p._n)}')">×</span></div>`).join('')+'</div></div>';
+  }
+  el.innerHTML=h;
+}
+
+/* ── CANVAS ── */
+function rc(){
+  const canvas=g('cv');
+  const[W,H]=getSaveDim();
+  const wrap=g('cw');
+  const aw=wrap.clientWidth-2,ah=wrap.clientHeight-2;
+  const sc=Math.min(aw/W,ah/H,1);
+  // DPR 적용: 화면 밀도에 맞게 캔버스 내부 해상도 올림
+  const dpr=window.devicePixelRatio||1;
+  // 미리보기 표시 크기 (CSS px)
+  const dispW=Math.round(W*sc);
+  const dispH=Math.round(H*sc);
+  // 캔버스 실제 픽셀 = 표시크기 × DPR
+  canvas.width=dispW*dpr;
+  canvas.height=dispH*dpr;
+  canvas.style.width=dispW+'px';
+  canvas.style.height=dispH+'px';
+  const ctx=canvas.getContext('2d');
+  // DPR 비율로 스케일 적용 후 렌더
+  ctx.scale(dpr,dpr);
+  // drawTo는 저장 해상도(W,H) 기준으로 렌더하되, 표시 크기에 맞게 추가 스케일
+  ctx.scale(sc,sc);
+  drawTo(ctx,W,H);
+}
+function mkFull(){
+  const[W,H]=getSaveDim();
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  drawTo(c.getContext('2d'),W,H);return c;
+}
+
+function drawTo(ctx,W,H){
+  ctx.clearRect(0,0,W,H);
+  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+
+  // 기준 해상도 800px 기준 비율 스케일
+  // 슬라이더 값은 800px 캔버스 기준, 실제 캔버스 크기에 맞춰 곱함
+  const BASE=800;
+  const scl=W/BASE;
+
+  const _pad=gi('pad'),_fs=gf('fs'),_ps=gf('ps'),_ls=gf('ls');
+  const pad=Math.round(_pad*scl);
+  const fs=_fs*scl;
+  const ps=_ps*scl;
+  const ls=_ls*scl;
+  const lh=1.7;
+  const tOp=gi('tOp')/100,ff=gc('ff'),fw=gc('fw'),defaultTc=gc('tc');
+  const auth=gc('author').trim(),char=gc('chara').trim();
+  const mc=gc('metaC'),mfs=gi('metaFs')*scl;
+
+  /* 배경 */
+  if(S.bgImg){
+    const iw=S.bgImg.width,ih=S.bgImg.height;
+    const sc2=Math.max(W/iw,H/ih)*((gi('bgScale')||100)/100);
+    const cx=(W-iw*sc2)*BG.x,cy=(H-ih*sc2)*BG.y;
+    ctx.save();
+    const blur=gi('bgBlur')||0;
+    if(blur>0)ctx.filter=`blur(${blur}px)`;
+    ctx.drawImage(S.bgImg,cx,cy,iw*sc2,ih*sc2);
+    ctx.restore();
+    const dark=(gi('bgDark')||0)/100;
+    if(dark>0){ctx.save();ctx.globalAlpha=dark;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.restore();}
+  }else{drawBgFill(ctx,W,H);}
+  applyMood(ctx,W,H);
+
+  /* 리치텍스트 파싱 */
+  const segs=parseRichText();
+  if(!segs.length)segs.push({text:'문구를 입력하세요.',bold:false,italic:false,underline:false,strike:false,hl:null,color:null});
+
+  /* 텍스트 래핑 — 서식 세그먼트 단위 */
+  const maxW=W-pad*2;
+  // 세그먼트를 줄 단위로 분해
+  function makeFont(seg){
+    const b=seg.bold?'bold ':fw+' ';
+    const style=seg.italic?'italic ':'';
+    return `${style}${b}${fs}px ${ff}`;
+  }
+  // 전체 세그먼트를 문자 단위 배열로 펼침
+  const chars=[];
+  for(const seg of segs){
+    for(const ch of seg.text){
+      chars.push({ch,bold:seg.bold,italic:seg.italic,underline:seg.underline,strike:seg.strike,hl:seg.hl,color:seg.color});
+    }
+  }
+  // 줄바꿈 처리 — 빈 줄에 isPara 마킹
+  const lines=[];let curLine=[];
+  let lineW=0;
+  for(const c of chars){
+    if(c.ch==='\n'){
+      lines.push(curLine.length?curLine:[]);
+      curLine=[];lineW=0;continue;
+    }
+    const font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+    ctx.font=font;
+    const cw=ctx.measureText(c.ch).width+ls;
+    if(lineW+cw>maxW&&curLine.length){lines.push(curLine);curLine=[c];lineW=cw;}
+    else{curLine.push(c);lineW+=cw;}
+  }
+  if(curLine.length)lines.push(curLine);
+
+  const lhpx=fs*lh;
+  // totalH: 각 줄은 lhpx, 빈 줄(단락 구분)은 ps
+  let totalH=0;
+  for(let i=0;i<lines.length;i++){
+    totalH += lines[i].length===0 ? ps : lhpx;
+  }
+
+  let sy;
+  if(S.vpos==='top')sy=pad;
+  else if(S.vpos==='middle')sy=Math.max(pad,(H-totalH)/2);
+  else sy=H-pad-totalH;
+
+  /* 텍스트 박스 */
+  if(g('showBox').checked){
+    const bp=16;ctx.save();ctx.globalAlpha=gi('boxOp')/100;ctx.fillStyle=gc('boxC');
+    rRect(ctx,pad-bp,sy-bp,maxW+bp*2,totalH+bp*2,gi('boxR'));ctx.fill();ctx.restore();
+  }
+
+  /* 라인 렌더 */
+  ctx.save();ctx.globalAlpha=tOp;
+  let y=sy;
+  for(const line of lines){
+    // 빈 줄 = 단락 구분 → ps만큼 이동
+    if(!line.length){y+=ps;continue;}
+    // 줄 너비 계산 (정렬용)
+    let lw=0;
+    const charWs=line.map(c=>{
+      ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+      const cw=ctx.measureText(c.ch).width;lw+=cw;return cw;
+    });
+    let startX=pad;
+    if(S.align==='center')startX=pad+(maxW-lw-(line.length-1)*ls)/2;
+    else if(S.align==='right')startX=pad+maxW-lw-(line.length-1)*ls;
+    let gap=ls;
+    if(S.align==='justify'&&lw<maxW*0.88){/* left */}
+    else if(S.align==='justify'){gap=(maxW-lw)/(line.length-1||1);}
+
+    // 형광펜: 연속된 같은 색 범위를 하나의 rect로
+    // 먼저 형광펜 구간 합산
+    let hlStart=null,hlColor=null,hlWidth=0;
+    const flushHL=()=>{
+      if(hlStart!==null&&hlColor){
+        ctx.save();ctx.fillStyle=hlColor;
+        ctx.fillRect(hlStart-1,y-1,hlWidth+2,lhpx+1);
+        ctx.restore();
+      }
+      hlStart=null;hlColor=null;hlWidth=0;
+    };
+    // 형광펜: 연속 범위 합산
+    let cxHL=startX;
+    for(let i=0;i<line.length;i++){
+      const c=line[i],cw=charWs[i];
+      const thisHL=c.hl||null;
+      const g2=i<line.length-1?gap:0;
+      if(thisHL!==hlColor){flushHL();if(thisHL){hlStart=cxHL;hlColor=thisHL;hlWidth=cw+g2;}}
+      else if(thisHL){hlWidth+=cw+g2;}
+      cxHL+=cw+gap;
+    }
+    flushHL();
+
+    // 글자 렌더
+    let cx=startX;
+    for(let i=0;i<line.length;i++){
+      const c=line[i],cw=charWs[i];
+      ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+      ctx.textBaseline='top';
+      ctx.fillStyle=c.color||defaultTc;
+      ctx.fillText(c.ch,cx,y);
+      if(c.underline){
+        ctx.save();ctx.strokeStyle=c.color||defaultTc;ctx.lineWidth=Math.max(1,fs/20);
+        ctx.beginPath();ctx.moveTo(cx,y+fs+2);ctx.lineTo(cx+cw,y+fs+2);ctx.stroke();ctx.restore();
+      }
+      if(c.strike){
+        ctx.save();ctx.strokeStyle=c.color||defaultTc;ctx.lineWidth=Math.max(1,fs/20);
+        ctx.beginPath();ctx.moveTo(cx,y+fs*0.55);ctx.lineTo(cx+cw,y+fs*0.55);ctx.stroke();ctx.restore();
+      }
+      cx+=cw+gap;
+    }
+    y+=lhpx;
+  }
+  ctx.restore();
+
+  /* 메타 */
+  const parts=[auth,char].filter(Boolean);
+  if(parts.length){
+    const mt=auth&&char?auth+S.sep+char:(auth||char);
+    ctx.save();ctx.font=`400 ${mfs}px ${ff}`;ctx.fillStyle=mc;ctx.globalAlpha=0.9;
+    const metaY=H-Math.round(pad*0.55);
+    if(S.mp==='tl'||S.mp==='tr'){
+      ctx.textBaseline='top';ctx.textAlign=S.mp==='tl'?'left':'right';
+      ctx.fillText(mt,S.mp==='tl'?pad:W-pad,pad+8);
+    }else{
+      ctx.textBaseline='bottom';ctx.textAlign=S.mp==='bl'?'left':'right';
+      ctx.fillText(mt,S.mp==='bl'?pad:W-pad,metaY);
+    }
+    ctx.restore();
+  }
+  /* 페이지 번호 — 중앙 고정 */
+  if(g('showPg').checked){
+    ctx.save();
+    ctx.font=`400 ${mfs}px ${ff}`;
+    ctx.fillStyle=mc;ctx.globalAlpha=0.7;
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText(`— ${gi('pgN')} —`,W/2,H-Math.round(pad*0.4));
+    ctx.restore();
+  }
+}
+
+function drawBgFill(ctx,W,H){
+  ctx.save();
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='source-over';
+  if(S.bgMode==='gradient'){
+    const dir=gc('gDir'),s=gc('gS'),e=gc('gE');
+    let g2;
+    if(dir==='radial'){
+      g2=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)/1.5);
+    }else{
+      const d={'to bottom':[0,0,0,H],'to right':[0,0,W,0],'135deg':[0,0,W,H],'45deg':[W,0,0,H]};
+      g2=ctx.createLinearGradient(...(d[dir]||[0,0,0,H]));
+    }
+    g2.addColorStop(0,s);
+    g2.addColorStop(1,e);
+    ctx.fillStyle=g2;
+  }else{
+    ctx.fillStyle=gc('solidC');
+  }
+  ctx.fillRect(0,0,W,H);
+  ctx.restore();
+}
+const MOODS={warm:'rgba(255,150,50,0.12)',cool:'rgba(50,110,255,0.12)',vintage:'rgba(180,140,80,0.18)',dreamy:'rgba(180,80,200,0.10)',night:'rgba(10,10,40,0.35)',mist:'rgba(200,225,245,0.20)',sepia:'rgba(110,70,30,0.22)'};
+function applyMood(ctx,W,H){if(!MOODS[S.mood])return;ctx.save();ctx.fillStyle=MOODS[S.mood];ctx.fillRect(0,0,W,H);ctx.restore();}
+function rRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+/* 저장 */
+function download(){
+  const off=mkFull();
+  off.toBlob(blob=>{
+    if(!blob){toast('저장 실패');return;}
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='quote-card.png';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},300);
+    toast('PNG 저장 완료!');
+  },'image/png');
+}
+async function copyImg(){
+  try{
+    const off=mkFull();
+    // ClipboardItem에 Promise<Blob>을 직접 전달 — 사용자 제스처 컨텍스트 유지
+    const item=new ClipboardItem({
+      'image/png': new Promise((resolve,reject)=>{
+        off.toBlob(blob=>{
+          if(blob)resolve(blob);
+          else reject(new Error('blob 생성 실패'));
+        },'image/png');
+      })
+    });
+    await navigator.clipboard.write([item]);
+    toast('이미지가 클립보드에 복사되었습니다!');
+  }catch(e){
+    // 브라우저가 ClipboardItem Promise 방식 미지원 시 폴백
+    try{
+      const off=mkFull();
+      await new Promise((resolve,reject)=>{
+        off.toBlob(async blob=>{
+          if(!blob){reject();return;}
+          try{
+            await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+            resolve();
+          }catch(e2){reject(e2);}
+        },'image/png');
+      });
+      toast('이미지가 클립보드에 복사되었습니다!');
+    }catch(e2){
+      // 최후 폴백: PNG 저장 유도
+      toast('클립보드 복사 미지원 — PNG 저장 버튼을 이용해 주세요.');
+    }
+  }
+}
+function toast(msg){const el=g('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2600);}
+
+/* resize */
+(()=>{
+  const h=g('rh'),p=g('lp');let drag=false,sx=0,sw=0;
+  h.addEventListener('mousedown',e=>{if(window.innerWidth<=768)return;drag=true;sx=e.clientX;sw=p.offsetWidth;document.body.style.cssText='cursor:col-resize;user-select:none';});
+  document.addEventListener('mousemove',e=>{if(!drag)return;p.style.width=Math.max(240,Math.min(420,sw+e.clientX-sx))+'px';rc();});
+  document.addEventListener('mouseup',()=>{drag=false;document.body.style.cssText='';});
+})();
+
+['hDl','rDl'].forEach(id=>g(id).addEventListener('click',download));
+['hCp','rCp'].forEach(id=>g(id).addEventListener('click',copyImg));
+
+window.addEventListener('load',()=>{
+  const lk=document.createElement('link');lk.rel='stylesheet';
+  lk.href='https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css';
+  document.head.appendChild(lk);
+  renderP();
+  document.fonts.ready.then(()=>rc());
+  new ResizeObserver(()=>rc()).observe(g('cw'));
+});
+</script>
+</body>
+</html>
