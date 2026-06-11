@@ -14,7 +14,7 @@
   --b1:#E0E3EE;--b2:#C8CCDE;
   --ac:#5B4FE8;--ac-lt:#EAE8FF;--ac-md:#7B72F0;
   --t1:#1A1A2E;--t2:#5A5A7A;--t3:#9898B8;
-  --tr:.15s ease;--hh:52px;--pmob:44vw;--rsm:7px;
+  --tr:.15s ease;--hh:52px;--pmob:62vw;--rsm:7px;
 }
 html,body{height:100%;}
 body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--t1);display:flex;flex-direction:column;font-size:13px;min-height:100vh;}
@@ -179,7 +179,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   .sb{padding:4px 14px 12px;}
 }
 @media(max-width:480px){
-  :root{--pmob:50vw;}
+  :root{--pmob:68vw;}
   .r2{flex-direction:column;gap:8px;}
   .r2.kr{flex-direction:row!important;}
 }
@@ -1119,10 +1119,19 @@ function download(){
   off.toBlob(blob=>{
     if(!blob){toast('저장 실패');return;}
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='quote-card.png';
-    document.body.appendChild(a);a.click();
-    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},300);
-    toast('PNG 저장 완료!');
+    // iOS Safari: a.click()이 막히므로 새 탭으로 열기
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='quote-card.png';
+    a.target='_blank';
+    document.body.appendChild(a);
+    a.click();
+    // iOS fallback: click이 안 되면 새 탭
+    setTimeout(()=>{
+      URL.revokeObjectURL(url);
+      a.remove();
+    },1000);
+    toast('PNG 저장 완료! (길게 누르면 저장)');
   },'image/png');
 }
 async function copyImg(){
