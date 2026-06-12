@@ -240,6 +240,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div class="pc-dot"   style="background:#da77f2" onmousedown="pbTC(event,'#da77f2')" ontouchend="pbTC(event,'#da77f2')"></div>
           <div class="pc-dot"   style="background:#63e6be" onmousedown="pbTC(event,'#63e6be')" ontouchend="pbTC(event,'#63e6be')"></div>
           <div class="pc-dot"   style="background:#ffa94d" onmousedown="pbTC(event,'#ffa94d')" ontouchend="pbTC(event,'#ffa94d')"></div>
+          <!-- 직접 색상 선택 -->
+          <div class="pc-dot" id="tcCustomDot" style="background:#ffffff;border:1.5px solid #999;position:relative;overflow:hidden;" title="직접 선택">
+            <span style="font-size:9px;line-height:1;pointer-events:none;position:absolute;bottom:1px;right:2px;color:#666;">✎</span>
+            <input type="color" id="tcCustomPicker" value="#ffffff"
+              style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;"
+              onchange="pbTCCustom(this)">
+          </div>
+          <!-- 글자색 제거 -->
+          <div class="pc-dot" style="background:#f0f0f0;border:1.5px solid #ccc;font-size:13px;line-height:24px;text-align:center;color:#666;" onmousedown="pbTCRemove(event)" ontouchend="pbTCRemove(event)" title="글자색 제거">✕</div>
         </div>
       </div>
       <div id="editor" contenteditable="true" data-placeholder="여기에 문구를 입력하세요." spellcheck="false"></div>
@@ -588,6 +597,26 @@ function pbTC(e,color){
   e.currentTarget.classList.add('on');
   savedRange=null;rc();
 }
+function pbTCCustom(input){
+  const color=input.value;
+  g('tcCustomDot').style.background=color;
+  restoreRange();
+  document.execCommand('foreColor',false,color);
+  g('tcRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  g('tcCustomDot').classList.add('on');
+  savedRange=null;rc();
+}
+function pbTCRemove(e){
+  e.preventDefault();e.stopPropagation();
+  restoreRange();
+  // foreColor를 기본 텍스트색으로 되돌림 (removeFormat은 모든 서식 제거라 사용 X)
+  document.execCommand('foreColor',false,'inherit');
+  // inherit이 안 먹는 브라우저 대응: 빈 span 제거
+  document.execCommand('removeFormat',false,null);
+  // 다시 Bold/Italic 등 복구는 사용자가 직접
+  g('tcRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  savedRange=null;rc();
+}
 
 g('editor').addEventListener('mouseup',()=>setTimeout(saveRange,10));
 g('editor').addEventListener('touchend',()=>setTimeout(saveRange,100));
@@ -897,10 +926,9 @@ function drawTo(ctx,W,H,scl){
   const effPad=Math.min(pad, Math.round(H*0.1));
   let sy;
   if(S.vpos==='top')         sy=effPad;
-  else if(S.vpos==='middle') sy=(H-totalH)/2;
-  else                       sy=H-effPad-totalH;
-  if(sy<pad&&S.vpos==='top') sy=effPad;
-  if(sy<0) sy=0;
+  else if(S.vpos==='middle') sy=Math.round((H-totalH)/2);
+  else                       sy=Math.round(H*0.9-totalH);
+  if(sy<0)sy=0;
 
   /* 텍스트 박스 — totalH 기준 (ps 포함 실제 높이) */
   if(g('showBox').checked){
