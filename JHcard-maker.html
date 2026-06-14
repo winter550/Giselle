@@ -245,6 +245,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <span style="font-size:9px;line-height:1;pointer-events:none;position:absolute;bottom:1px;right:2px;color:#666;">✎</span>
             <input type="color" id="tcCustomPicker" value="#ffffff"
               style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;"
+              onmousedown="saveRange()"
               onchange="pbTCCustom(this)">
           </div>
           <!-- 글자색 제거 -->
@@ -609,22 +610,63 @@ function pbTCCustom(input){
 function pbTCRemove(e){
   e.preventDefault();e.stopPropagation();
   restoreRange();
-  // foreColor를 기본 텍스트색으로 되돌림 (removeFormat은 모든 서식 제거라 사용 X)
-  document.execCommand('foreColor',false,'inherit');
-  // inherit이 안 먹는 브라우저 대응: 빈 span 제거
-  document.execCommand('removeFormat',false,null);
-  // 다시 Bold/Italic 등 복구는 사용자가 직접
+  // 글자색만 제거 (형광펜/Bold/Italic 등 다른 서식은 유지)
+  // foreColor를 기본색으로 설정한 뒤 span style 직접 제거
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount){
+    const range=sel.getRangeAt(0);
+    if(!range.collapsed){
+      // 선택 범위의 모든 color 스타일 제거
+      document.execCommand('styleWithCSS',false,true);
+      document.execCommand('foreColor',false,'');
+      document.execCommand('styleWithCSS',false,false);
+    }
+  }
   g('tcRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
   savedRange=null;rc();
 }
 
 g('editor').addEventListener('mouseup',()=>setTimeout(saveRange,10));
 g('editor').addEventListener('touchend',()=>setTimeout(saveRange,100));
+g('editor').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const sel=window.getSelection();
+    if(!sel.rangeCount)return;
+    const range=sel.getRangeAt(0);
+    range.deleteContents();
+    const br=document.createElement('br');
+    range.insertNode(br);
+    // br 다음에 커서 위치
+    range.setStartAfter(br);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    rc();
+  }
+});
 g('editor').addEventListener('input',rc);
+// Ctrl+Z/Y 되돌리기 후에도 재렌더
+g('editor').addEventListener('keyup',e=>{if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='y'))rc();});
 g('editor').addEventListener('paste',e=>{
   e.preventDefault();
-  const text=e.clipboardData.getData('text/plain');
-  document.execCommand('insertText',false,text);
+  let text=e.clipboardData.getData('text/plain');
+  // 텍스트를 줄 단위로 쪼개 BR로 삽입
+  const sel=window.getSelection();
+  if(!sel.rangeCount)return;
+  const range=sel.getRangeAt(0);
+  range.deleteContents();
+  const lines=text.split('\n');
+  const frag=document.createDocumentFragment();
+  lines.forEach((line,i)=>{
+    if(line)frag.appendChild(document.createTextNode(line));
+    if(i<lines.length-1)frag.appendChild(document.createElement('br'));
+  });
+  range.insertNode(frag);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  rc();
 });
 g('editor').addEventListener('focus',()=>{if(window.innerWidth<=768)g('rp').classList.add('peek');});
 g('editor').addEventListener('blur',()=>{if(window.innerWidth<=768)g('rp').classList.remove('peek');});
@@ -648,11 +690,9 @@ function parseRichText(){
     if(tag==='U')nf.underline=true;
     if(tag==='S'||tag==='STRIKE'||tag==='DEL')nf.strike=true;
     if(tag==='BR'){
-      // BR은 줄바꿈 1개
       segments.push({...nf,text:'\n'});return;
     }
     if(tag==='FONT'){
-      if(node.color)nf.color=node.color;
       if(node.getAttribute&&node.getAttribute('color'))nf.color=node.getAttribute('color');
     }
     if(inlineStyle.backgroundColor&&inlineStyle.backgroundColor!=='transparent'&&inlineStyle.backgroundColor!=='rgba(0, 0, 0, 0)'){
@@ -661,20 +701,22 @@ function parseRichText(){
     if(inlineStyle.color&&inlineStyle.color!=='inherit'&&inlineStyle.color!==''){
       nf.color=cssColorToHex(inlineStyle.color);
     }
-    // DIV/P: 닫을 때만 \n 추가 (열기 때는 추가 안 함 → 중복 \n 방지)
     const isBlock=tag==='DIV'||tag==='P';
-    for(const child of node.childNodes)walk(child,nf);
+    // 블록 요소 앞에 \n (첫 번째 블록 제외)
     if(isBlock&&segments.length>0){
       const last=segments[segments.length-1];
       if(!last.text.endsWith('\n'))segments.push({...nf,text:'\n'});
+    }
+    for(const child of node.childNodes)walk(child,nf);
+    // 블록 요소 닫을 때 \n
+    if(isBlock){
+      const last=segments[segments.length-1];
+      if(last&&!last.text.endsWith('\n'))segments.push({...nf,text:'\n'});
     }
   }
   walk(ed,{bold:false,italic:false,underline:false,strike:false,hl:null,color:null});
   // 끝 \n 제거
   while(segments.length&&segments[segments.length-1].text==='\n')segments.pop();
-  // 연속 \n\n → 하나의 빈줄로 정규화 (세 개 이상 → 두 개로)
-  const flat=segments.map(s=>s.text).join('');
-  // segments 그대로 반환 (렌더에서 \n 처리)
   return segments;
 }
 function cssColorToHex(css){
@@ -751,6 +793,7 @@ function apSet(c){
   if(c.sep){const b=[...g('sepC').querySelectorAll('.chip')].find(x=>x.dataset.sep===c.sep);if(b)setSep(b);else S.sep=c.sep;}
   if(c.metaX!=null){S.metaX=c.metaX;S.metaY=c.metaY??0.9;moveMetaDot(S.metaX,S.metaY);}
   if(c.bgMode){const b=g('bgSeg').querySelector(`[data-bm="${c.bgMode}"]`);if(b)setBg(b);}
+  rc();
 }
 function saveP(){
   const n=gc('pName').trim();if(!n){toast('이름을 입력하세요.');return;}
@@ -783,8 +826,6 @@ function renderP(){
 function rc(){
   const canvas=g('cv');
   const[SW,SH]=getSaveDim();
-  // 미리보기: 항상 W=1080 기준, H=비율에 맞게
-  // scl=1.0 고정 → 모든 비율에서 글씨 크기 동일, 세로위치 정확
   const BASE=1080;
   const PW=BASE;
   const PH=Math.round(SH/SW*BASE);
@@ -798,9 +839,17 @@ function rc(){
   canvas.height=dispH*dpr;
   canvas.style.width=dispW+'px';
   canvas.style.height=dispH+'px';
+  // offscreen에 1.0 scl로 그린 뒤 화면 canvas에 복사
+  // → measureText가 scale 오염 없이 정확하게 동작
+  const off=document.createElement('canvas');
+  off.width=PW;off.height=PH;
+  const octx=off.getContext('2d');
+  drawTo(octx,PW,PH,1.0);
   const ctx=canvas.getContext('2d');
+  ctx.save();
   ctx.scale(dpr*sc,dpr*sc);
-  drawTo(ctx,PW,PH,1.0);
+  ctx.drawImage(off,0,0);
+  ctx.restore();
 }
 function mkFull(){
   const[SW,SH]=getSaveDim();
@@ -869,19 +918,8 @@ function drawTo(ctx,W,H,scl){
       chars.push({ch,bold:seg.bold,italic:seg.italic,underline:seg.underline,strike:seg.strike,hl:seg.hl,color:seg.color});
     }
   }
-  // 연속 \n 정규화: 2개 이상 → 1개로 (문단 구분은 1번의 ps만)
-  const normChars=[];
-  let nlCount=0;
-  for(const c of chars){
-    if(c.ch==='\n'){
-      nlCount++;
-      if(nlCount===1)normChars.push(c); // 첫 번째 \n만 통과
-    }else{
-      nlCount=0;
-      normChars.push(c);
-    }
-  }
-  // 앞뒤 \n 제거
+  // \n 앞뒤 제거만 (개수 제한 없음 - 엔터 친 만큼 그대로)
+  const normChars=[...chars];
   while(normChars.length&&normChars[0].ch==='\n')normChars.shift();
   while(normChars.length&&normChars[normChars.length-1].ch==='\n')normChars.pop();
   // 줄바꿈 처리 — \n은 단락 구분으로만 사용
@@ -893,12 +931,11 @@ function drawTo(ctx,W,H,scl){
   for(const c of normChars){
     if(c.ch==='\n'){
       if(curLine.length){
-        // 현재 줄 저장, 단락 끝 마킹
-        lines.push({chars:curLine,paraEnd:true});
+        lines.push({chars:curLine,paraEnd:false});
         curLine=[];lineW=0;
-      }else if(lines.length){
-        // 빈 \n: 바로 전 줄도 단락 끝으로 마킹 (이미 돼 있으면 무시)
-        lines[lines.length-1].paraEnd=true;
+      }else{
+        // 빈 줄 (두 번째 \n) → 빈 줄 추가
+        lines.push({chars:[],paraEnd:false});
       }
       continue;
     }
@@ -906,21 +943,23 @@ function drawTo(ctx,W,H,scl){
     const font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
     ctx.font=font;
     const cw=ctx.measureText(c.ch).width;
-    const cwls=cw+ls; // ls는 모든 글자에 균등 적용
-    if(lineW+cwls>maxW&&curLine.length){
+    // lineW = 현재 줄 글자너비합 + (글자수-1)*ls
+    // 새 글자 추가 시: lineW + (curLine.length>0 ? ls : 0) + cw
+    const addedW=(curLine.length>0?ls:0)+cw;
+    if(lineW+addedW>maxW&&curLine.length){
       lines.push({chars:curLine,paraEnd:false});
-      curLine=[c];lineW=cwls;
-    }else{curLine.push(c);lineW+=cwls;}
+      curLine=[c];lineW=cw;
+    }else{curLine.push(c);lineW+=addedW;}
   }
   if(curLine.length)lines.push({chars:curLine,paraEnd:false});
 
   const lhpx=fs*lh;
 
-  // totalH: ps 포함 실제 블록 높이
+  // totalH: 마지막 줄은 fs만, 빈 줄은 lhpx+ps
   let totalH=0;
   for(let i=0;i<lines.length;i++){
-    totalH+=lhpx;
-    if(lines[i].paraEnd&&i<lines.length-1)totalH+=ps;
+    if(lines[i].chars.length===0) totalH+=lhpx+ps;
+    else totalH+=(i===lines.length-1)?fs:lhpx;
   }
 
   const effPad=Math.min(pad, Math.round(H*0.1));
@@ -955,15 +994,14 @@ function drawTo(ctx,W,H,scl){
   let y=sy;
   for(let li=0;li<lines.length;li++){
     const line=lines[li].chars;
-    if(!line.length){y+=lhpx;continue;}
-    // 줄 너비 계산 (정렬용)
+    if(!line.length){y+=lhpx+ps;continue;}    // 빈 줄 = 줄높이 + 문단간격
     let lw=0;
     const charWs=line.map(c=>{
       ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
       const cw=ctx.measureText(c.ch).width;lw+=cw;return cw;
     });
     ctx.font=baseFont; // 측정 후 복원
-    const totalLW=lw+line.length*ls;  // 모든 글자에 ls 포함 (줄바꿈 계산과 동일)
+    const totalLW=lw+(line.length>1?(line.length-1)*ls:0);  // 마지막 글자엔 ls 없음
     let startX=pad;
     if(S.align==='center')startX=pad+(maxW-totalLW)/2;
     else if(S.align==='right')startX=pad+maxW-totalLW;
@@ -1006,7 +1044,7 @@ function drawTo(ctx,W,H,scl){
       const g2=i<line.length-1?gap:0;
       if(thisHL!==hlColor){flushHL();if(thisHL){hlStart=cxHL;hlColor=thisHL;hlWidth=cw+g2;}}
       else if(thisHL){hlWidth+=cw+g2;}
-      cxHL+=cw+gap;
+      cxHL+=cw+g2;  // 마지막 글자는 gap 없이
     }
     flushHL();
 
@@ -1028,7 +1066,14 @@ function drawTo(ctx,W,H,scl){
         let rx=cx;
         for(let k=runStart;k<end;k++){
           drawChar(ctx,line[k].ch,rx,y,col,runWeight,fs);
-          rx+=charWs[k]+gap;
+          rx+=charWs[k]+(k<end-1?gap:0);
+        }
+      }else if(ls<0){
+        // 자간 음수: 한 자씩, 겹치되 순서 보장
+        let rx=cx;
+        for(let k=runStart;k<end;k++){
+          drawChar(ctx,line[k].ch,rx,y,col,runWeight,fs);
+          rx+=charWs[k]+(k<end-1?gap:0);
         }
       }else{
         drawChar(ctx,runChars,cx,y,col,runWeight,fs);
@@ -1061,8 +1106,6 @@ function drawTo(ctx,W,H,scl){
          cur.underline!==prev.underline||cur.strike!==prev.strike){flushRun(i);}
     }
     y+=lhpx;
-    // 단락 끝이면 문단 간격 추가
-    if(lines[li].paraEnd&&li<lines.length-1)y+=ps;
   }
   ctx.restore();
 
