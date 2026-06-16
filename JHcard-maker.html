@@ -317,7 +317,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         </div>
       </div>
       <div class="sr"><span class="slb">글자 크기</span><input type="range" id="fs" min="10" max="100" value="20" oninput="sv(this,'fsV','px')"><span class="sv" id="fsV">20px</span></div>
-      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="-30" max="160" value="16" oninput="sv(this,'psV','px')"><span class="sv" id="psV">16px</span></div>
+      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="0" max="160" value="16" oninput="sv(this,'psV','px')"><span class="sv" id="psV">16px</span></div>
       <div class="sr"><span class="slb">여백</span><input type="range" id="pad" min="20" max="400" value="110" oninput="sv(this,'padV','px')"><span class="sv" id="padV">110px</span></div>
       <div class="sr"><span class="slb">자간</span><input type="range" id="ls" min="-2" max="20" step="0.5" value="1.5" oninput="sv(this,'lsV','px')"><span class="sv" id="lsV">1.5px</span></div>
       <div class="cr" style="margin-top:8px;">
@@ -958,7 +958,7 @@ function drawTo(ctx,W,H,scl){
   // totalH: 마지막 줄은 fs만, 빈 줄은 lhpx+ps
   let totalH=0;
   for(let i=0;i<lines.length;i++){
-    if(lines[i].chars.length===0) totalH+=Math.max(0,lhpx+ps);
+    if(lines[i].chars.length===0) totalH+=lhpx+ps;
     else totalH+=(i===lines.length-1)?fs:lhpx;
   }
 
@@ -994,7 +994,7 @@ function drawTo(ctx,W,H,scl){
   let y=sy;
   for(let li=0;li<lines.length;li++){
     const line=lines[li].chars;
-    if(!line.length){y+=Math.max(0,lhpx+ps);continue;}    // 빈 줄 = 줄높이 + 문단간격
+    if(!line.length){y+=lhpx+ps;continue;}    // 빈 줄 = 줄높이 + 문단간격
     let lw=0;
     const charWs=line.map(c=>{
       ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
