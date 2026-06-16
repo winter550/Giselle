@@ -614,6 +614,183 @@
 .canvas.align-justify .boardingRows b,.canvas.align-justify .passId{font-size:inherit;text-align:justify !important;text-align-last:left;}
 .toolbar input[type=color]{cursor:pointer;}
 
+
+
+/* v42: slight fixed-height bump only; keep the card compact with a small bottom breathing room */
+.scaleBox{height:730px !important;}
+.canvas{height:730px !important;}
+.theme-boarding .ticketBody{height:698px !important;}
+.theme-white,.theme-dark{padding-bottom:58px !important;}
+.theme-white .body,.theme-dark .body{height:100% !important;}
+.theme-white .content,.theme-dark .content{padding-bottom:28px !important;}
+.theme-white .infoGrid,.theme-dark .infoGrid{align-content:start !important;}
+.theme-white .value,.theme-dark .value{line-height:1.55 !important;}
+
+
+
+/* v45: base 700px + auto-growing card/export height when content is longer */
+.scaleBox{height:700px !important; transition:transform .15s ease,height .15s ease !important;}
+.canvas{min-height:700px !important; height:auto !important; overflow:visible !important;}
+.theme-white .body,.theme-dark .body{min-height:640px !important; height:auto !important;}
+.theme-boarding .ticketBody{min-height:658px !important; height:auto !important;}
+.theme-system .body,.theme-hud .body{min-height:610px !important;}
+.theme-playlist .player{min-height:652px !important; height:auto !important;}
+.theme-win .window,.theme-mac .finder{min-height:672px !important; height:auto !important;}
+.theme-win .winBody,.theme-mac .body{min-height:620px !important; height:auto !important;}
+.canvas .value,.canvas .bio{overflow-wrap:anywhere !important;}
+
+
+
+/* v46: System Log theme fit based on final reference screenshot */
+.theme-system{
+  padding:30px 34px 24px !important;
+  min-height:700px !important;
+  height:auto !important;
+  overflow:visible !important;
+}
+.theme-system .sysTop{
+  height:40px !important;
+  margin-bottom:24px !important;
+  padding-bottom:10px !important;
+  align-items:center !important;
+  font-size:12px !important;
+  letter-spacing:.22em !important;
+}
+.theme-system .body{
+  grid-template-columns:minmax(0,1fr) 280px !important;
+  gap:24px !important;
+  min-height:560px !important;
+  height:auto !important;
+  position:relative !important;
+  z-index:1 !important;
+}
+.theme-system .body > div:first-child{
+  min-width:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+.theme-system .top{
+  grid-template-columns:118px minmax(0,1fr) !important;
+  gap:28px !important;
+  margin-bottom:34px !important;
+  align-items:start !important;
+}
+.theme-system .avatar{
+  width:112px !important;
+  height:112px !important;
+  border-radius:4px !important;
+}
+.theme-system .name{
+  font-size:33px !important;
+  font-weight:300 !important;
+  line-height:1.15 !important;
+  letter-spacing:-.02em !important;
+  margin-top:6px !important;
+}
+.theme-system .id{
+  margin-top:8px !important;
+  font-size:15px !important;
+}
+.theme-system .bio{
+  margin-top:8px !important;
+  margin-bottom:0 !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+}
+.theme-system .body > div:first-child > br{
+  display:none !important;
+}
+.theme-system .infoGrid{
+  grid-template-columns:104px minmax(0,1fr) !important;
+  gap:18px 18px !important;
+  align-content:start !important;
+}
+.theme-system .miniLabel{
+  font-size:10px !important;
+  letter-spacing:.18em !important;
+  padding-top:5px !important;
+  color:#7cff9d !important;
+}
+.theme-system .value{
+  font-size:12.8px !important;
+  line-height:1.5 !important;
+  font-weight:300 !important;
+}
+.theme-system .pillLine{
+  gap:11px 14px !important;
+}
+.theme-system .pill{
+  min-width:44px !important;
+  padding:5px 11px !important;
+  font-size:10.4px !important;
+  font-weight:300 !important;
+  border-radius:3px !important;
+}
+.theme-system .right{
+  padding-left:20px !important;
+  border-left:1px solid rgba(29,124,59,.72) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:560px !important;
+  height:auto !important;
+}
+.theme-system .sysBadge{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:8px !important;
+  margin-bottom:12px !important;
+}
+.theme-system .sysBadge span{
+  padding:6px 8px !important;
+  font-size:9.5px !important;
+  letter-spacing:.15em !important;
+  font-weight:300 !important;
+}
+.theme-system .favGrid{
+  grid-template-columns:1fr 1fr !important;
+  gap:8px !important;
+}
+.theme-system .fav{
+  height:118px !important;
+  border-radius:4px !important;
+}
+.theme-system .tracePanel{
+  margin-top:14px !important;
+  border:1px solid rgba(29,124,59,.46) !important;
+  background:rgba(6,20,11,.34) !important;
+  padding:12px 14px !important;
+  font-size:10.5px !important;
+  letter-spacing:.12em !important;
+  line-height:1.8 !important;
+  color:rgba(200,255,214,.72) !important;
+}
+.theme-system .traceTitle{
+  color:#7cff9d !important;
+  font-size:10px !important;
+  letter-spacing:.2em !important;
+  margin-bottom:5px !important;
+}
+.theme-system .sysCheck{
+  margin-top:auto !important;
+  border-top:1px solid rgba(29,124,59,.44) !important;
+  padding-top:10px !important;
+  font-size:10px !important;
+  letter-spacing:.18em !important;
+  color:rgba(124,255,157,.68) !important;
+}
+.theme-system .sysDecor:before{
+  left:18px !important;
+  bottom:20px !important;
+  width:178px !important;
+  height:34px !important;
+}
+.theme-system .sysDecor:after{
+  left:34px !important;
+  bottom:24px !important;
+  font-size:9.5px !important;
+  letter-spacing:.14em !important;
+}
+
 </style>
 </head>
 <body>
@@ -890,34 +1067,69 @@ async function waitForImages(root){
   if(document.fonts && document.fonts.ready) await document.fonts.ready;
 }
 async function savePNG(){
-  const source=document.getElementById('card');
-  const holder=document.createElement('div');
   try{
+    const source=document.getElementById('card');
     const clone=source.cloneNode(true);
     clone.style.transform='none';
     clone.style.position='relative';
     clone.style.left='0'; clone.style.top='0';
-    holder.style.position='fixed'; holder.style.left='-20000px'; holder.style.top='0';
-    holder.style.width='1100px'; holder.style.height='680px'; holder.style.overflow='hidden';
-    holder.style.background='transparent';
-    holder.appendChild(clone); document.body.appendChild(holder);
+    clone.style.width='1100px';
+    clone.style.minHeight='700px';
+    clone.style.height='auto';
+    clone.style.overflow='visible';
+
+    const holder=document.createElement('div');
+    holder.style.position='fixed';
+    holder.style.left='-20000px';
+    holder.style.top='0';
+    holder.style.width='1100px';
+    holder.style.minHeight='700px';
+    holder.style.height='auto';
+    holder.style.overflow='visible';
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
+
     await waitForImages(clone);
     applySlotImageSizing(clone);
     await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-    const canvas=await html2canvas(clone,{scale:3,useCORS:true,allowTaint:true,backgroundColor:null,width:1100,height:680,windowWidth:1100,windowHeight:680,scrollX:0,scrollY:0,foreignObjectRendering:false,imageTimeout:0,logging:false});
-    const ctx=canvas.getContext('2d'); if(ctx){ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';}
-    const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='twitter-bio-profile.png'; document.body.appendChild(a); a.click(); a.remove();
+
+    const exportHeight=Math.ceil(Math.max(700, clone.scrollHeight, clone.offsetHeight, clone.getBoundingClientRect().height));
+    holder.style.height=exportHeight+'px';
+    clone.style.minHeight=exportHeight+'px';
+
+    const canvas=await html2canvas(clone,{
+      scale:3,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:null,
+      width:1100,
+      height:exportHeight,
+      windowWidth:1100,
+      windowHeight:exportHeight,
+      scrollX:0,
+      scrollY:0,
+      foreignObjectRendering:false,
+      imageTimeout:0,
+      logging:false
+    });
+    const ctx=canvas.getContext('2d');
+    if(ctx){ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';}
+    holder.remove();
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download='twitter-bio-profile.png';
+    a.click();
   }catch(err){
     console.error(err);
-    alert('PNG 저장 중 오류가 발생했어요. 다시 시도해 주세요.\n' + (err && err.message ? err.message : err));
-  }finally{
-    holder.remove();
+    alert('PNG 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
   }
 }
 function fitPreview(){
-  const wrap=document.getElementById('previewWrap'), box=document.getElementById('scaleBox');
+  const wrap=document.getElementById('previewWrap'), box=document.getElementById('scaleBox'), card=document.getElementById('card');
   if(!wrap||!box) return;
-  const baseW=1100, baseH=680;
+  const baseW=1100;
+  const measuredH=card ? Math.ceil(Math.max(700, card.scrollHeight, card.offsetHeight, card.getBoundingClientRect().height)) : 700;
+  const baseH=measuredH;
   const isMobile=window.matchMedia('(max-width: 980px)').matches;
   const pad=isMobile?20:36;
   const availableW=Math.max(280, wrap.clientWidth-pad);
