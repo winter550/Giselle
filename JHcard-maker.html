@@ -317,7 +317,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         </div>
       </div>
       <div class="sr"><span class="slb">글자 크기</span><input type="range" id="fs" min="10" max="100" value="20" oninput="sv(this,'fsV','px')"><span class="sv" id="fsV">20px</span></div>
-      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="0" max="160" value="16" oninput="sv(this,'psV','px')"><span class="sv" id="psV">16px</span></div>
+      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="-30" max="160" value="16" oninput="sv(this,'psV','px')"><span class="sv" id="psV">16px</span></div>
       <div class="sr"><span class="slb">여백</span><input type="range" id="pad" min="20" max="400" value="110" oninput="sv(this,'padV','px')"><span class="sv" id="padV">110px</span></div>
       <div class="sr"><span class="slb">자간</span><input type="range" id="ls" min="-2" max="20" step="0.5" value="1.5" oninput="sv(this,'lsV','px')"><span class="sv" id="lsV">1.5px</span></div>
       <div class="cr" style="margin-top:8px;">
@@ -413,7 +413,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       </div>
       <label class="lbl" style="margin-top:10px;margin-bottom:6px;">배경 이미지</label>
       <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px;">
-        <button class="btn bg bsm" id="bgPickBtn">📂 파일 선택</button>
+        <label class="btn bg bsm" for="bgFile" style="cursor:pointer;">📂 파일 선택</label>
         <input type="file" id="bgFile" accept="image/*" style="display:none">
         <span class="fnm" id="bgFn">선택된 파일 없음</span>
       </div>
@@ -482,6 +482,38 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div class="cr"><div class="csw"><input type="color" id="shadowC" value="#000000" onchange="rc()"></div><span class="clb">그림자 색</span></div>
         <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="shadowOp" min="0" max="100" value="60" oninput="sv(this,'shadowOpV','%')"><span class="sv" id="shadowOpV">60%</span></div>
       </div>
+
+      <!-- 배경 오버레이 -->
+      <label class="ckr"><input type="checkbox" id="showOverlay" onchange="rc()"><span>배경 오버레이</span></label>
+      <div style="margin-left:21px;margin-bottom:10px;">
+        <div class="chips" id="overlayTypeC" style="margin-bottom:6px;">
+          <span class="chip on" data-ot="color" onclick="setOT(this)">색상</span>
+          <span class="chip" data-ot="vignette" onclick="setOT(this)">비네트</span>
+        </div>
+        <div class="cr"><div class="csw"><input type="color" id="overlayC" value="#000000" onchange="rc()"></div><span class="clb">오버레이 색</span></div>
+        <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="overlayOp" min="0" max="90" value="30" oninput="sv(this,'overlayOpV','%')"><span class="sv" id="overlayOpV">30%</span></div>
+      </div>
+
+      <!-- 구분선 -->
+      <label class="ckr"><input type="checkbox" id="showDivider" onchange="rc()"><span>구분선</span></label>
+      <div style="margin-left:21px;margin-bottom:10px;">
+        <div class="chips" id="dividerTypeC" style="margin-bottom:8px;">
+          <span class="chip on" data-dt="hline" onclick="setDT(this)">가로선</span>
+          <span class="chip"    data-dt="left"  onclick="setDT(this)">인용(세로)</span>
+        </div>
+        <!-- 위치 패드 -->
+        <div class="note" style="margin-bottom:4px;">위치 (드래그)</div>
+        <div id="dividerPad" style="position:relative;width:100%;height:70px;background:var(--p2);border-radius:8px;border:1.5px solid var(--b1);cursor:crosshair;overflow:hidden;touch-action:none;margin-bottom:8px;">
+          <div style="position:absolute;top:50%;left:0;width:100%;height:1px;background:var(--b2);transform:translateY(-50%);"></div>
+          <div style="position:absolute;left:50%;top:0;width:1px;height:100%;background:var(--b2);transform:translateX(-50%);"></div>
+          <div id="dividerDot" style="position:absolute;width:14px;height:14px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%);left:50%;top:50%;pointer-events:none;"></div>
+        </div>
+        <div class="cr"><div class="csw"><input type="color" id="dividerC" value="#ffffff" onchange="rc()"></div><span class="clb">선 색상</span></div>
+        <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="dividerOp" min="0" max="100" value="30" oninput="sv(this,'dividerOpV','%')"><span class="sv" id="dividerOpV">30%</span></div>
+        <div class="sr"><span class="slb">두께</span><input type="range" id="dividerW" min="1" max="8" value="1" oninput="sv(this,'dividerWV','px')"><span class="sv" id="dividerWV">1px</span></div>
+        <div class="sr"><span class="slb" id="dividerLenLbl">길이</span><input type="range" id="dividerLen" min="10" max="100" value="80" oninput="sv(this,'dividerLenV','%');updateDividerLbl()"><span class="sv" id="dividerLenV">80%</span></div>
+      </div>
+
       <label class="ckr"><input type="checkbox" id="showPg" onchange="rc()"><span>페이지 번호</span></label>
       <div class="sr" style="margin-top:4px;"><span class="slb">페이지 번호</span><input type="range" id="pgN" min="1" max="999" value="1" oninput="sv(this,'pgV','',false)"><span class="sv" id="pgV">1</span></div>
       <div class="cr" style="margin-top:6px;"><div class="csw"><input type="color" id="pgC" value="#aaaaaa" onchange="rc()"></div><span class="clb">번호 색상</span></div>
@@ -502,7 +534,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 <script>
 /* ── STATE ── */
-const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9};
+const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5};
 const RATIOS={'1:1':[800,800],'4:5':[800,1000],'16:9':[800,450],'twitter':[900,480],'a6':[561,794]};
 const SAVE_RATIOS={'1:1':[1080,1080],'4:5':[1080,1350],'16:9':[1600,900],'twitter':[1500,500],'a6':[1122,1587]};
 const g=id=>document.getElementById(id);
@@ -729,7 +761,6 @@ function cssColorToHex(css){
 
 /* ── BG IMAGE ── */
 const BG={x:0.5,y:0.5,filter:'none'};
-g('bgPickBtn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();g('bgFile').click();});
 g('bgFile').addEventListener('change',function(){
   const f=this.files[0];if(!f)return;
   g('bgFn').textContent=f.name;
@@ -766,6 +797,8 @@ function getSet(){
     solidC:gc('solidC'),gS:gc('gS'),gE:gc('gE'),gDir:gc('gDir'),
     showBox:g('showBox').checked,boxC:gc('boxC'),boxOp:gc('boxOp'),boxR:gc('boxR'),
     showShadow:g('showShadow').checked,shadowBlur:gc('shadowBlur'),shadowDist:gc('shadowDist'),shadowC:gc('shadowC'),shadowOp:gc('shadowOp'),
+    showOverlay:g('showOverlay').checked,overlayType:S.overlayType,overlayC:gc('overlayC'),overlayOp:gc('overlayOp'),
+    showDivider:g('showDivider').checked,dividerType:S.dividerType,dividerX:S.dividerX,dividerY:S.dividerY,dividerC:gc('dividerC'),dividerOp:gc('dividerOp'),dividerW:gc('dividerW'),
     showPg:g('showPg').checked,pgN:gc('pgN'),pgC:gc('pgC'),
     author:gc('author'),chara:gc('chara'),metaC:gc('metaC'),metaFs:gc('metaFs'),
     bgScale:gc('bgScale'),bgDark:gc('bgDark'),bgBlur:gc('bgBlur')};
@@ -775,22 +808,28 @@ function apSet(c){
   const m={fs:'fs',ps:'ps',pad:'pad',ls:'ls',tc:'tc',tOp:'tOp',ff:'ff',fw:'fw',
     solidC:'solidC',gS:'gS',gE:'gE',gDir:'gDir',boxC:'boxC',boxOp:'boxOp',boxR:'boxR',
     shadowC:'shadowC',shadowOp:'shadowOp',shadowBlur:'shadowBlur',shadowDist:'shadowDist',
+    overlayC:'overlayC',overlayOp:'overlayOp',
+    dividerC:'dividerC',dividerOp:'dividerOp',dividerW:'dividerW',dividerLen:'dividerLen',
     pgN:'pgN',pgC:'pgC',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',
     bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur'};
   for(const[k,id]of Object.entries(m))if(c[k]!=null&&g(id))g(id).value=c[k];
-  const ch={showBox:'showBox',showPg:'showPg',showShadow:'showShadow'};
+  const ch={showBox:'showBox',showPg:'showPg',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider'};
   for(const[k,id]of Object.entries(ch))if(c[k]!=null&&g(id))g(id).checked=c[k];
   const svs=[['fs','fsV','px'],['ps','psV','px'],['pad','padV','px'],
     ['ls','lsV','px'],['tOp','tOpV','%'],['bgScale','bgScV','%'],
     ['bgDark','bgDkV','%'],['bgBlur','bgBlV','px'],['boxOp','boxOpV','%'],
     ['boxR','boxRV','px'],['pgN','pgV','',false],['metaFs','metaFsV','px'],
-    ['shadowBlur','shadowBV','px'],['shadowDist','shadowDV','px'],['shadowOp','shadowOpV','%']];
+    ['shadowBlur','shadowBV','px'],['shadowDist','shadowDV','px'],['shadowOp','shadowOpV','%'],
+    ['overlayOp','overlayOpV','%'],['dividerOp','dividerOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%']];
   svs.forEach(([id,vid,sfx,a=true])=>{if(g(id)&&g(vid))g(vid).textContent=a?g(id).value+sfx:g(id).value;});
   if(c.ratio){const b=g('ratioC').querySelector(`[data-r="${c.ratio}"]`);if(b)setR(b);}
   if(c.align){const b=g('aB').querySelector(`[data-a="${c.align}"]`);if(b)setA(b);}
   if(c.vpos){const b=g('vB').querySelector(`[data-v="${c.vpos}"]`);if(b)setV(b);}
   if(c.mood){const b=g('moodC').querySelector(`[data-m="${c.mood}"]`);if(b)setM(b);}
   if(c.sep){const b=[...g('sepC').querySelectorAll('.chip')].find(x=>x.dataset.sep===c.sep);if(b)setSep(b);else S.sep=c.sep;}
+  if(c.overlayType){const b=g('overlayTypeC').querySelector(`[data-ot="${c.overlayType}"]`);if(b)setOT(b);}
+  if(c.dividerType){const b=g('dividerTypeC').querySelector(`[data-dt="${c.dividerType}"]`);if(b)setDT(b);}
+  if(c.dividerX!=null){S.dividerX=c.dividerX;S.dividerY=c.dividerY??0.5;moveDivDot(S.dividerX,S.dividerY);}
   if(c.metaX!=null){S.metaX=c.metaX;S.metaY=c.metaY??0.9;moveMetaDot(S.metaX,S.metaY);}
   if(c.bgMode){const b=g('bgSeg').querySelector(`[data-bm="${c.bgMode}"]`);if(b)setBg(b);}
   rc();
@@ -799,7 +838,11 @@ function saveP(){
   const n=gc('pName').trim();if(!n){toast('이름을 입력하세요.');return;}
   const cfg=getSet();cfg._n=n;
   const i=presets.findIndex(p=>p._n===n);
-  if(i>=0)presets[i]=cfg;else presets.push(cfg);
+  if(i>=0){presets[i]=cfg;}
+  else{
+    if(presets.length>=5){toast('최대 5개까지 저장 가능합니다. 기존 프리셋을 삭제해주세요.');return;}
+    presets.push(cfg);
+  }
   try{localStorage.setItem('qcm6',JSON.stringify(presets));}catch(_){}
   g('pName').value='';renderP();toast(`"${n}" 저장 완료`);
 }
@@ -899,6 +942,22 @@ function drawTo(ctx,W,H,scl){
   }else{drawBgFill(ctx,W,H);}
   applyMood(ctx,W,H);
 
+  /* 배경 오버레이 */
+  if(g('showOverlay').checked){
+    const op=gi('overlayOp')/100;
+    const col=gc('overlayC');
+    const r=parseInt(col.slice(1,3),16),gr2=parseInt(col.slice(3,5),16),b3=parseInt(col.slice(5,7),16);
+    if(S.overlayType==='vignette'){
+      const rg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.2,W/2,H/2,Math.min(W,H)*0.8);
+      rg.addColorStop(0,`rgba(${r},${gr2},${b3},0)`);
+      rg.addColorStop(1,`rgba(${r},${gr2},${b3},${op})`);
+      ctx.fillStyle=rg;
+    }else{
+      ctx.fillStyle=`rgba(${r},${gr2},${b3},${op})`;
+    }
+    ctx.fillRect(0,0,W,H);
+  }
+
   /* 리치텍스트 파싱 */
   const segs=parseRichText();
   if(!segs.length)segs.push({text:'문구를 입력하세요.',bold:false,italic:false,underline:false,strike:false,hl:null,color:null});
@@ -931,11 +990,11 @@ function drawTo(ctx,W,H,scl){
   for(const c of normChars){
     if(c.ch==='\n'){
       if(curLine.length){
-        lines.push({chars:curLine,paraEnd:false});
+        lines.push({chars:curLine,paraEnd:true});  // \n으로 끝난 줄 = 문단 끝
         curLine=[];lineW=0;
       }else{
-        // 빈 줄 (두 번째 \n) → 빈 줄 추가
-        lines.push({chars:[],paraEnd:false});
+        // 연속 \n (빈 줄)
+        lines.push({chars:[],paraEnd:true});
       }
       continue;
     }
@@ -955,19 +1014,42 @@ function drawTo(ctx,W,H,scl){
 
   const lhpx=fs*lh;
 
-  // totalH: 마지막 줄은 fs만, 빈 줄은 lhpx+ps
-  let totalH=0;
+  // totalHsy: sy 계산용 — 텍스트 줄만 (빈줄/ps 제외 → 세로위치 완전 고정)
+  let totalHsy=0;
   for(let i=0;i<lines.length;i++){
-    if(lines[i].chars.length===0) totalH+=lhpx+ps;
-    else totalH+=(i===lines.length-1)?fs:lhpx;
+    if(lines[i].chars.length===0) continue; // 빈줄 제외
+    totalHsy+=(i===lines.length-1)?fs:lhpx;
   }
 
-  const effPad=Math.min(pad, Math.round(H*0.1));
+  // totalH: 실제 렌더 높이 (ps 포함 → 텍스트박스 등에 사용)
+  let totalH=0;
+  for(let i=0;i<lines.length;i++){
+    if(lines[i].chars.length===0) totalH+=Math.max(lhpx*0.3,lhpx+ps);
+    else{
+      totalH+=(i===lines.length-1)?fs:lhpx;
+      if(lines[i].paraEnd&&i<lines.length-1)totalH+=Math.max(0,ps);
+    }
+  }
+
+  // sy 계산
+  // top:    텍스트 시작 = H*10% 고정
+  // middle: 텍스트 중심 = H/2 고정 → sy = H/2 - totalH/2
+  // bottom: 텍스트 끝   = H*90% 고정 → sy = H*90% - totalH
   let sy;
-  if(S.vpos==='top')         sy=effPad;
-  else if(S.vpos==='middle') sy=Math.round((H-totalH)/2);
-  else                       sy=Math.round(H*0.9-totalH);
-  if(sy<0)sy=0;
+  if(S.vpos==='top'){
+    sy = Math.round(H*0.1);
+  }else if(S.vpos==='middle'){
+    // 중간 라인(lines[mid])의 y좌표가 H/2가 되도록 sy 계산
+    const midIdx = Math.floor(lines.length/2);
+    let yToMid = 0;
+    for(let i=0;i<midIdx;i++){
+      if(lines[i].chars.length===0) yToMid+=Math.max(lhpx*0.3,lhpx+ps);
+      else{yToMid+=lhpx;if(lines[i].paraEnd&&i<lines.length-1)yToMid+=Math.max(0,ps);}
+    }
+    sy = Math.round(H/2 - yToMid);
+  }else{
+    sy = Math.round(H*0.9 - totalH);
+  }
 
   /* 텍스트 박스 — totalH 기준 (ps 포함 실제 높이) */
   if(g('showBox').checked){
@@ -975,6 +1057,34 @@ function drawTo(ctx,W,H,scl){
     ctx.save();ctx.globalAlpha=gi('boxOp')/100;ctx.fillStyle=gc('boxC');
     rRect(ctx,pad-bp,sy-bp,maxW+bp*2,totalH+bp*2,gi('boxR')*scl);
     ctx.fill();ctx.restore();
+  }
+
+  /* 구분선 */
+  if(g('showDivider').checked){
+    const dop=gi('dividerOp')/100;
+    const dcol=gc('dividerC');
+    const dr=parseInt(dcol.slice(1,3),16),dg2=parseInt(dcol.slice(3,5),16),db2=parseInt(dcol.slice(5,7),16);
+    const dw=gi('dividerW')*scl;
+    const dlen=gi('dividerLen')/100;
+    ctx.strokeStyle=`rgba(${dr},${dg2},${db2},${dop})`;
+    ctx.lineWidth=dw;
+    // 패드 위치(0~1) → 캔버스 좌표
+    const dpx=S.dividerX*W;
+    const dpy=S.dividerY*H;
+    if(S.dividerType==='hline'){
+      // 가로선: 패드 X=선 중심, Y=선 위치, 길이=maxW*dlen
+      const lineLen=maxW*dlen;
+      // dpx가 선의 중심 X (pad~pad+maxW 범위로 클램프)
+      const cx2=Math.max(pad+lineLen/2, Math.min(pad+maxW-lineLen/2, dpx));
+      const dlx1=cx2-lineLen/2;
+      const dlx2=cx2+lineLen/2;
+      ctx.beginPath();ctx.moveTo(dlx1,dpy);ctx.lineTo(dlx2,dpy);ctx.stroke();
+    }else{
+      // 인용 세로선: X위치=패드X, 기본길이=totalH, dlen으로 비율 조정
+      const lineH=totalH*dlen;
+      const ly=sy+(totalH-lineH)/2;  // 텍스트 블록 중앙 정렬
+      ctx.beginPath();ctx.moveTo(dpx,ly);ctx.lineTo(dpx,ly+lineH);ctx.stroke();
+    }
   }
 
   /* 라인 렌더 — 그림자를 save() 전에 설정해야 유지됨 */
@@ -994,7 +1104,7 @@ function drawTo(ctx,W,H,scl){
   let y=sy;
   for(let li=0;li<lines.length;li++){
     const line=lines[li].chars;
-    if(!line.length){y+=lhpx+ps;continue;}    // 빈 줄 = 줄높이 + 문단간격
+    if(!line.length){y+=Math.max(lhpx*0.3,lhpx+ps);continue;}
     let lw=0;
     const charWs=line.map(c=>{
       ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
@@ -1006,8 +1116,11 @@ function drawTo(ctx,W,H,scl){
     if(S.align==='center')startX=pad+(maxW-totalLW)/2;
     else if(S.align==='right')startX=pad+maxW-totalLW;
     let gap=ls;
+    // 양쪽정렬: 마지막 줄(paraEnd=false이고 다음줄 있는 경우만)
+    const isLastLine=li===lines.length-1;
+    const isParaLast=lines[li].paraEnd;
     if(S.align==='justify'&&totalLW<maxW*0.88){/* left */}
-    else if(S.align==='justify'){gap=(maxW-lw)/(Math.max(line.length,1));}
+    else if(S.align==='justify'&&!isLastLine&&!isParaLast){gap=(maxW-lw)/(Math.max(line.length,1));}
 
     // 형광펜: 연속된 같은 색 범위를 하나의 rect로
     // 먼저 형광펜 구간 합산
@@ -1106,6 +1219,7 @@ function drawTo(ctx,W,H,scl){
          cur.underline!==prev.underline||cur.strike!==prev.strike){flushRun(i);}
     }
     y+=lhpx;
+    if(lines[li].paraEnd&&li<lines.length-1)y+=Math.max(0,ps);
   }
   ctx.restore();
 
@@ -1159,7 +1273,37 @@ function drawBgFill(ctx,W,H){
   ctx.fillRect(0,0,W,H);
   ctx.restore();
 }
-const MOODS={warm:'rgba(255,150,50,0.12)',cool:'rgba(50,110,255,0.12)',vintage:'rgba(180,140,80,0.18)',dreamy:'rgba(180,80,200,0.10)',night:'rgba(10,10,40,0.35)',mist:'rgba(200,225,245,0.20)',sepia:'rgba(110,70,30,0.22)'};
+function setOT(el){g('overlayTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.overlayType=el.dataset.ot;rc();}
+function setDT(el){g('dividerTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.dividerType=el.dataset.dt;updateDividerLbl();rc();}
+function updateDividerLbl(){const lbl=g('dividerLenLbl');if(lbl)lbl.textContent='길이';}
+function moveDivDot(nx,ny){const d=g('dividerDot');if(d){d.style.left=(nx*100)+'%';d.style.top=(ny*100)+'%';}}
+(()=>{
+  const pad=g('dividerPad');if(!pad)return;
+  let drag=false;
+  function getPos(e){
+    const r=pad.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    return{nx:Math.max(0,Math.min(1,(cx-r.left)/r.width)),ny:Math.max(0,Math.min(1,(cy-r.top)/r.height))};
+  }
+  function apply(e){const{nx,ny}=getPos(e);S.dividerX=nx;S.dividerY=ny;moveDivDot(nx,ny);rc();}
+  pad.addEventListener('mousedown',e=>{drag=true;apply(e);});
+  pad.addEventListener('touchstart',e=>{drag=true;apply(e);},{passive:true});
+  document.addEventListener('mousemove',e=>{if(drag)apply(e);});
+  document.addEventListener('touchmove',e=>{if(drag){e.preventDefault();apply(e);}},{passive:false});
+  document.addEventListener('mouseup',()=>drag=false);
+  document.addEventListener('touchend',()=>drag=false);
+})();
+
+const MOODS={
+  warm:'rgba(255,140,40,0.10)',
+  cool:'rgba(40,90,220,0.10)',
+  vintage:'rgba(160,120,60,0.14)',
+  dreamy:'rgba(160,60,180,0.08)',
+  night:'rgba(10,10,40,0.30)',
+  mist:'rgba(200,220,240,0.16)',
+  sepia:'rgba(100,60,20,0.18)'
+};
 function applyMood(ctx,W,H){if(!MOODS[S.mood])return;ctx.save();ctx.fillStyle=MOODS[S.mood];ctx.fillRect(0,0,W,H);ctx.restore();}
 function rRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
