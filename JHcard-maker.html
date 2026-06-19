@@ -183,6 +183,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   .r2{flex-direction:column;gap:8px;}
   .r2.kr{flex-direction:row!important;}
 }
+
+/* 커스텀 컬러피커 */
+#cpModal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;}
+#cpModal.open{display:flex;}
+#cpBox{background:#fff;border-radius:16px;padding:20px;width:min(320px,90vw);box-shadow:0 8px 40px rgba(0,0,0,.25);}
+#cpTitle{font-size:13px;font-weight:600;color:#333;margin-bottom:14px;}
+#cpBottom{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+#cpPreview{width:36px;height:36px;border-radius:8px;border:1.5px solid #ddd;flex-shrink:0;}
+#cpHexInput{flex:1;font-family:monospace;font-size:13px;padding:7px 10px;letter-spacing:1px;}
+#cpBtns{display:flex;gap:8px;justify-content:flex-end;}
+#cpBtns button{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;}
+#cpCancel{background:#f0f0f0;color:#555;}
+#cpOk{background:#5b4fe8;color:#fff;}
 </style>
 </head>
 <body>
@@ -193,7 +206,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   </div>
   <div class="hbtns">
     <button class="btn bg" id="hCp"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span class="btn-label">복사</span></button>
-    <button class="btn ba" id="hDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">PNG 저장</span></button>
+    <button class="btn ba" id="hDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="btn-label">JPG 저장</span></button>
   </div>
 </header>
 <div class="app">
@@ -212,23 +225,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div class="pb-sep"></div>
         <span class="pb-btn" onmousedown="pbClear(event)" style="font-size:10px;padding:0 8px;">지우기</span>
       </div>
-      <!-- 형광펜 색상 — 항상 표시 -->
-      <div class="pal-wrap">
-        <div class="pal-lbl">🖊 형광펜</div>
-        <div class="pal-row" id="hlRow">
-          <div class="pc-dot on" style="background:#FFE066" onmousedown="pbHL(event,'#FFE066')" ontouchend="pbHL(event,'#FFE066')"></div>
-          <div class="pc-dot"   style="background:#A8F0A0" onmousedown="pbHL(event,'#A8F0A0')" ontouchend="pbHL(event,'#A8F0A0')"></div>
-          <div class="pc-dot"   style="background:#A0CFFF" onmousedown="pbHL(event,'#A0CFFF')" ontouchend="pbHL(event,'#A0CFFF')"></div>
-          <div class="pc-dot"   style="background:#FFB3D1" onmousedown="pbHL(event,'#FFB3D1')" ontouchend="pbHL(event,'#FFB3D1')"></div>
-          <div class="pc-dot"   style="background:#FFD0A0" onmousedown="pbHL(event,'#FFD0A0')" ontouchend="pbHL(event,'#FFD0A0')"></div>
-          <div class="pc-dot"   style="background:#D8B4FE" onmousedown="pbHL(event,'#D8B4FE')" ontouchend="pbHL(event,'#D8B4FE')"></div>
-          <div class="pc-dot"   style="background:#99F6E4" onmousedown="pbHL(event,'#99F6E4')" ontouchend="pbHL(event,'#99F6E4')"></div>
-          <div class="pc-dot pc-x" onmousedown="pbHL(event,'none')" ontouchend="pbHL(event,'none')" title="제거">✕</div>
-        </div>
+      <!-- 글자색/형광펜 탭 -->
+      <div class="seg" id="palSeg" style="margin-bottom:10px;margin-top:4px;">
+        <button class="sgb on" onclick="setPalTab(this,'tc')">A 글자색</button>
+        <button class="sgb"    onclick="setPalTab(this,'hl')">🖊 형광펜</button>
       </div>
-      <!-- 글자색 — 항상 표시 -->
-      <div class="pal-wrap">
-        <div class="pal-lbl">A 글자색</div>
+      <!-- 글자색 -->
+      <div id="palTC" style="margin-bottom:8px;">
         <div class="pal-row" id="tcRow">
           <div class="pc-dot on" style="background:#ffffff;border:1.5px solid #ccc" onmousedown="pbTC(event,'#ffffff')" ontouchend="pbTC(event,'#ffffff')"></div>
           <div class="pc-dot"   style="background:#cccccc" onmousedown="pbTC(event,'#cccccc')" ontouchend="pbTC(event,'#cccccc')"></div>
@@ -241,15 +244,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div class="pc-dot"   style="background:#63e6be" onmousedown="pbTC(event,'#63e6be')" ontouchend="pbTC(event,'#63e6be')"></div>
           <div class="pc-dot"   style="background:#ffa94d" onmousedown="pbTC(event,'#ffa94d')" ontouchend="pbTC(event,'#ffa94d')"></div>
           <!-- 직접 색상 선택 -->
-          <div class="pc-dot" id="tcCustomDot" style="background:#ffffff;border:1.5px solid #999;position:relative;overflow:hidden;" title="직접 선택">
-            <span style="font-size:9px;line-height:1;pointer-events:none;position:absolute;bottom:1px;right:2px;color:#666;">✎</span>
-            <input type="color" id="tcCustomPicker" value="#ffffff"
-              style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;"
-              onmousedown="saveRange()"
-              onchange="pbTCCustom(this)">
+          <div class="pc-dot" id="tcCustomDot" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border:1.5px solid #999;cursor:pointer;" title="직접 선택" onmousedown="saveRange();cpOpen(document.getElementById('tcCustomPicker'))">
+            <input type="color" id="tcCustomPicker" value="#ffffff" style="display:none;" onchange="pbTCCustom(this)">
           </div>
           <!-- 글자색 제거 -->
-          <div class="pc-dot" style="background:#f0f0f0;border:1.5px solid #ccc;font-size:13px;line-height:24px;text-align:center;color:#666;" onmousedown="pbTCRemove(event)" ontouchend="pbTCRemove(event)" title="글자색 제거">✕</div>
+          <div class="pc-dot" style="background:#f0f0f0;border:1.5px solid #ccc;font-size:13px;line-height:24px;text-align:center;color:#888;" onmousedown="pbTCRemove(event)" ontouchend="pbTCRemove(event)" title="글자색 제거">✕</div>
+        </div>
+      </div>
+      <!-- 형광펜 -->
+      <div id="palHL" style="display:none;margin-bottom:8px;">
+        <div class="pal-row" id="hlRow">
+          <div class="pc-dot on" style="background:#FFF3C0" onmousedown="pbHL(event,'#FFF3C0')" ontouchend="pbHL(event,'#FFF3C0')"></div>
+          <div class="pc-dot"   style="background:#FFD6E0" onmousedown="pbHL(event,'#FFD6E0')" ontouchend="pbHL(event,'#FFD6E0')"></div>
+          <div class="pc-dot"   style="background:#C8E6FF" onmousedown="pbHL(event,'#C8E6FF')" ontouchend="pbHL(event,'#C8E6FF')"></div>
+          <div class="pc-dot"   style="background:#D4F5D4" onmousedown="pbHL(event,'#D4F5D4')" ontouchend="pbHL(event,'#D4F5D4')"></div>
+          <div class="pc-dot"   style="background:#E8D5FF" onmousedown="pbHL(event,'#E8D5FF')" ontouchend="pbHL(event,'#E8D5FF')"></div>
+          <div class="pc-dot"   style="background:#FFE0C8" onmousedown="pbHL(event,'#FFE0C8')" ontouchend="pbHL(event,'#FFE0C8')"></div>
+          <div class="pc-dot" id="hlCustomDot" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border:1.5px solid #999;cursor:pointer;" title="직접 선택" onmousedown="saveRange();cpOpen(document.getElementById('hlCustomPicker'))">
+            <input type="color" id="hlCustomPicker" value="#FFF3C0" style="display:none;" onchange="pbHLCustom(this)">
+          </div>
+          <div class="pc-dot pc-x" onmousedown="pbHL(event,'none')" ontouchend="pbHL(event,'none')" title="형광펜 제거">✕</div>
         </div>
       </div>
       <div id="editor" contenteditable="true" data-placeholder="여기에 문구를 입력하세요." spellcheck="false"></div>
@@ -383,34 +397,28 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <option value="radial">방사형</option>
         </select>
       </div>
-      <label class="lbl" style="margin-bottom:6px;">그라데이션 프리셋</label>
+      <label class="lbl" style="margin-bottom:6px;">색상 프리셋</label>
+      <div class="note" style="margin-bottom:6px;color:var(--t3);font-size:11px;">단색/그라데이션 탭 선택 후 클릭하면 적용됩니다</div>
       <div class="gps">
         <div class="gp on" data-s="#0d1b2a" data-e="#1a3550" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#0d1b2a,#1a3550)"></span><span>우주</span></div>
-        <div class="gp" data-s="#003a4a" data-e="#00c8e0" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#003a4a,#00c8e0)"></span><span>시안</span></div>
-        <div class="gp" data-s="#0d1b3a" data-e="#1a3a6a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#0d1b3a,#1a3a6a)"></span><span>미드나잇블루</span></div>
-        <div class="gp" data-s="#1a3a5c" data-e="#8ec8e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#1a3a5c,#8ec8e8)"></span><span>오션</span></div>
-        <div class="gp" data-s="#a8d8ea" data-e="#d8f4f8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#a8d8ea,#d8f4f8)"></span><span>하늘</span></div>
+        <div class="gp" data-s="#00264b" data-e="#00264b" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:#00264b"></span><span>미드나잇블루</span></div>
+        <div class="gp" data-s="#111111" data-e="#2a2a2a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#111111,#2a2a2a)"></span><span>블랙</span></div>
+        <div class="gp" data-s="#3dd8e0" data-e="#7aeaee" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#3dd8e0,#7aeaee)"></span><span>시안</span></div>
+        <div class="gp" data-s="#1a5490" data-e="#2e7dc8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#1a5490,#2e7dc8)"></span><span>오션</span></div>
+        <div class="gp" data-s="#b8e0f8" data-e="#ddf0ff" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#b8e0f8,#ddf0ff)"></span><span>하늘</span></div>
         <div class="gp" data-s="#dce4f2" data-e="#c8d0e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#dce4f2,#c8d0e8)"></span><span>새벽</span></div>
-        <div class="gp" data-s="#ede9fe" data-e="#c4b5fd" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#ede9fe,#c4b5fd)"></span><span>라벤더</span></div>
-        <div class="gp" data-s="#f0dce8" data-e="#e8c8d8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#f0dce8,#e8c8d8)"></span><span>로즈</span></div>
-        <div class="gp" data-s="#fdf4ec" data-e="#f0d8b8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#fdf4ec,#f0d8b8)"></span><span>연주황</span></div>
-        <div class="gp" data-s="#e8f5e9" data-e="#b8dfc0" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#e8f5e9,#b8dfc0)"></span><span>연두</span></div>
+        <div class="gp" data-s="#e6e0f0" data-e="#c8b8e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#e6e0f0,#c8b8e8)"></span><span>라일락</span></div>
+        <div class="gp" data-s="#fdd0dc" data-e="#feecf2" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#fdd0dc,#feecf2)"></span><span>핑크</span></div>
+        <div class="gp" data-s="#fdd0b0" data-e="#feead8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#fdd0b0,#feead8)"></span><span>코랄</span></div>
         <div class="gp" data-s="#c8e8e4" data-e="#90ccc8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#c8e8e4,#90ccc8)"></span><span>민트</span></div>
+        <div class="gp" data-s="#e8f5e9" data-e="#b8dfc0" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#e8f5e9,#b8dfc0)"></span><span>연두</span></div>
+        <div class="gp" data-s="#e8f4f0" data-e="#c0dcd4" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#e8f4f0,#c0dcd4)"></span><span>세이지</span></div>
         <div class="gp" data-s="#f5e8cc" data-e="#e8d0a0" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#f5e8cc,#e8d0a0)"></span><span>골든</span></div>
-        <div class="gp" data-s="#f0c0b0" data-e="#f8d8c8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#f0c0b0,#f8d8c8)"></span><span>코랄</span></div>
+        <div class="gp" data-s="#ffb87a" data-e="#ffd4a8" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#ffb87a,#ffd4a8)"></span><span>연주황</span></div>
+        <div class="gp" data-s="#fafafa" data-e="#eeeeee" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#fafafa,#eeeeee);border:1px solid #ddd"></span><span>밀크</span></div>
+        <div class="gp" data-s="#f4efe8" data-e="#e8e0d4" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#f4efe8,#e8e0d4);border:1px solid #ddd"></span><span>크림</span></div>
       </div>
-      <label class="lbl" style="margin-top:12px;margin-bottom:6px;">단색 프리셋</label>
-      <div class="gps">
-        <div class="gp" data-s="#111111" data-e="#111111" onclick="apP(this)"><span class="gpd" style="background:#111111"></span><span>블랙</span></div>
-        <div class="gp" data-s="#1c2b4a" data-e="#1c2b4a" onclick="apP(this)"><span class="gpd" style="background:#1c2b4a"></span><span>미드나잇블루</span></div>
-        <div class="gp" data-s="#0d1b2a" data-e="#0d1b2a" onclick="apP(this)"><span class="gpd" style="background:#0d1b2a"></span><span>딥네이비</span></div>
-        <div class="gp" data-s="#00a8c8" data-e="#00a8c8" onclick="apP(this)"><span class="gpd" style="background:#00a8c8"></span><span>시안</span></div>
-        <div class="gp" data-s="#fafafa" data-e="#fafafa" onclick="apP(this)"><span class="gpd" style="background:#fafafa;border:1px solid #ddd"></span><span>밀크</span></div>
-        <div class="gp" data-s="#f4efe8" data-e="#f4efe8" onclick="apP(this)"><span class="gpd" style="background:#f4efe8;border:1px solid #ddd"></span><span>크림</span></div>
-        <div class="gp" data-s="#e6e0f0" data-e="#e6e0f0" onclick="apP(this)"><span class="gpd" style="background:#e6e0f0"></span><span>라일락</span></div>
-        <div class="gp" data-s="#fce8e8" data-e="#fce8e8" onclick="apP(this)"><span class="gpd" style="background:#fce8e8"></span><span>핑크</span></div>
-        <div class="gp" data-s="#e8f4f0" data-e="#e8f4f0" onclick="apP(this)"><span class="gpd" style="background:#e8f4f0"></span><span>세이지</span></div>
-      </div>
+      
       <label class="lbl" style="margin-top:10px;margin-bottom:6px;">배경 이미지</label>
       <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px;">
         <label class="btn bg bsm" for="bgFile" style="cursor:pointer;">📂 파일 선택</label>
@@ -432,14 +440,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
     </div>
   </div>
 
-  <!-- 텍스트 박스 -->
+  <!-- 꾸미기: 텍스트박스 + 배경오버레이 탭 -->
   <div class="sec">
-    <div class="sh" onclick="ts(this)"><span class="st">텍스트 박스</span><span class="sa">▾</span></div>
+    <div class="sh" onclick="ts(this)"><span class="st">꾸미기</span><span class="sa">▾</span></div>
     <div class="sb">
-      <label class="ckr"><input type="checkbox" id="showBox" onchange="rc()"><span>텍스트 박스 표시</span></label>
-      <div class="cr"><div class="csw"><input type="color" id="boxC" value="#000000" onchange="rc()"></div><span class="clb">박스 색상</span></div>
-      <div class="sr" style="margin-top:6px;"><span class="slb">투명도</span><input type="range" id="boxOp" min="0" max="100" value="30" oninput="sv(this,'boxOpV','%')"><span class="sv" id="boxOpV">30%</span></div>
-      <div class="sr"><span class="slb">모서리</span><input type="range" id="boxR" min="0" max="40" value="8" oninput="sv(this,'boxRV','px')"><span class="sv" id="boxRV">8px</span></div>
+      <div class="seg" id="decoSeg" style="margin-bottom:10px;">
+        <button class="sgb on" onclick="setDecoTab(this,'box')">텍스트 박스</button>
+        <button class="sgb"    onclick="setDecoTab(this,'overlay')">배경 오버레이</button>
+      </div>
+      <div id="decoBox">
+        <label class="ckr"><input type="checkbox" id="showBox" onchange="rc()"><span>텍스트 박스 표시</span></label>
+        <div class="cr"><div class="csw"><input type="color" id="boxC" value="#000000" onchange="rc()"></div><span class="clb">박스 색상</span></div>
+        <div class="sr" style="margin-top:6px;"><span class="slb">투명도</span><input type="range" id="boxOp" min="0" max="100" value="30" oninput="sv(this,'boxOpV','%')"><span class="sv" id="boxOpV">30%</span></div>
+        <div class="sr"><span class="slb">모서리</span><input type="range" id="boxR" min="0" max="40" value="8" oninput="sv(this,'boxRV','px')"><span class="sv" id="boxRV">8px</span></div>
+      </div>
+      <div id="decoOverlay" style="display:none;">
+        <label class="ckr"><input type="checkbox" id="showOverlay" onchange="rc()"><span>배경 오버레이 표시</span></label>
+        <div style="margin-left:21px;margin-top:4px;">
+          <div class="chips" id="overlayTypeC" style="margin-bottom:6px;">
+            <span class="chip on" data-ot="color" onclick="setOT(this)">색상</span>
+            <span class="chip" data-ot="vignette" onclick="setOT(this)">비네트</span>
+          </div>
+          <div class="cr"><div class="csw"><input type="color" id="overlayC" value="#000000" onchange="rc()"></div><span class="clb">오버레이 색</span></div>
+          <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="overlayOp" min="0" max="90" value="30" oninput="sv(this,'overlayOpV','%')"><span class="sv" id="overlayOpV">30%</span></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -483,17 +508,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
         <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="shadowOp" min="0" max="100" value="60" oninput="sv(this,'shadowOpV','%')"><span class="sv" id="shadowOpV">60%</span></div>
       </div>
 
-      <!-- 배경 오버레이 -->
-      <label class="ckr"><input type="checkbox" id="showOverlay" onchange="rc()"><span>배경 오버레이</span></label>
-      <div style="margin-left:21px;margin-bottom:10px;">
-        <div class="chips" id="overlayTypeC" style="margin-bottom:6px;">
-          <span class="chip on" data-ot="color" onclick="setOT(this)">색상</span>
-          <span class="chip" data-ot="vignette" onclick="setOT(this)">비네트</span>
-        </div>
-        <div class="cr"><div class="csw"><input type="color" id="overlayC" value="#000000" onchange="rc()"></div><span class="clb">오버레이 색</span></div>
-        <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="overlayOp" min="0" max="90" value="30" oninput="sv(this,'overlayOpV','%')"><span class="sv" id="overlayOpV">30%</span></div>
-      </div>
-
       <!-- 구분선 -->
       <label class="ckr"><input type="checkbox" id="showDivider" onchange="rc()"><span>구분선</span></label>
       <div style="margin-left:21px;margin-bottom:10px;">
@@ -526,17 +540,40 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="cw" id="cw"><canvas id="cv"></canvas></div>
   <div class="cbtns">
     <button class="btn bg" id="rCp"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>이미지 복사</button>
-    <button class="btn ba" id="rDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>PNG 저장</button>
+    <button class="btn ba" id="rDl"><svg width="12" height="12" fill="none" viewBox="0 0 16 16"><path d="M8 2v8m0 0l-3-3m3 3l3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>JPG 저장</button>
   </div>
 </div>
 </div>
 <div class="toast" id="toast"></div>
 
+
+<div id="cpModal">
+  <div id="cpBox">
+    <div id="cpTitle">색상 선택</div>
+    <div style="position:relative;margin-bottom:10px;">
+      <canvas id="cpSpectrum" style="width:100%;height:160px;border-radius:10px;cursor:crosshair;display:block;"></canvas>
+      <div id="cpSpectrumThumb" style="position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:none;top:50%;left:70%;"></div>
+    </div>
+    <div style="position:relative;margin-bottom:12px;">
+      <div id="cpHueBar" style="width:100%;height:18px;border-radius:9px;cursor:pointer;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);"></div>
+      <div id="cpHueThumb" style="position:absolute;width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);top:50%;transform:translate(-50%,-50%);pointer-events:none;left:0%;"></div>
+    </div>
+    <div id="cpBottom">
+      <div id="cpPreview"></div>
+      <input id="cpHexInput" type="text" maxlength="7" placeholder="#000000" spellcheck="false">
+    </div>
+    <div id="cpBtns">
+      <button id="cpCancel">취소</button>
+      <button id="cpOk">적용</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── STATE ── */
 const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5};
 const RATIOS={'1:1':[800,800],'4:5':[800,1000],'16:9':[800,450],'twitter':[900,480],'a6':[561,794]};
-const SAVE_RATIOS={'1:1':[1080,1080],'4:5':[1080,1350],'16:9':[1600,900],'twitter':[1500,500],'a6':[1122,1587]};
+const SAVE_RATIOS={'1:1':[2160,2160],'4:5':[2160,2700],'16:9':[3200,1800],'twitter':[3000,1000],'a6':[2244,3174]};
 const g=id=>document.getElementById(id);
 const gi=id=>parseInt(g(id).value);
 const gf=id=>parseFloat(g(id).value);
@@ -550,6 +587,26 @@ function setR(el){g('ratioC').querySelectorAll('.chip').forEach(c=>c.classList.r
 function setA(el){g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.align=el.dataset.a;rc();}
 function setV(el){g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
 function setM(el){g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
+function setPalTab(el,tab){
+  g('palSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  g('palTC').style.display=tab==='tc'?'':'none';
+  g('palHL').style.display=tab==='hl'?'':'none';
+}
+function setDecoTab(el,tab){
+  g('decoSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  g('decoBox').style.display=tab==='box'?'':'none';
+  g('decoOverlay').style.display=tab==='overlay'?'':'none';
+}
+function pbHLCustom(input){
+  const color=input.value;
+  restoreRange();
+  document.execCommand('hiliteColor',false,color);
+  g('hlRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  g('hlCustomDot').classList.add('on');
+  savedRange=null;rc();
+}
 function setSep(el){g('sepC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.sep=el.dataset.sep;rc();}
 
 /* 메타 드래그 패드 */
@@ -580,10 +637,15 @@ function setBg(el){
 }
 function apP(el){
   document.querySelectorAll('.gp').forEach(d=>d.classList.remove('on'));el.classList.add('on');
-  const s=el.dataset.s,e=el.dataset.e,d=el.dataset.d||'to bottom';
-  g('solidC').value=s;g('gS').value=s;g('gE').value=e;if(g('gDir'))g('gDir').value=d;
-  if(s!==e)setBg(g('bgSeg').querySelector('[data-bm="gradient"]'));
-  else setBg(g('bgSeg').querySelector('[data-bm="solid"]'));
+  const s=el.dataset.s,e=el.dataset.e,d=el.dataset.d||'135deg';
+  if(S.bgMode==='solid'){
+    g('solidC').value=s;
+    g('gS').value=s;g('gE').value=e;if(g('gDir'))g('gDir').value=d;
+  }else{
+    g('gS').value=s;g('gE').value=e;if(g('gDir'))g('gDir').value=d;
+    g('solidC').value=s;
+  }
+  rc();
 }
 function onFf(){const ff=gc('ff'),fs=gc('fs')+'px';document.fonts.load(`400 ${fs} ${ff}`).finally(()=>rc());}
 
@@ -1031,22 +1093,15 @@ function drawTo(ctx,W,H,scl){
     }
   }
 
-  // sy 계산
-  // top:    텍스트 시작 = H*10% 고정
-  // middle: 텍스트 중심 = H/2 고정 → sy = H/2 - totalH/2
-  // bottom: 텍스트 끝   = H*90% 고정 → sy = H*90% - totalH
+  // sy 계산 — totalH(실제 렌더 높이) 기준
+  // top:    sy 고정 → 위에서 아래로 늘어남
+  // middle: 블록 중심(sy+totalH/2) = H/2 고정 → 위아래로 균등하게 늘어남
+  // bottom: 블록 끝(sy+totalH) = H*90% 고정 → 위로만 늘어남
   let sy;
   if(S.vpos==='top'){
     sy = Math.round(H*0.1);
   }else if(S.vpos==='middle'){
-    // 중간 라인(lines[mid])의 y좌표가 H/2가 되도록 sy 계산
-    const midIdx = Math.floor(lines.length/2);
-    let yToMid = 0;
-    for(let i=0;i<midIdx;i++){
-      if(lines[i].chars.length===0) yToMid+=Math.max(lhpx*0.3,lhpx+ps);
-      else{yToMid+=lhpx;if(lines[i].paraEnd&&i<lines.length-1)yToMid+=Math.max(0,ps);}
-    }
-    sy = Math.round(H/2 - yToMid);
+    sy = Math.round(H/2 - totalH/2);
   }else{
     sy = Math.round(H*0.9 - totalH);
   }
@@ -1255,14 +1310,19 @@ function drawBgFill(ctx,W,H){
   ctx.save();
   ctx.globalAlpha=1;
   ctx.globalCompositeOperation='source-over';
+  // 실제 캔버스 픽셀 크기 계산 (scale 적용 무관)
+  const t=ctx.getTransform();
+  const rW=Math.round(W*(t.a||1));
+  const rH=Math.round(H*(t.d||1));
+  ctx.setTransform(1,0,0,1,0,0);
   if(S.bgMode==='gradient'){
     const dir=gc('gDir'),s=gc('gS'),e=gc('gE');
     let g2;
     if(dir==='radial'){
-      g2=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)/1.5);
+      g2=ctx.createRadialGradient(rW/2,rH/2,0,rW/2,rH/2,Math.max(rW,rH)/1.5);
     }else{
-      const d={'to bottom':[0,0,0,H],'to right':[0,0,W,0],'135deg':[0,0,W,H],'45deg':[W,0,0,H]};
-      g2=ctx.createLinearGradient(...(d[dir]||[0,0,0,H]));
+      const d={'to bottom':[0,0,0,rH],'to right':[0,0,rW,0],'135deg':[0,0,rW,rH],'45deg':[rW,0,0,rH]};
+      g2=ctx.createLinearGradient(...(d[dir]||[0,0,0,rH]));
     }
     g2.addColorStop(0,s);
     g2.addColorStop(1,e);
@@ -1270,7 +1330,7 @@ function drawBgFill(ctx,W,H){
   }else{
     ctx.fillStyle=gc('solidC');
   }
-  ctx.fillRect(0,0,W,H);
+  ctx.fillRect(0,0,rW,rH);
   ctx.restore();
 }
 function setOT(el){g('overlayTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.overlayType=el.dataset.ot;rc();}
@@ -1334,31 +1394,38 @@ function download(){
   off.toBlob(blob=>{
     if(!blob){toast('저장 실패');return;}
     const url=URL.createObjectURL(blob);
-    // iOS Safari: a.click()이 막히므로 새 탭으로 열기
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='quote-card.png';
-    a.target='_blank';
-    document.body.appendChild(a);
-    a.click();
-    // iOS fallback: click이 안 되면 새 탭
-    setTimeout(()=>{
-      URL.revokeObjectURL(url);
-      a.remove();
-    },1000);
-    toast('PNG 저장 완료! (길게 누르면 저장)');
-  },'image/png');
+    const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isIOS){
+      const img=document.createElement('img');
+      img.src=url;
+      img.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:99999;touch-action:pinch-zoom;';
+      const close=document.createElement('div');
+      close.textContent='✕ 닫기';
+      close.style.cssText='position:fixed;top:16px;right:16px;z-index:100000;background:rgba(0,0,0,.6);color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;cursor:pointer;';
+      const hint=document.createElement('div');
+      hint.textContent='이미지를 길게 눌러 저장하세요';
+      hint.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:100000;background:rgba(0,0,0,.7);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;white-space:nowrap;';
+      document.body.appendChild(img);document.body.appendChild(close);document.body.appendChild(hint);
+      close.onclick=()=>{img.remove();close.remove();hint.remove();URL.revokeObjectURL(url);};
+    }else{
+      const a=document.createElement('a');
+      a.href=url;a.download='quote-card.jpg';
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+      toast('JPG 저장 완료!');
+    }
+  },'image/jpeg',0.95);
 }
 async function copyImg(){
   try{
     const off=mkFull();
     // ClipboardItem에 Promise<Blob>을 직접 전달 — 사용자 제스처 컨텍스트 유지
     const item=new ClipboardItem({
-      'image/png': new Promise((resolve,reject)=>{
+      'image/jpeg': new Promise((resolve,reject)=>{
         off.toBlob(blob=>{
           if(blob)resolve(blob);
           else reject(new Error('blob 생성 실패'));
-        },'image/png');
+        },'image/jpeg',0.95);
       })
     });
     await navigator.clipboard.write([item]);
@@ -1371,10 +1438,10 @@ async function copyImg(){
         off.toBlob(async blob=>{
           if(!blob){reject();return;}
           try{
-            await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+            await navigator.clipboard.write([new ClipboardItem({'image/jpeg':blob})]);
             resolve();
           }catch(e2){reject(e2);}
-        },'image/png');
+        },'image/jpeg',0.95);
       });
       toast('이미지가 클립보드에 복사되었습니다!');
     }catch(e2){
@@ -1404,6 +1471,99 @@ window.addEventListener('load',()=>{
   document.fonts.ready.then(()=>rc());
   new ResizeObserver(()=>rc()).observe(g('cw'));
 });
+
+// ── 커스텀 컬러피커 ──
+let _cpTarget=null,_cpH=210,_cpS=0.7,_cpV=0.5;
+function hsv2hex(h,s,v){
+  const f=(n,k=(n+h/60)%6)=>v-v*s*Math.max(0,Math.min(k,4-k,1));
+  const r=Math.round(f(5)*255),g=Math.round(f(3)*255),b=Math.round(f(1)*255);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function hex2hsv(hex){
+  const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0;
+  if(d){if(max===r)h=((g-b)/d+6)%6;else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;}
+  return{h,s:max?d/max:0,v:max};
+}
+function cpDraw(){
+  const cv=g('cpSpectrum');if(!cv||!cv.getContext)return;
+  const ctx=cv.getContext('2d');const W=cv.width,H=cv.height;
+  const gH=ctx.createLinearGradient(0,0,W,0);
+  gH.addColorStop(0,'#fff');gH.addColorStop(1,`hsl(${_cpH},100%,50%)`);
+  ctx.fillStyle=gH;ctx.fillRect(0,0,W,H);
+  const gV=ctx.createLinearGradient(0,0,0,H);
+  gV.addColorStop(0,'rgba(0,0,0,0)');gV.addColorStop(1,'#000');
+  ctx.fillStyle=gV;ctx.fillRect(0,0,W,H);
+  const th=g('cpSpectrumThumb');
+  if(th){th.style.left=(_cpS*100)+'%';th.style.top=((1-_cpV)*100)+'%';}
+  g('cpHueThumb').style.left=(_cpH/360*100)+'%';
+  const hex=hsv2hex(_cpH,_cpS,_cpV);
+  g('cpPreview').style.background=hex;
+  g('cpHexInput').value=hex;
+}
+function cpOpen(target){
+  _cpTarget=target;
+  g('cpModal').classList.add('open');
+  requestAnimationFrame(()=>{
+    const cv=g('cpSpectrum');
+    cv.width=g('cpBox').clientWidth-40||280;cv.height=160;
+    const val=target.value||'#ffffff';
+    const hsv=hex2hsv(/^#[0-9a-fA-F]{6}$/.test(val)?val:'#5b4fe8');
+    _cpH=hsv.h;_cpS=hsv.s;_cpV=hsv.v;cpDraw();
+  });
+}
+function cpApply(){
+  if(!_cpTarget)return;
+  const hex=hsv2hex(_cpH,_cpS,_cpV);
+  _cpTarget.value=hex;
+  _cpTarget.dispatchEvent(new Event('change',{bubbles:true}));
+  g('cpModal').classList.remove('open');
+}
+g('cpCancel').onclick=()=>g('cpModal').classList.remove('open');
+g('cpOk').onclick=cpApply;
+g('cpModal').onclick=e=>{if(e.target===g('cpModal'))g('cpModal').classList.remove('open');};
+(()=>{
+  const cv=g('cpSpectrum');let drag=false;
+  function pick(e){
+    const r=cv.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    _cpS=Math.max(0,Math.min(1,(cx-r.left)/r.width));
+    _cpV=Math.max(0,Math.min(1,1-(cy-r.top)/r.height));cpDraw();
+  }
+  cv.addEventListener('mousedown',e=>{drag=true;pick(e);});
+  cv.addEventListener('touchstart',e=>{drag=true;pick(e);},{passive:true});
+  document.addEventListener('mousemove',e=>{if(drag)pick(e);});
+  document.addEventListener('touchmove',e=>{if(drag){e.preventDefault();pick(e);}},{passive:false});
+  document.addEventListener('mouseup',()=>drag=false);
+  document.addEventListener('touchend',()=>drag=false);
+})();
+(()=>{
+  const hb=g('cpHueBar');let drag=false;
+  function pick(e){
+    const r=hb.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    _cpH=Math.max(0,Math.min(360,(cx-r.left)/r.width*360));cpDraw();
+  }
+  hb.addEventListener('mousedown',e=>{drag=true;pick(e);});
+  hb.addEventListener('touchstart',e=>{drag=true;pick(e);},{passive:true});
+  document.addEventListener('mousemove',e=>{if(drag)pick(e);});
+  document.addEventListener('touchmove',e=>{if(drag){e.preventDefault();pick(e);}},{passive:false});
+  document.addEventListener('mouseup',()=>drag=false);
+  document.addEventListener('touchend',()=>drag=false);
+})();
+g('cpHexInput').addEventListener('input',()=>{
+  let v=g('cpHexInput').value.trim();
+  if(!v.startsWith('#'))v='#'+v;
+  if(/^#[0-9a-fA-F]{6}$/.test(v)){
+    const hsv=hex2hsv(v);_cpH=hsv.h;_cpS=hsv.s;_cpV=hsv.v;cpDraw();
+  }
+});
+document.querySelectorAll('.csw input[type=color]').forEach(inp=>{
+  inp.addEventListener('click',e=>{e.preventDefault();cpOpen(inp);});
+});
+
 </script>
 </body>
 </html>
