@@ -263,7 +263,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div class="pc-dot" id="hlCustomDot" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border:1.5px solid #999;cursor:pointer;" title="직접 선택" onmousedown="saveRange();cpOpen(document.getElementById('hlCustomPicker'))">
             <input type="color" id="hlCustomPicker" value="#FFF3C0" style="display:none;" onchange="pbHLCustom(this)">
           </div>
-          <div class="pc-dot pc-x" onmousedown="pbHL(event,'none')" ontouchend="pbHL(event,'none')" title="형광펜 제거">✕</div>
+          <div class="pc-dot pc-x" onmousedown="saveRange();pbHL(event,'none')" ontouchend="saveRange();pbHL(event,'none')" title="형광펜 제거">✕</div>
         </div>
       </div>
       <div id="editor" contenteditable="true" data-placeholder="여기에 문구를 입력하세요." spellcheck="false"></div>
@@ -579,7 +579,16 @@ const gi=id=>parseInt(g(id).value);
 const gf=id=>parseFloat(g(id).value);
 const gc=id=>g(id).value;
 function getDim(){return S.ratio==='custom'?[parseInt(gc('cW'))||800,parseInt(gc('cH'))||800]:RATIOS[S.ratio]||[800,800];}
-function getSaveDim(){return S.ratio==='custom'?getDim():SAVE_RATIOS[S.ratio]||getDim();}
+function getSaveDim(){
+  if(S.ratio==='custom'){
+    const[w,h]=getDim();
+    // custom: 짧은 쪽이 2160 미만이면 2160 기준으로 업스케일
+    const minPx=2160;
+    const scale=Math.max(1,minPx/Math.min(w,h));
+    return[Math.round(w*scale),Math.round(h*scale)];
+  }
+  return SAVE_RATIOS[S.ratio]||getDim();
+}
 
 function sv(el,vid,sfx='px',a=true){g(vid).textContent=a?el.value+sfx:el.value;rc();}
 function ts(h){h.closest('.sec').classList.toggle('closed');}
@@ -704,18 +713,9 @@ function pbTCCustom(input){
 function pbTCRemove(e){
   e.preventDefault();e.stopPropagation();
   restoreRange();
-  // 글자색만 제거 (형광펜/Bold/Italic 등 다른 서식은 유지)
-  // foreColor를 기본색으로 설정한 뒤 span style 직접 제거
-  const sel=window.getSelection();
-  if(sel&&sel.rangeCount){
-    const range=sel.getRangeAt(0);
-    if(!range.collapsed){
-      // 선택 범위의 모든 color 스타일 제거
-      document.execCommand('styleWithCSS',false,true);
-      document.execCommand('foreColor',false,'');
-      document.execCommand('styleWithCSS',false,false);
-    }
-  }
+  document.execCommand('styleWithCSS',false,true);
+  document.execCommand('foreColor',false,'inherit');
+  document.execCommand('styleWithCSS',false,false);
   g('tcRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
   savedRange=null;rc();
 }
@@ -1419,35 +1419,13 @@ function download(){
 async function copyImg(){
   try{
     const off=mkFull();
-    // ClipboardItem에 Promise<Blob>을 직접 전달 — 사용자 제스처 컨텍스트 유지
-    const item=new ClipboardItem({
-      'image/jpeg': new Promise((resolve,reject)=>{
-        off.toBlob(blob=>{
-          if(blob)resolve(blob);
-          else reject(new Error('blob 생성 실패'));
-        },'image/jpeg',0.95);
-      })
-    });
-    await navigator.clipboard.write([item]);
-    toast('이미지가 클립보드에 복사되었습니다!');
+    // 클립보드는 image/png만 지원 (jpeg 미지원)
+    const blob=await new Promise(res=>off.toBlob(res,'image/png'));
+    if(!blob){toast('복사 실패');return;}
+    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    toast('이미지 복사 완료!');
   }catch(e){
-    // 브라우저가 ClipboardItem Promise 방식 미지원 시 폴백
-    try{
-      const off=mkFull();
-      await new Promise((resolve,reject)=>{
-        off.toBlob(async blob=>{
-          if(!blob){reject();return;}
-          try{
-            await navigator.clipboard.write([new ClipboardItem({'image/jpeg':blob})]);
-            resolve();
-          }catch(e2){reject(e2);}
-        },'image/jpeg',0.95);
-      });
-      toast('이미지가 클립보드에 복사되었습니다!');
-    }catch(e2){
-      // 최후 폴백: PNG 저장 유도
-      toast('클립보드 복사 미지원 — PNG 저장 버튼을 이용해 주세요.');
-    }
+    toast('클립보드 복사를 지원하지 않는 브라우저입니다. JPG 저장을 이용해주세요.');
   }
 }
 function toast(msg){const el=g('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2600);}
