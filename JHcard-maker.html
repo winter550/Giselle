@@ -263,6 +263,18 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <!-- 제거 -->
           <div class="pc-dot pc-x" onmousedown="uniRemove(event)" title="제거">✕</div>
         </div>
+        <!-- 즐겨찾기 / 최근 사용 -->
+        <div style="margin-top:8px;">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+            <span id="favTabBtn"    onclick="setFavTab('fav')"    style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--ac-lt);color:var(--ac);cursor:pointer;transition:all .15s;">★ 즐겨찾기</span>
+            <span id="recentTabBtn" onclick="setFavTab('recent')" style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--p2);color:var(--t3);cursor:pointer;transition:all .15s;">⏱ 최근 사용</span>
+            <span id="favEditBtn"   onclick="toggleFavEdit()"     style="font-size:9px;padding:2px 7px;border-radius:10px;background:var(--p2);color:var(--t3);cursor:pointer;margin-left:auto;">편집</span>
+          </div>
+          <!-- 즐겨찾기 행 -->
+          <div id="favRow" class="pal-row" style="flex-wrap:wrap;gap:6px;min-height:28px;"></div>
+          <!-- 최근 사용 행 -->
+          <div id="recentRow" class="pal-row" style="flex-wrap:wrap;gap:6px;min-height:28px;display:none;"></div>
+        </div>
         <!-- 숨겨진 accentC (렌더용) -->
         <input type="color" id="accentC" value="#ffffff" onchange="rc()" style="display:none;">
       </div>
@@ -330,11 +342,67 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           </select>
         </div>
       </div>
-      <div class="sr"><span class="slb">글자 크기</span><input type="range" id="fs" min="10" max="100" value="20" oninput="sv(this,'fsV','px')"><span class="sv" id="fsV">20px</span></div>
-      <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps" min="-30" max="160" value="16" oninput="sv(this,'psV','px')"><span class="sv" id="psV">16px</span></div>
-      <div class="sr"><span class="slb">여백</span><input type="range" id="pad" min="20" max="400" value="110" oninput="sv(this,'padV','px')"><span class="sv" id="padV">110px</span></div>
-      <div class="sr"><span class="slb">자간</span><input type="range" id="ls" min="-2" max="20" step="0.5" value="1.5" oninput="sv(this,'lsV','px')"><span class="sv" id="lsV">1.5px</span></div>
-      <div class="sr"><span class="slb">행간</span><input type="range" id="lh" min="100" max="300" value="160" oninput="sv(this,'lhV','%')"><span class="sv" id="lhV">160%</span></div>
+
+      <!-- 드래그 / 숫자 탭 -->
+      <div class="seg" id="tsModeSeg" style="margin-bottom:8px;">
+        <button class="sgb on" onclick="setTsMode('drag')">드래그</button>
+        <button class="sgb"    onclick="setTsMode('num')">숫자 입력</button>
+      </div>
+
+      <!-- 드래그 모드 -->
+      <div id="tsModeSlider">
+        <div class="sr"><span class="slb">글자 크기</span><input type="range" id="fs"  min="10"  max="100"  value="20"  oninput="sv(this,'fsV','px');syncNum('fs','fsN')"><span class="sv" id="fsV">20px</span></div>
+        <div class="sr"><span class="slb">문단 간격</span><input type="range" id="ps"  min="-30" max="160"  value="16"  oninput="sv(this,'psV','px');syncNum('ps','psN')"><span class="sv" id="psV">16px</span></div>
+        <div class="sr"><span class="slb">여백</span>      <input type="range" id="pad" min="20"  max="400"  value="110" oninput="sv(this,'padV','px');syncNum('pad','padN')"><span class="sv" id="padV">110px</span></div>
+        <div class="sr"><span class="slb">자간</span>      <input type="range" id="ls"  min="-2"  max="20"   value="1.5" step="0.5" oninput="sv(this,'lsV','px');syncNum('ls','lsN')"><span class="sv" id="lsV">1.5px</span></div>
+        <div class="sr"><span class="slb">행간</span>      <input type="range" id="lh"  min="100" max="300"  value="160" oninput="sv(this,'lhV','%');syncNum('lh','lhN')"><span class="sv" id="lhV">160%</span></div>
+      </div>
+
+      <!-- 숫자 입력 모드 -->
+      <div id="tsModeNum" style="display:none;">
+        <div class="r2 kr" style="margin-bottom:7px;">
+          <div class="c1">
+            <label class="lbl">글자 크기</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" id="fsN" value="20" min="10" max="100" step="1" oninput="syncSlider('fsN','fs');sv(g('fs'),'fsV','px');rc()" style="flex:1;">
+              <span style="font-size:10px;color:var(--t3);flex-shrink:0;">px</span>
+            </div>
+          </div>
+          <div class="c1">
+            <label class="lbl">문단 간격</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" id="psN" value="16" min="-30" max="160" step="1" oninput="syncSlider('psN','ps');sv(g('ps'),'psV','px');rc()" style="flex:1;">
+              <span style="font-size:10px;color:var(--t3);flex-shrink:0;">px</span>
+            </div>
+          </div>
+        </div>
+        <div class="r2 kr" style="margin-bottom:7px;">
+          <div class="c1">
+            <label class="lbl">여백</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" id="padN" value="110" min="20" max="400" step="1" oninput="syncSlider('padN','pad');sv(g('pad'),'padV','px');rc()" style="flex:1;">
+              <span style="font-size:10px;color:var(--t3);flex-shrink:0;">px</span>
+            </div>
+          </div>
+          <div class="c1">
+            <label class="lbl">자간</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" id="lsN" value="1.5" min="-2" max="20" step="0.5" oninput="syncSlider('lsN','ls');sv(g('ls'),'lsV','px');rc()" style="flex:1;">
+              <span style="font-size:10px;color:var(--t3);flex-shrink:0;">px</span>
+            </div>
+          </div>
+        </div>
+        <div class="r2 kr" style="margin-bottom:4px;">
+          <div class="c1">
+            <label class="lbl">행간</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <input type="number" id="lhN" value="160" min="100" max="300" step="1" oninput="syncSlider('lhN','lh');sv(g('lh'),'lhV','%');rc()" style="flex:1;">
+              <span style="font-size:10px;color:var(--t3);flex-shrink:0;">%</span>
+            </div>
+          </div>
+          <div class="c1"></div>
+        </div>
+      </div>
       <div class="cr" style="margin-top:8px;">
         <div class="csw"><input type="color" id="tc" value="#ffffff" onchange="rc()"></div>
         <span class="clb">기본 글씨 색</span>
@@ -634,6 +702,25 @@ function setA(el){g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove(
 function setV(el){g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
 function setM(el){g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
 function setPalTab(el,tab){setColorMode(tab==='tc'?'tc':tab==='hl'?'hl':'ac');}
+
+/* ── 텍스트 스타일 드래그/숫자 탭 ── */
+function setTsMode(mode){
+  g('tsModeSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
+  g('tsModeSeg').querySelector(mode==='drag'?'.sgb:first-child':'.sgb:last-child').classList.add('on');
+  g('tsModeSlider').style.display=mode==='drag'?'':'none';
+  g('tsModeNum').style.display=mode==='num'?'':'none';
+}
+// 슬라이더 → 숫자 동기화
+function syncNum(sliderId,numId){
+  const n=g(numId);if(n)n.value=g(sliderId).value;
+}
+// 숫자 → 슬라이더 동기화
+function syncSlider(numId,sliderId){
+  const sl=g(sliderId),n=g(numId);if(!sl||!n)return;
+  const v=parseFloat(n.value);
+  const mn=parseFloat(sl.min),mx=parseFloat(sl.max);
+  sl.value=Math.min(mx,Math.max(mn,isNaN(v)?parseFloat(sl.value):v));
+}
 function setDecoTab(el,tab){
   g('decoSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
@@ -811,6 +898,188 @@ function updateSelectedAccentColor(color){
 }
 
 /* ── 통합 색상바 ── */
+/* ── 즐겨찾기 / 최근 사용 색 ── */
+let _favTab='fav'; // 'fav' | 'recent'
+let _favEdit=false;
+
+function setFavTab(tab){
+  _favTab=tab;
+  g('favTabBtn').style.background=tab==='fav'?'var(--ac-lt)':'var(--p2)';
+  g('favTabBtn').style.color=tab==='fav'?'var(--ac)':'var(--t3)';
+  g('recentTabBtn').style.background=tab==='recent'?'var(--ac-lt)':'var(--p2)';
+  g('recentTabBtn').style.color=tab==='recent'?'var(--ac)':'var(--t3)';
+  g('favRow').style.display=tab==='fav'?'':'none';
+  g('recentRow').style.display=tab==='recent'?'':'none';
+}
+
+function toggleFavEdit(){
+  _favEdit=!_favEdit;
+  g('favEditBtn').textContent=_favEdit?'완료':'편집';
+  g('favEditBtn').style.background=_favEdit?'var(--ac-lt)':'var(--p2)';
+  g('favEditBtn').style.color=_favEdit?'var(--ac)':'var(--t3)';
+  renderFav();renderRecent();
+}
+
+function getFavs(){ try{return JSON.parse(localStorage.getItem('jh_favs')||'[]');}catch{return[];} }
+function saveFavs(arr){ try{localStorage.setItem('jh_favs',JSON.stringify(arr));}catch{} }
+function getRecents(){ try{return JSON.parse(localStorage.getItem('jh_recents')||'[]');}catch{return[];} }
+function saveRecents(arr){ try{localStorage.setItem('jh_recents',JSON.stringify(arr));}catch{} }
+
+// 현재 선택된 색 읽기
+function getCurrentColor(){
+  if(_colorMode==='ac')return gc('accentC')||'#ffffff';
+  const on=g('uniPalRow').querySelector('.pc-dot.on');
+  if(on){
+    // 커스텀 피커 dot은 data 속성 없이 style.background로 색 저장
+    if(on.id==='uniCustomDot'){
+      return g('uniCustomPicker').value||'#ffffff';
+    }
+    if(_colorMode==='tc')return on.dataset.tc||'#ffffff';
+    if(_colorMode==='hl')return on.dataset.hl||'#ffffff';
+  }
+  return '#ffffff';
+}
+
+// 최근 사용에 색 추가 (최대 10개)
+function addRecent(color){
+  if(!color||color==='none')return;
+  let arr=getRecents().filter(c=>c!==color);
+  arr.unshift(color);
+  if(arr.length>10)arr=arr.slice(0,10);
+  saveRecents(arr);
+  renderRecent();
+}
+
+function renderFav(){
+  const row=g('favRow');if(!row)return;
+  row.innerHTML='';
+  const favs=getFavs();
+
+  if(favs.length===0&&!_favEdit){
+    // 안내 텍스트
+    const txt=document.createElement('span');
+    txt.style.cssText='font-size:10px;color:var(--t3);align-self:center;';
+    txt.textContent='색을 고른 후 + 버튼으로 저장';
+    row.appendChild(txt);
+  }else{
+    favs.forEach(color=>{
+      const d=document.createElement('div');
+      d.className='pc-dot';
+      d.style.background=color;
+      if(color==='#ffffff'||color.toLowerCase()==='#fff')d.style.border='1.5px solid #ccc';
+      if(_favEdit){
+        d.style.position='relative';
+        d.style.opacity='.75';
+        const x=document.createElement('span');
+        x.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;';
+        x.textContent='✕';
+        d.appendChild(x);
+        d.onmousedown=e=>{e.preventDefault();e.stopPropagation();removeFav(color);};
+      }else{
+        d.title=color;
+        d.onmousedown=e=>{e.preventDefault();e.stopPropagation();applyFavColor(color,d);};
+      }
+      row.appendChild(d);
+    });
+  }
+
+  // + 버튼 (편집 모드 아닐 때만)
+  if(!_favEdit){
+    const add=document.createElement('div');
+    add.className='pc-dot';
+    add.style.cssText='background:var(--p2);border:2px dashed var(--b2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--t3);box-shadow:none;cursor:pointer;';
+    add.title='현재 색을 즐겨찾기에 추가';
+    add.textContent='+';
+    add.onmousedown=e=>{e.preventDefault();e.stopPropagation();addFav();};
+    row.appendChild(add);
+  }
+}
+
+function renderRecent(){
+  const row=g('recentRow');if(!row)return;
+  row.innerHTML='';
+  const recents=getRecents();
+  if(recents.length===0){
+    const txt=document.createElement('span');
+    txt.style.cssText='font-size:10px;color:var(--t3);';
+    txt.textContent='색을 사용하면 자동으로 기록돼요';
+    row.appendChild(txt);
+    return;
+  }
+  recents.forEach(color=>{
+    const d=document.createElement('div');
+    d.className='pc-dot';
+    d.style.background=color;
+    if(color==='#ffffff'||color.toLowerCase()==='#fff')d.style.border='1.5px solid #ccc';
+    if(_favEdit){
+      d.style.position='relative';
+      d.style.opacity='.75';
+      const x=document.createElement('span');
+      x.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);pointer-events:none;';
+      x.textContent='✕';
+      d.appendChild(x);
+      d.onmousedown=e=>{e.preventDefault();e.stopPropagation();
+        saveRecents(getRecents().filter(c=>c!==color));renderRecent();};
+    }else{
+      d.title=color;
+      d.onmousedown=e=>{e.preventDefault();e.stopPropagation();applyFavColor(color,d);};
+    }
+    row.appendChild(d);
+  });
+}
+
+function addFav(){
+  const color=getCurrentColor();
+  if(!color||color==='none')return;
+  let arr=getFavs();
+  if(arr.includes(color)){toast('이미 즐겨찾기에 있어요');return;}
+  if(arr.length>=8){toast('즐겨찾기는 최대 8개예요');return;}
+  arr.push(color);saveFavs(arr);renderFav();
+  toast('즐겨찾기에 추가됐어요');
+}
+
+function removeFav(color){
+  saveFavs(getFavs().filter(c=>c!==color));
+  renderFav();
+}
+
+function applyFavColor(color,dot){
+  // 현재 모드에 맞게 색 적용
+  if(_colorMode==='tc'){
+    restoreRange();
+    document.execCommand('foreColor',false,color);
+    savedRange=null;rc();
+  }else if(_colorMode==='hl'){
+    restoreRange();
+    if(color==='none')document.execCommand('hiliteColor',false,'transparent');
+    else document.execCommand('hiliteColor',false,color);
+    savedRange=null;rc();
+  }else if(_colorMode==='ac'){
+    g('accentC').value=color;
+    updateSelectedAccentColor(color);
+    rc();
+  }
+  // 해당 탭 도트에 on 표시
+  const activeRow=_favTab==='fav'?g('favRow'):g('recentRow');
+  activeRow.querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  dot.classList.add('on');
+  addRecent(color);
+}
+
+// uniPick / uniCustomPick 에서 최근 사용 자동 기록
+function _origUniPick_wrap(){
+  const orig=uniPick;
+  uniPick=function(e,dot){
+    orig(e,dot);
+    // 적용된 색 추출해서 최근 사용에 추가
+    let color='';
+    if(_colorMode==='tc')color=dot.dataset.tc||'';
+    else if(_colorMode==='hl')color=dot.dataset.hl||'';
+    else if(_colorMode==='ac')color=dot.dataset.ac||'';
+    if(color&&color!=='none')addRecent(color);
+  };
+}
+
 let _colorMode='tc'; // 'tc' | 'hl' | 'ac'
 function setColorMode(mode){
   // 탭 전환 전 현재 selection 스냅샷 (드래그 유지용)
@@ -851,10 +1120,19 @@ function uniPick(e,dot){
   // 선택 표시
   g('uniPalRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
   dot.classList.add('on');
+  // 최근 사용 기록
+  let _rc='';
+  if(_colorMode==='tc')_rc=dot.dataset.tc||'';
+  else if(_colorMode==='hl')_rc=dot.dataset.hl||'';
+  else if(_colorMode==='ac')_rc=dot.dataset.ac||'';
+  if(_rc&&_rc!=='none')addRecent(_rc);
 }
 function uniCustomPick(inp){
   const color=inp.value;
   g('uniCustomDot').style.background=color;
+  // on 클래스 이동
+  g('uniPalRow').querySelectorAll('.pc-dot').forEach(d=>d.classList.remove('on'));
+  g('uniCustomDot').classList.add('on');
   if(_colorMode==='tc'){
     restoreRange();
     document.execCommand('foreColor',false,color);
@@ -868,6 +1146,7 @@ function uniCustomPick(inp){
     updateSelectedAccentColor(color);
     rc();
   }
+  addRecent(color);
 }
 function uniRemove(e){
   e.preventDefault();e.stopPropagation();
@@ -1129,6 +1408,8 @@ function apSet(c){
     ['outlineW','outlineWV','px'],['outlineOp','outlineOpV','%'],
     ['overlayOp','overlayOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%']];
   svs.forEach(([id,vid,sfx,a=true])=>{if(g(id)&&g(vid))g(vid).textContent=a?g(id).value+sfx:g(id).value;});
+  // 숫자 입력창 동기화
+  [['fs','fsN'],['ps','psN'],['pad','padN'],['ls','lsN'],['lh','lhN']].forEach(([sid,nid])=>{if(g(sid)&&g(nid))g(nid).value=g(sid).value;});
   if(c.ratio){const b=g('ratioC').querySelector(`[data-r="${c.ratio}"]`);if(b)setR(b);}
   if(c.align){const b=g('aB').querySelector(`[data-a="${c.align}"]`);if(b)setA(b);}
   if(c.vpos){const b=g('vB').querySelector(`[data-v="${c.vpos}"]`);if(b)setV(b);}
@@ -1942,6 +2223,8 @@ g('cpHexInput').addEventListener('input',()=>{
 document.querySelectorAll('.csw input[type=color]').forEach(inp=>{
   inp.addEventListener('click',e=>{e.preventDefault();cpOpen(inp);});
 });
+// 즐겨찾기 / 최근 사용 초기 렌더
+renderFav();renderRecent();
 
 </script>
 </body>
