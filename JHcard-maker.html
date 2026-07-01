@@ -62,8 +62,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4;}
 .sr:last-child{margin-bottom:0;}
 .slb{font-size:11px;color:var(--t2);width:62px;flex-shrink:0;}
 .sv{font-size:11px;color:var(--t2);width:36px;text-align:right;flex-shrink:0;}
-input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--p2);border-radius:2px;cursor:pointer;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(91,79,232,.4);}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--p2);border-radius:2px;cursor:pointer;touch-action:pan-y;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(91,79,232,.4);}
 .cr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .cr:last-child{margin-bottom:0;}
 .csw{width:30px;height:30px;border-radius:var(--rsm);border:1.5px solid var(--b2);overflow:hidden;flex-shrink:0;cursor:pointer;}
@@ -130,6 +130,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 }
 #editor:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(91,79,232,.11);}
 #editor:empty::before{content:attr(data-placeholder);color:var(--t3);pointer-events:none;}
+#novelTitle:empty::before{content:attr(data-placeholder);color:var(--t3);pointer-events:none;}
+#novelSub:empty::before{content:attr(data-placeholder);color:var(--t3);pointer-events:none;}
 
 /* 팝업 툴바 — 선택 시 등장 */
 /* ── 서식 툴바 ── */
@@ -287,12 +289,26 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="sec">
     <div class="sh" onclick="ts(this)"><span class="st">프리셋 저장</span><span class="sa">▾</span></div>
     <div class="sb">
+      <div class="r2 kr" style="align-items:flex-end;margin-bottom:8px;gap:6px;">
+        <div class="c1">
+          <label class="lbl">캐릭터(폴더)</label>
+          <select id="pFolder" onchange="renderP()" style="width:100%;"></select>
+        </div>
+        <button class="btn ba bsm" id="addFolderBtn" onclick="showAddFolder()" style="flex-shrink:0;height:34px;">+ 폴더</button>
+        <button class="btn ba bsm" onclick="showRenameFolder()" style="flex-shrink:0;height:34px;">이름변경</button>
+        <button class="btn ba bsm" onclick="delFolder()" style="flex-shrink:0;height:34px;">삭제</button>
+      </div>
+      <div id="addFolderRow" style="display:none;align-items:flex-end;gap:6px;margin-bottom:8px;">
+        <div class="c1"><label class="lbl" id="folderInputLbl">새 폴더 이름</label><input type="text" id="newFolderName" placeholder="폴더 이름 입력" onkeydown="if(event.key==='Enter')confirmAddFolder()"></div>
+        <button class="btn ba bsm" id="folderConfirmBtn" onclick="confirmAddFolder()" style="flex-shrink:0;height:34px;">추가</button>
+        <button class="btn bsm" onclick="cancelAddFolder()" style="flex-shrink:0;height:34px;">취소</button>
+      </div>
       <div id="pFolders"></div>
       <div class="r2 kr" style="align-items:flex-end;margin-top:6px;">
         <div class="c1"><label class="lbl">프리셋 이름</label><input type="text" id="pName" placeholder="이름 입력..."></div>
         <button class="btn ba bsm" onclick="saveP()" style="flex-shrink:0;height:34px;">저장</button>
       </div>
-      <div class="note">스타일 설정값만 저장됩니다. 배경이미지·글 내용은 저장되지 않습니다.</div>
+      <div class="note">폴더당 최대 5개까지 저장됩니다. 스타일 설정값만 저장되며 배경이미지·글 내용은 저장되지 않습니다.</div>
     </div>
   </div>
 
@@ -311,6 +327,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       <div id="customRow" class="r2 kr" style="display:none;margin-top:8px;">
         <div class="c1"><label class="lbl">너비</label><input type="number" id="cW" value="800" min="100" max="4000" oninput="rc()"></div>
         <div class="c1"><label class="lbl">높이</label><input type="number" id="cH" value="800" min="100" max="4000" oninput="rc()"></div>
+      </div>
+
+      <!-- 소설 내지 모드 -->
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--b1);">
+        <label class="ckr"><input type="checkbox" id="novelMode"><span>소설 내지 모드</span></label>
+        <div id="novelModeOpts" style="display:none;margin-top:10px;">
+          <div class="note" style="margin-bottom:8px;">제작자·캐릭터·구분자·메타 크기/색은 아래 기존 설정을 그대로 사용합니다</div>
+          <div class="seg" id="novelAlignSeg" style="margin-bottom:8px;">
+            <button class="sgb on" data-na="left"   onclick="setNovelAlign(this)">좌정렬</button>
+            <button class="sgb"    data-na="center" onclick="setNovelAlign(this)">중앙</button>
+            <button class="sgb"    data-na="right"  onclick="setNovelAlign(this)">우정렬</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+            <div style="flex:1;">
+              <label class="lbl" style="margin-bottom:3px;">페이지 번호</label>
+              <input type="number" id="pgN" min="0" max="999" value="0" oninput="rc()" style="width:100%;padding:5px 8px;font-size:13px;">
+            </div>
+            <label class="ckr" style="flex-shrink:0;margin-top:16px;"><input type="checkbox" id="novelDivider" onchange="rc()"><span>| 구분선</span></label>
+          </div>
+          <!-- 타이틀 -->
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);">
+            <label class="lbl" style="margin-bottom:4px;">타이틀</label>
+            <div id="novelTitle" contenteditable="true"
+              data-placeholder="비우면 미표시"
+              spellcheck="false"
+              oninput="rc()"
+              onfocus="setActiveEditor(this)"
+              style="min-height:32px;border:1.5px solid var(--b1);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--t1);margin-bottom:8px;cursor:text;"
+            ></div>
+            <label class="lbl" style="margin-bottom:4px;">서브타이틀</label>
+            <div id="novelSub" contenteditable="true"
+              data-placeholder="비우면 미표시"
+              spellcheck="false"
+              oninput="rc()"
+              onfocus="setActiveEditor(this)"
+              style="min-height:32px;border:1.5px solid var(--b1);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--t1);cursor:text;"
+            ></div>
+            <div class="note" style="margin-top:6px;">클릭 후 드래그 선택 → 위 서식 툴바 적용</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -405,8 +461,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
       </div>
       <div class="cr" style="margin-top:8px;">
         <div class="csw"><input type="color" id="tc" value="#ffffff" onchange="rc()"></div>
-        <span class="clb">기본 글씨 색</span>
-        <input type="range" id="tOp" min="0" max="100" value="100" oninput="sv(this,'tOpV','%')" style="flex:1;margin-left:10px;">
+        <span class="clb" style="white-space:nowrap;">기본 글씨 색</span>
+      </div>
+      <div class="sr" style="margin-top:4px;">
+        <span class="slb">불투명도</span>
+        <input type="range" id="tOp" min="0" max="100" value="100" oninput="sv(this,'tOpV','%')">
         <span class="sv" id="tOpV">100%</span>
       </div>
       <!-- 따옴표 색 -->
@@ -439,6 +498,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
             <span class="ib"    data-v="bottom" onclick="setV(this)"><svg width="13" height="13" fill="none" viewBox="0 0 14 14"><path d="M1 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 2v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.5 7.5L7 10l2.5-2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           </div>
         </div>
+      </div>
+      <!-- 들여쓰기 -->
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);">
+        <div class="sr"><span class="slb">들여쓰기</span><input type="range" id="indent" min="0" max="80" value="0" step="4" oninput="sv(this,'indentV','px')"><span class="sv" id="indentV">0px</span></div>
+        <div class="note">0px = 비활성, 슬라이더 올리면 문단 첫 줄 자동 적용</div>
       </div>
     </div>
   </div>
@@ -631,11 +695,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
           <div class="sr"><span class="slb">불투명도</span><input type="range" id="outlineOp" min="0" max="100" value="100" oninput="sv(this,'outlineOpV','%')"><span class="sv" id="outlineOpV">100%</span></div>
         </div>
       </div>
-
-      <!-- 페이지 번호 -->
-      <label class="ckr" style="margin-top:4px;"><input type="checkbox" id="showPg" onchange="rc()"><span>페이지 번호</span></label>
-      <div class="sr" style="margin-top:4px;"><span class="slb">페이지 번호</span><input type="range" id="pgN" min="1" max="999" value="1" oninput="sv(this,'pgV','',false)"><span class="sv" id="pgV">1</span></div>
-      <div class="cr" style="margin-top:6px;"><div class="csw"><input type="color" id="pgC" value="#aaaaaa" onchange="rc()"></div><span class="clb">번호 색상</span></div>
     </div>
   </div>
 
@@ -652,6 +711,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 <div class="toast" id="toast"></div>
 
 
+<div id="moveModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:20px;width:min(300px,90vw);box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div id="moveModalTitle" style="font-size:13px;font-weight:600;color:#333;margin-bottom:14px;">이동할 폴더 선택</div>
+    <select id="moveDestSel" style="width:100%;margin-bottom:14px;padding:8px;"></select>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="g('moveModal').classList.remove('open')" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:#f0f0f0;color:#555;">취소</button>
+      <button onclick="confirmMove()" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:#5b4fe8;color:#fff;">이동</button>
+    </div>
+  </div>
+</div>
+<style>#moveModal.open{display:flex !important;}</style>
 <div id="cpModal">
   <div id="cpBox">
     <div id="cpTitle">색상 선택</div>
@@ -676,7 +746,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 <script>
 /* ── STATE ── */
-const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5};
+const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5,novelAlign:'left',novelSep:' · ',novelTitleBold:false,novelTitleItalic:false,novelSubBold:false,novelSubItalic:false};
 const RATIOS={'1:1':[800,800],'4:5':[800,1000],'16:9':[800,450],'twitter':[900,480],'a6':[561,794]};
 const SAVE_RATIOS={'1:1':[2160,2160],'4:5':[2160,2700],'16:9':[3200,1800],'twitter':[3000,1000],'a6':[2244,3174]};
 const g=id=>document.getElementById(id);
@@ -696,11 +766,59 @@ function getSaveDim(){
 }
 
 function sv(el,vid,sfx='px',a=true){g(vid).textContent=a?el.value+sfx:el.value;rc();}
+document.addEventListener('DOMContentLoaded',()=>{
+  const indOn=g('indentOn');
+  if(indOn){
+    indOn.addEventListener('change',()=>{
+      g('indentRow').style.display=indOn.checked?'flex':'none';
+      rc();
+    });
+  }
+});
 function ts(h){h.closest('.sec').classList.toggle('closed');}
 function setR(el){g('ratioC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.ratio=el.dataset.r;g('customRow').style.display=S.ratio==='custom'?'flex':'none';rc();}
 function setA(el){g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.align=el.dataset.a;rc();}
 function setV(el){g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
 function setM(el){g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
+function setNovelAlign(el){
+  g('novelAlignSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');S.novelAlign=el.dataset.na;rc();
+}
+function toggleNovelStyle(type){
+  S['novel'+type.charAt(0).toUpperCase()+type.slice(1)]=!S['novel'+type.charAt(0).toUpperCase()+type.slice(1)];
+  const btn=g('novel'+type.charAt(0).toUpperCase()+type.slice(1));
+  if(btn)btn.classList.toggle('on');
+  rc();
+}
+function setNovelSep(el){
+  g('novelSepC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  S.novelSep=el.dataset.ns;
+  rc();
+}
+// novelMode 체크박스 토글 시 옵션 표시/숨김
+document.addEventListener('DOMContentLoaded',()=>{
+  g('novelMode').addEventListener('change',()=>{
+    g('novelModeOpts').style.display=g('novelMode').checked?'':'none';
+    if(g('novelMode').checked){
+      // divider 끄기
+      if(g('showDivider'))g('showDivider').checked=false;
+      // A6 비율 적용
+      const a6btn=g('ratioC').querySelector('[data-r="a6"]');
+      if(a6btn)setR(a6btn);
+      // 단색 모드로
+      const solidBtn=g('bgSeg').querySelector('[data-bm="solid"]');
+      if(solidBtn)setBg(solidBtn);
+      // 종이색 배경 (#fafafa 흰종이)
+      if(g('solidC')){g('solidC').value='#fafafa';g('solidC').dispatchEvent(new Event('change'));}
+      // 글씨색 검정
+      if(g('tc')){g('tc').value='#111111';g('tc').dispatchEvent(new Event('change'));}
+      // 소설 내지 하단 텍스트색
+      if(g('novelMetaC')){g('novelMetaC').value='#111111';g('novelMetaC').dispatchEvent(new Event('change'));}
+    }
+    rc();
+  });
+});
 function setPalTab(el,tab){setColorMode(tab==='tc'?'tc':tab==='hl'?'hl':'ac');}
 
 /* ── 텍스트 스타일 드래그/숫자 탭 ── */
@@ -773,6 +891,11 @@ function onFf(){const ff=gc('ff'),fs=gc('fs')+'px';document.fonts.load(`400 ${fs
 let savedRange=null;
 // 마지막으로 에디터에서 선택된 range — 툴바 mousedown 직전까지 항상 갱신
 let _lastEditorRange=null;
+let _activeEditor=null; // 현재 포커스된 에디터 (editor / novelTitle / novelSub)
+
+function setActiveEditor(el){
+  _activeEditor=el;
+}
 
 function saveRange(){
   const sel=window.getSelection();
@@ -1234,6 +1357,16 @@ function pbTCRemove(e){
 
 g('editor').addEventListener('mouseup',()=>setTimeout(saveRange,10));
 g('editor').addEventListener('touchend',()=>setTimeout(saveRange,100));
+g('editor').addEventListener('focus',()=>{setActiveEditor(g('editor'));});
+// novelTitle/novelSub 에디터 이벤트
+['novelTitle','novelSub'].forEach(id=>{
+  const el=g(id);
+  if(!el)return;
+  el.addEventListener('mouseup',()=>setTimeout(saveRange,10));
+  el.addEventListener('touchend',()=>setTimeout(saveRange,100));
+  el.addEventListener('keyup',e=>{if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='y'))rc();});
+  el.addEventListener('input',rc);
+});
 g('editor').addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     e.preventDefault();
@@ -1273,6 +1406,24 @@ g('editor').addEventListener('paste',e=>{
   sel.removeAllRanges();
   sel.addRange(range);
   rc();
+});
+// novelTitle/novelSub도 plain text만 붙여넣기
+['novelTitle','novelSub'].forEach(id=>{
+  const el=g(id);
+  if(!el)return;
+  el.addEventListener('paste',e=>{
+    e.preventDefault();
+    const text=e.clipboardData.getData('text/plain');
+    const sel=window.getSelection();
+    if(!sel.rangeCount)return;
+    const range=sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(text));
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    rc();
+  });
 });
 g('editor').addEventListener('focus',()=>{if(window.innerWidth<=768)g('rp').classList.add('peek');});
 g('editor').addEventListener('blur',()=>{if(window.innerWidth<=768)g('rp').classList.remove('peek');});
@@ -1366,12 +1517,108 @@ function padCoords(e,pad){
   document.addEventListener('touchend',()=>drag=false);
 })();
 
-/* ── PRESETS ── */
-let presets=[];try{presets=JSON.parse(localStorage.getItem('qcm6')||'[]');}catch(_){}
+/* ── PRESETS (폴더별) ── */
+// 데이터 구조: {폴더명: [프리셋배열]}
+let presetData={};
+try{
+  const raw=JSON.parse(localStorage.getItem('qcm6')||'null');
+  if(raw && Array.isArray(raw)){
+    // 구버전(배열) 마이그레이션 → "기본" 폴더로 이동
+    presetData={'미분류':raw};
+  }else if(raw && typeof raw==='object'){
+    presetData=raw;
+  }
+}catch(_){}
+if(!Object.keys(presetData).length) presetData={'미분류':[]};
+
+function savePresetData(){
+  try{localStorage.setItem('qcm6',JSON.stringify(presetData));}catch(_){}
+}
+function currentFolder(){
+  const sel=g('pFolder');
+  return sel&&sel.value?sel.value:Object.keys(presetData)[0];
+}
+function renderFolderSelect(){
+  const sel=g('pFolder');
+  const cur=sel.value;
+  sel.innerHTML=Object.keys(presetData).map(f=>`<option value="${f.replace(/"/g,'&quot;')}">${f}</option>`).join('');
+  if(cur && presetData[cur]) sel.value=cur;
+}
+let _folderMode='add'; // 'add' | 'rename'
+function showAddFolder(){
+  _folderMode='add';
+  g('folderInputLbl').textContent='새 폴더 이름';
+  g('folderConfirmBtn').textContent='추가';
+  g('addFolderRow').style.display='flex';
+  g('newFolderName').value='';
+  g('newFolderName').focus();
+}
+function showRenameFolder(){
+  const f=currentFolder();
+  if(!f)return;
+  _folderMode='rename';
+  g('folderInputLbl').textContent=`"${f}" → 새 이름`;
+  g('folderConfirmBtn').textContent='변경';
+  g('addFolderRow').style.display='flex';
+  g('newFolderName').value=f;
+  g('newFolderName').focus();
+  g('newFolderName').select();
+}
+function cancelAddFolder(){
+  g('addFolderRow').style.display='none';
+}
+function confirmAddFolder(){
+  const n=gc('newFolderName').trim();
+  if(!n){toast('폴더 이름을 입력하세요.');return;}
+  if(_folderMode==='add'){
+    if(presetData[n]){toast('이미 존재하는 폴더입니다.');return;}
+    presetData[n]=[];
+    savePresetData();
+    renderFolderSelect();
+    g('pFolder').value=n;
+    renderP();
+    cancelAddFolder();
+    toast(`"${n}" 폴더 생성`);
+  }else{
+    const f=currentFolder();
+    if(n===f){cancelAddFolder();return;}
+    if(presetData[n]){toast('이미 존재하는 폴더 이름입니다.');return;}
+    presetData[n]=presetData[f];
+    delete presetData[f];
+    savePresetData();
+    renderFolderSelect();
+    g('pFolder').value=n;
+    renderP();
+    cancelAddFolder();
+    toast(`"${f}" → "${n}" 변경 완료`);
+  }
+}
+function delFolder(){
+  const f=currentFolder();
+  if(!f)return;
+  if(f==='미분류'){toast('"미분류" 폴더는 삭제할 수 없습니다.');return;}
+  if(!presetData['미분류'])presetData['미분류']=[];
+  const moved=presetData[f]||[];
+  // 미분류로 이동 (이름 중복 시 자동 변경)
+  moved.forEach(item=>{
+    let name=item._n;
+    while(presetData['미분류'].find(p=>p._n===name)){
+      name=name+'(1)';
+    }
+    item._n=name;
+    presetData['미분류'].push(item);
+  });
+  delete presetData[f];
+  savePresetData();
+  renderFolderSelect();
+  g('pFolder').value='미분류';
+  renderP();
+  toast(`"${f}" 폴더 삭제, 프리셋 ${moved.length}개를 미분류로 이동`);
+}
 function getSet(){
   return{ratio:S.ratio,bgMode:S.bgMode,align:S.align,vpos:S.vpos,mood:S.mood,sep:S.sep,
     metaX:S.metaX,metaY:S.metaY,
-    fs:gc('fs'),ps:gc('ps'),pad:gc('pad'),ls:gc('ls'),lh:gc('lh'),
+    fs:gc('fs'),ps:gc('ps'),pad:gc('pad'),ls:gc('ls'),lh:gc('lh'),indent:gc('indent'),
     tc:gc('tc'),tOp:gc('tOp'),ff:gc('ff'),fw:gc('fw'),
     solidC:gc('solidC'),gS:gc('gS'),gE:gc('gE'),gDir:gc('gDir'),
     showBox:g('showBox').checked,boxC:gc('boxC'),boxOp:gc('boxOp'),boxR:gc('boxR'),
@@ -1379,15 +1626,20 @@ function getSet(){
     showOutline:g('showOutline').checked,outlineC:gc('outlineC'),outlineW:gc('outlineW'),outlineOp:gc('outlineOp'),
     showOverlay:g('showOverlay').checked,overlayType:S.overlayType,overlayC:gc('overlayC'),overlayOp:gc('overlayOp'),
     showDivider:g('showDivider').checked,dividerType:S.dividerType,dividerX:S.dividerX,dividerY:S.dividerY,dividerC:gc('dividerC'),dividerW:gc('dividerW'),
-    showPg:g('showPg').checked,pgN:gc('pgN'),pgC:gc('pgC'),
+    pgN:gc('pgN'),
     showAccent:true,accentC:gc('accentC'),
     quoteColorOn:g('quoteColorOn').checked,quoteColorDbl:gc('quoteColorDbl'),quoteColorSgl:gc('quoteColorSgl'),
     author:gc('author'),chara:gc('chara'),metaC:gc('metaC'),metaFs:gc('metaFs'),
-    bgScale:gc('bgScale'),bgDark:gc('bgDark'),bgBlur:gc('bgBlur')};
+    bgScale:gc('bgScale'),bgDark:gc('bgDark'),bgBlur:gc('bgBlur'),
+    novelMode:g('novelMode').checked,novelAlign:S.novelAlign,
+    novelDivider:g('novelDivider')&&g('novelDivider').checked,
+    novelTitle:gc('novelTitle'),novelSub:gc('novelSub'),
+    novelTitleBold:S.novelTitleBold,novelTitleItalic:S.novelTitleItalic,
+    novelSubBold:S.novelSubBold,novelSubItalic:S.novelSubItalic};
 }
 function apSet(c){
   if(!c)return;
-  const m={fs:'fs',ps:'ps',pad:'pad',ls:'ls',lh:'lh',tc:'tc',tOp:'tOp',ff:'ff',fw:'fw',
+  const m={fs:'fs',ps:'ps',pad:'pad',ls:'ls',lh:'lh',indent:'indent',tc:'tc',tOp:'tOp',ff:'ff',fw:'fw',
     solidC:'solidC',gS:'gS',gE:'gE',gDir:'gDir',boxC:'boxC',boxOp:'boxOp',boxR:'boxR',
     shadowC:'shadowC',shadowOp:'shadowOp',shadowBlur:'shadowBlur',shadowDist:'shadowDist',
     outlineC:'outlineC',outlineW:'outlineW',outlineOp:'outlineOp',
@@ -1395,20 +1647,19 @@ function apSet(c){
     dividerC:'dividerC',dividerW:'dividerW',dividerLen:'dividerLen',
     accentC:'accentC',
     quoteColorDbl:'quoteColorDbl',quoteColorSgl:'quoteColorSgl',
-    pgN:'pgN',pgC:'pgC',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',
+    pgN:'pgN',novelTitle:g('novelTitle')?g('novelTitle').innerHTML:'',novelSub:g('novelSub')?g('novelSub').innerHTML:'',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',
     bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur'};
   for(const[k,id]of Object.entries(m))if(c[k]!=null&&g(id))g(id).value=c[k];
-  const ch={showBox:'showBox',showPg:'showPg',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider',quoteColorOn:'quoteColorOn',showOutline:'showOutline'};
+  const ch={showBox:'showBox',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider',quoteColorOn:'quoteColorOn',showOutline:'showOutline',novelMode:'novelMode',novelDivider:'novelDivider'};
   for(const[k,id]of Object.entries(ch))if(c[k]!=null&&g(id))g(id).checked=c[k];
   const svs=[['fs','fsV','px'],['ps','psV','px'],['pad','padV','px'],
     ['ls','lsV','px'],['lh','lhV','%'],['tOp','tOpV','%'],['bgScale','bgScV','%'],
     ['bgDark','bgDkV','%'],['bgBlur','bgBlV','px'],['boxOp','boxOpV','%'],
-    ['boxR','boxRV','px'],['pgN','pgV','',false],['metaFs','metaFsV','px'],
+    ['boxR','boxRV','px'],['metaFs','metaFsV','px'],
     ['shadowBlur','shadowBV','px'],['shadowDist','shadowDV','px'],['shadowOp','shadowOpV','%'],
     ['outlineW','outlineWV','px'],['outlineOp','outlineOpV','%'],
     ['overlayOp','overlayOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%']];
   svs.forEach(([id,vid,sfx,a=true])=>{if(g(id)&&g(vid))g(vid).textContent=a?g(id).value+sfx:g(id).value;});
-  // 숫자 입력창 동기화
   [['fs','fsN'],['ps','psN'],['pad','padN'],['ls','lsN'],['lh','lhN']].forEach(([sid,nid])=>{if(g(sid)&&g(nid))g(nid).value=g(sid).value;});
   if(c.ratio){const b=g('ratioC').querySelector(`[data-r="${c.ratio}"]`);if(b)setR(b);}
   if(c.align){const b=g('aB').querySelector(`[data-a="${c.align}"]`);if(b)setA(b);}
@@ -1420,38 +1671,93 @@ function apSet(c){
   if(c.dividerX!=null){S.dividerX=c.dividerX;S.dividerY=c.dividerY??0.5;moveDivDot(S.dividerX,S.dividerY);}
   if(c.metaX!=null){S.metaX=c.metaX;S.metaY=c.metaY??0.9;moveMetaDot(S.metaX,S.metaY);}
   if(c.bgMode){const b=g('bgSeg').querySelector(`[data-bm="${c.bgMode}"]`);if(b)setBg(b);}
+  if(c.novelTitle!=null&&g('novelTitle'))g('novelTitle').innerHTML=c.novelTitle;
+  if(c.novelSub!=null&&g('novelSub'))g('novelSub').innerHTML=c.novelSub;
+  if(c.novelAlign){
+    S.novelAlign=c.novelAlign;
+    const nb=g('novelAlignSeg').querySelector(`[data-na="${c.novelAlign}"]`);
+    if(nb){g('novelAlignSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));nb.classList.add('on');}
+  }
+  ['novelTitleBold','novelTitleItalic','novelSubBold','novelSubItalic'].forEach(k=>{
+    if(c[k]!=null){
+      S[k]=c[k];
+      const btn=g(k);
+      if(btn){if(c[k])btn.classList.add('on');else btn.classList.remove('on');}
+    }
+  });
+  if(g('novelMode'))g('novelModeOpts').style.display=g('novelMode').checked?'':'none';
   rc();
 }
 function saveP(){
   const n=gc('pName').trim();if(!n){toast('이름을 입력하세요.');return;}
+  const f=currentFolder();
+  if(!presetData[f])presetData[f]=[];
   const cfg=getSet();cfg._n=n;
-  const i=presets.findIndex(p=>p._n===n);
-  if(i>=0){presets[i]=cfg;}
+  const list=presetData[f];
+  const i=list.findIndex(p=>p._n===n);
+  if(i>=0){list[i]=cfg;}
   else{
-    if(presets.length>=5){toast('최대 5개까지 저장 가능합니다. 기존 프리셋을 삭제해주세요.');return;}
-    presets.push(cfg);
+    if(list.length>=5){toast(`"${f}" 폴더는 최대 5개까지 저장 가능합니다. 기존 프리셋을 삭제해주세요.`);return;}
+    list.push(cfg);
   }
-  try{localStorage.setItem('qcm6',JSON.stringify(presets));}catch(_){}
-  g('pName').value='';renderP();toast(`"${n}" 저장 완료`);
+  savePresetData();
+  g('pName').value='';renderP();toast(`"${f}" 폴더에 "${n}" 저장 완료`);
 }
-function loadP(n){const c=presets.find(p=>p._n===n);if(c){apSet(c);rc();toast(`"${n}" 불러오기`);}}
-function delP(n){presets=presets.filter(p=>p._n!==n);try{localStorage.setItem('qcm6',JSON.stringify(presets));}catch(_){}renderP();}
+function loadP(n){
+  const f=currentFolder();
+  const list=presetData[f]||[];
+  const c=list.find(p=>p._n===n);
+  if(c){apSet(c);rc();toast(`"${n}" 불러오기`);}
+}
+function delP(n){
+  const f=currentFolder();
+  if(!presetData[f])return;
+  presetData[f]=presetData[f].filter(p=>p._n!==n);
+  savePresetData();renderP();
+}
+let _moveTarget=null;
+function moveP(n){
+  const f=currentFolder();
+  const folders=Object.keys(presetData).filter(x=>x!==f);
+  if(!folders.length){toast('이동할 다른 폴더가 없습니다. 먼저 폴더를 추가하세요.');return;}
+  _moveTarget=n;
+  const sel=g('moveDestSel');
+  sel.innerHTML=folders.map(x=>`<option value="${x.replace(/"/g,'&quot;')}">${x}</option>`).join('');
+  g('moveModalTitle').textContent=`"${n}" 이동할 폴더 선택`;
+  g('moveModal').classList.add('open');
+}
+function confirmMove(){
+  const n=_moveTarget,f=currentFolder();
+  const destName=g('moveDestSel').value;
+  if(!destName||!n)return;
+  if(presetData[destName].length>=5){toast(`"${destName}" 폴더는 이미 5개가 가득 찼습니다.`);return;}
+  if(presetData[destName].find(p=>p._n===n)){toast(`"${destName}" 폴더에 동일한 이름의 프리셋이 이미 있습니다.`);return;}
+  const idx=presetData[f].findIndex(p=>p._n===n);
+  if(idx<0)return;
+  const[item]=presetData[f].splice(idx,1);
+  presetData[destName].push(item);
+  savePresetData();
+  renderP();
+  g('moveModal').classList.remove('open');
+  toast(`"${n}" → "${destName}" 폴더로 이동 완료`);
+}
 function renderP(){
   const el=g('pFolders');
-  if(!presets.length){el.innerHTML='<p style="font-size:11px;color:var(--t3);margin-bottom:6px;">저장된 프리셋 없음</p>';return;}
+  const f=currentFolder();
+  const list=presetData[f]||[];
   const e=n=>n.replace(/'/g,"\\'").replace(/</g,'&lt;');
-  if(presets.length<=2){
-    el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">'+
-      presets.map(p=>`<div class="pch" onclick="loadP('${e(p._n)}')">${p._n}<span class="del" onclick="event.stopPropagation();delP('${e(p._n)}')">×</span></div>`).join('')+'</div>';return;
-  }
-  let h='';
-  for(let i=0;i<presets.length;i+=4){
-    const ch=presets.slice(i,i+4),fi=Math.floor(i/4)+1;
-    h+=`<div class="pf${i>0?' closed':''}"><div class="pfh" onclick="this.closest('.pf').classList.toggle('closed')"><span class="pfa">▾</span>폴더 ${fi} (${ch.length}개)</div><div class="pfb">`+
-      ch.map(p=>`<div class="pch" onclick="loadP('${e(p._n)}')">${p._n}<span class="del" onclick="event.stopPropagation();delP('${e(p._n)}')">×</span></div>`).join('')+'</div></div>';
-  }
-  el.innerHTML=h;
+  if(!list.length){el.innerHTML=`<p style="font-size:11px;color:var(--t3);margin-bottom:6px;">"${f}" 폴더에 저장된 프리셋 없음 (${list.length}/5)</p>`;return;}
+  el.innerHTML=`<div style="font-size:10px;color:var(--t3);margin-bottom:4px;">${f} (${list.length}/5)</div>`+
+    '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">'+
+    list.map(p=>`<div class="pch" style="justify-content:space-between;" onclick="loadP('${e(p._n)}')">
+      <span>${p._n}</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <span style="font-size:10px;color:var(--t3);cursor:pointer;" onclick="event.stopPropagation();moveP('${e(p._n)}')" title="다른 폴더로 이동">⇄ 이동</span>
+        <span class="del" onclick="event.stopPropagation();delP('${e(p._n)}')">×</span>
+      </span>
+    </div>`).join('')+'</div>';
 }
+renderFolderSelect();
 
 /* ── CANVAS ── */
 function rc(){
@@ -1511,6 +1817,7 @@ function drawTo(ctx,W,H,scl){
   const ps=_ps*scl;
   const ls=_ls*scl;
   const lh=(gi('lh')||160)/100;  // 행간: 슬라이더 % → 배수
+  const indent=(gi('indent')||0)*scl;  // 들여쓰기
   const tOp=gi('tOp')/100,ff=gc('ff'),fw=gc('fw'),defaultTc=gc('tc');
   const auth=gc('author').trim(),char=gc('chara').trim();
   const mc=gc('metaC'),mfs=gi('metaFs')*scl;
@@ -1676,13 +1983,109 @@ function drawTo(ctx,W,H,scl){
   // top:    sy 고정 → 위에서 아래로 늘어남
   // middle: 블록 중심(sy+totalH/2) = H/2 고정 → 위아래로 균등하게 늘어남
   // bottom: 블록 끝(sy+totalH) = H*90% 고정 → 위로만 늘어남
+
+  // 소설 내지 타이틀 영역 높이 계산
+  const novelTitleEl=g('novelMode')&&g('novelMode').checked?g('novelTitle'):null;
+  const novelSubEl=g('novelMode')&&g('novelMode').checked?g('novelSub'):null;
+  const novelTitleStr=novelTitleEl?novelTitleEl.innerText.trim():'';
+  const novelSubStr=novelSubEl?novelSubEl.innerText.trim():'';
+  const hasNovelHeader=novelTitleStr||novelSubStr;
+
+  // 서식 포함 타이틀 렌더 함수
+  function drawNovelText(el,ctx,y,defaultFs,defaultColor,scl){
+    if(!el||!el.innerText.trim())return;
+    ctx.save();
+    // parseRichText와 동일한 방식으로 span 순회
+    function getSpans(node,inherited){
+      const spans=[];
+      node.childNodes.forEach(n=>{
+        if(n.nodeType===3){
+          [...n.textContent].forEach(ch=>spans.push({
+            ch,
+            color:inherited.color,
+            bold:inherited.bold,
+            italic:inherited.italic,
+            underline:inherited.underline,
+            strike:inherited.strike,
+            bg:inherited.bg
+          }));
+        }else if(n.nodeType===1){
+          if(n.tagName==='BR'){spans.push({ch:'\n',color:inherited.color,bold:inherited.bold,italic:inherited.italic,underline:inherited.underline,strike:inherited.strike,bg:inherited.bg});return;}
+          const fw=n.style.fontWeight||'';
+          const fi=n.style.fontStyle||'';
+          const td=n.style.textDecoration||'';
+          // color: style 속성 우선, font 태그 color 속성, 없으면 상속
+          const col=n.style.color||(n.tagName==='FONT'&&n.getAttribute('color'))||inherited.color;
+          const bold=fw==='bold'||fw==='700'||n.tagName==='B'||n.tagName==='STRONG'?true:inherited.bold;
+          const italic=fi==='italic'||n.tagName==='I'||n.tagName==='EM'?true:inherited.italic;
+          const underline=td.includes('underline')||n.tagName==='U'?true:inherited.underline;
+          const strike=td.includes('line-through')||n.tagName==='S'||n.tagName==='STRIKE'?true:inherited.strike;
+          const bg=n.style.backgroundColor||inherited.bg;
+          spans.push(...getSpans(n,{color:col,bold,italic,underline,strike,bg}));
+        }
+      });
+      return spans;
+    }
+    const allChars=getSpans(el,{color:defaultColor,bold:false,italic:false,underline:false,strike:false,bg:null});
+    // 줄 단위 분리
+    const lines=[];let cur=[];
+    allChars.forEach(c=>{if(c.ch==='\n'){lines.push(cur);cur=[];}else cur.push(c);});
+    lines.push(cur);
+    ctx.save();
+    ctx.textBaseline='top';
+    lines.forEach((line,li)=>{
+      // 앞뒤 공백 제거 (울퉁불퉁 방지)
+      let trimmed=line;
+      while(trimmed.length&&trimmed[0].ch===' ')trimmed=trimmed.slice(1);
+      while(trimmed.length&&trimmed[trimmed.length-1].ch===' ')trimmed=trimmed.slice(0,-1);
+      if(!trimmed.length)return;
+      // 너비 측정
+      let totalW=0;
+      trimmed.forEach(c=>{
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${defaultFs}px ${ff}`;
+        totalW+=ctx.measureText(c.ch).width;
+      });
+      let cx=W/2-totalW/2;
+      const lineY=y+li*defaultFs*1.6;
+      trimmed.forEach(c=>{
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${defaultFs}px ${ff}`;
+        const cw=ctx.measureText(c.ch).width;
+        // 형광펜
+        if(c.bg&&c.bg!=='transparent'&&!c.bg.startsWith('rgba(0, 0, 0, 0)')){
+          ctx.save();ctx.fillStyle=c.bg;ctx.globalAlpha=0.4;
+          ctx.fillRect(cx,lineY-defaultFs*0.1,cw,defaultFs*1.2);ctx.restore();
+        }
+        ctx.fillStyle=c.color||defaultColor;ctx.globalAlpha=0.85;
+        ctx.fillText(c.ch,cx,lineY);
+        // 밑줄
+        if(c.underline){
+          ctx.save();ctx.strokeStyle=c.color||defaultColor;ctx.globalAlpha=0.8;
+          ctx.lineWidth=Math.max(1,defaultFs/18);
+          ctx.beginPath();ctx.moveTo(cx,lineY+defaultFs*1.1);ctx.lineTo(cx+cw,lineY+defaultFs*1.1);ctx.stroke();
+          ctx.restore();
+        }
+        // 취소선
+        if(c.strike){
+          ctx.save();ctx.strokeStyle=c.color||defaultColor;ctx.globalAlpha=0.8;
+          ctx.lineWidth=Math.max(1,defaultFs/18);
+          ctx.beginPath();ctx.moveTo(cx,lineY+defaultFs*0.55);ctx.lineTo(cx+cw,lineY+defaultFs*0.55);ctx.stroke();
+          ctx.restore();
+        }
+        cx+=cw;
+      });
+    });
+    ctx.restore();
+  }
+  const novelHeaderH=hasNovelHeader?Math.round(H*0.16):0; // 타이틀 영역 높이
+  const isNovelMode=g('novelMode')&&g('novelMode').checked;
+
   let sy;
   if(S.vpos==='top'){
-    sy = Math.round(H*0.1);
+    sy = (isNovelMode&&hasNovelHeader) ? Math.round(novelHeaderH + H*0.02) : Math.round(H*0.1);
   }else if(S.vpos==='middle'){
-    sy = Math.round(H/2 - totalH/2);
+    sy = isNovelMode ? Math.round(H/2 - totalH/2 + novelHeaderH*0.1) : Math.round(H/2 - totalH/2);
   }else{
-    sy = Math.round(H*0.9 - totalH);
+    sy = isNovelMode ? Math.round(H*0.915 - totalH - Math.round(H*0.085)*0.5 + novelHeaderH*0.2) : Math.round(H*0.915 - totalH - Math.round(H*0.085)*0.5);
   }
 
   /* 텍스트 박스 — totalH 기준 (ps 포함 실제 높이) */
@@ -1752,7 +2155,10 @@ function drawTo(ctx,W,H,scl){
       // 줄에서 첫 accent 글자의 accentColor 사용 (없으면 accentC 기본값)
       const lineAccentColor=hasAcc?(line.find(c=>c.accent)?.accentColor||accentCol):null;
       const lineInd=hasAcc?accentIndent:0;
-      let sX=pad+lineInd;
+      // 문단 첫 줄 들여쓰기
+      const isParaFirst=li===0||(li>0&&lines[li-1].paraEnd);
+      const paraIndent=(indent>0&&isParaFirst&&line.length>0)?indent:0;
+      let sX=pad+lineInd+paraIndent;
       if(S.align==='center')sX=(pad+lineInd)+((maxW-lineInd)-totalLW2)/2;
       else if(S.align==='right')sX=(pad+lineInd)+(maxW-lineInd)-totalLW2;
       const accentMargin=fs*0.18; // 글자 위아래 동일 여백
@@ -1802,7 +2208,12 @@ function drawTo(ctx,W,H,scl){
   ctx.textBaseline='top';
   let y=sy;
   for(let li=0;li<lines.length;li++){
-    const line=lines[li].chars;
+    const isParaFirstLine=li===0||(li>0&&lines[li-1].paraEnd);
+    // 문단 첫 줄이 아닐 때, 또는 들여쓰기 비활성일 때 맨 앞 공백 제거
+    let line=lines[li].chars;
+    if(!isParaFirstLine||indent===0){
+      while(line.length&&line[0].ch===' ')line=line.slice(1);
+    }
     if(!line.length){y+=Math.max(lhpx*0.3,lhpx+ps);continue;}
 
     let lw=0;
@@ -1815,8 +2226,11 @@ function drawTo(ctx,W,H,scl){
     // accent 있는 줄은 텍스트를 오른쪽으로 indent
     const lineHasAccent=line.some(c=>c.accent);
     const lineIndent=lineHasAccent?accentIndent:0;
-    const linePad=pad+lineIndent;
-    const lineMaxW=maxW-lineIndent;
+    // 문단 첫 줄 들여쓰기
+    const isParaFirstDraw=li===0||(li>0&&lines[li-1].paraEnd);
+    const paraIndentDraw=(indent>0&&isParaFirstDraw&&line.length>0)?indent:0;
+    const linePad=pad+lineIndent+paraIndentDraw;
+    const lineMaxW=maxW-lineIndent-paraIndentDraw;
     let startX=linePad;
     if(S.align==='center')startX=linePad+(lineMaxW-totalLW)/2;
     else if(S.align==='right')startX=linePad+lineMaxW-totalLW;
@@ -1839,7 +2253,7 @@ function drawTo(ctx,W,H,scl){
         const prevShadowX=ctx.shadowOffsetX;
         const prevShadowY=ctx.shadowOffsetY;
         ctx.fillStyle=hlColor;
-        ctx.globalAlpha=1;
+        ctx.globalAlpha=tOp*0.65;  // 글씨 불투명도의 65% 수준
         ctx.shadowColor='transparent';
         ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
         const hlTop=y-fs*0.15;
@@ -1964,18 +2378,56 @@ function drawTo(ctx,W,H,scl){
     // 경계에 따라 정렬 자동 결정
     ctx.textAlign=S.metaX<0.5?'left':'right';
     ctx.textBaseline=S.metaY<0.5?'top':'bottom';
-    ctx.fillText(mt,mx,my);
+    if(!g('novelMode').checked) ctx.fillText(mt,mx,my);
     ctx.restore();
   }
-  /* 페이지 번호 — 중앙 고정 */
-  if(g('showPg').checked){
-    ctx.save();
-    const pgFs=Math.max(10*scl, mfs*0.85);
-    ctx.font=`400 ${pgFs}px ${ff}`;
-    ctx.fillStyle=gc('pgC')||mc;ctx.globalAlpha=0.8;
-    ctx.textAlign='center';ctx.textBaseline='bottom';
-    ctx.fillText(`— ${gi('pgN')} —`,W/2,H-Math.round(pad*0.4));
-    ctx.restore();
+  /* 페이지 번호 — 소설 내지 모드 아닐 때만 */
+  /* 페이지번호는 소설 내지 모드에서만 렌더 */
+
+  /* 소설 내지 모드 — 상단 타이틀 + 하단 제작자·페이지 */
+  if(g('novelMode').checked){
+    const pgNum=gi('pgN');
+    const na=S.novelAlign||'left';
+    const sep=S.sep||' · ';          // 기존 구분자 사용
+    const metaC=gc('metaC')||'#111111'; // 기존 메타색 사용
+    const nMetaFs=mfs;                // 기존 메타 크기 사용
+    const footH=Math.round(H*0.085);
+
+    // 타이틀 렌더
+    if(hasNovelHeader){
+      const titleFs=Math.round(29*scl);
+      const subFs=Math.round(23*scl);
+      const titleY=Math.round(H*0.06);
+      if(novelTitleStr&&novelSubStr){
+        drawNovelText(novelTitleEl,ctx,titleY,titleFs,metaC,scl);
+        drawNovelText(novelSubEl,ctx,titleY+titleFs*1.5,subFs,metaC,scl);
+      }else if(novelTitleStr){
+        drawNovelText(novelTitleEl,ctx,titleY+subFs*0.3,titleFs,metaC,scl);
+      }else{
+        drawNovelText(novelSubEl,ctx,titleY+subFs*0.3,subFs,metaC,scl);
+      }
+    }
+    const lineY=H-footH;
+    const lx=Math.round(W*0.09);
+    const rx=Math.round(W*0.91);
+    const metaY=lineY+footH/2;
+    const useDivider=g('novelDivider')&&g('novelDivider').checked;
+    const pgStr=pgNum>0?`${pgNum}`:'';
+    const metaParts=[auth,char].filter(Boolean).join(sep);
+    // 구성: 페이지 | 제작자 캐릭터 or 페이지 제작자 캐릭터
+    let full='';
+    if(pgStr&&metaParts) full=useDivider?`${pgStr}  |  ${metaParts}`:`${pgStr}  ${metaParts}`;
+    else if(pgStr) full=pgStr;
+    else full=metaParts;
+    if(full.trim()){
+      ctx.save();
+      ctx.font=`300 ${nMetaFs}px ${ff}`;
+      ctx.fillStyle=metaC;ctx.globalAlpha=0.55;ctx.textBaseline='middle';
+      if(na==='center'){ctx.textAlign='center';ctx.fillText(full,W/2,metaY);}
+      else if(na==='right'){ctx.textAlign='right';ctx.fillText(full,rx,metaY);}
+      else{ctx.textAlign='left';ctx.fillText(full,lx,metaY);}
+      ctx.restore();
+    }
   }
 }
 
@@ -2076,19 +2528,25 @@ function download(){
   off.toBlob(blob=>{
     if(!blob){toast('저장 실패');return;}
     const url=URL.createObjectURL(blob);
-    const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(isIOS){
+    const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if(isMobile){
+      // 모바일: 오버레이로 이미지 표시 → 길게 눌러 저장
+      const overlay=document.createElement('div');
+      overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;';
       const img=document.createElement('img');
       img.src=url;
-      img.style.cssText='position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000;z-index:99999;touch-action:pinch-zoom;';
-      const close=document.createElement('div');
-      close.textContent='✕ 닫기';
-      close.style.cssText='position:fixed;top:16px;right:16px;z-index:100000;background:rgba(0,0,0,.6);color:#fff;padding:8px 14px;border-radius:20px;font-size:14px;cursor:pointer;';
+      img.style.cssText='max-width:100%;max-height:85vh;object-fit:contain;';
       const hint=document.createElement('div');
       hint.textContent='이미지를 길게 눌러 저장하세요';
-      hint.style.cssText='position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:100000;background:rgba(0,0,0,.7);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;white-space:nowrap;';
-      document.body.appendChild(img);document.body.appendChild(close);document.body.appendChild(hint);
-      close.onclick=()=>{img.remove();close.remove();hint.remove();URL.revokeObjectURL(url);};
+      hint.style.cssText='color:#fff;font-size:13px;margin-top:16px;opacity:.8;';
+      const close=document.createElement('div');
+      close.textContent='✕ 닫기';
+      close.style.cssText='position:fixed;top:16px;right:16px;z-index:100000;background:rgba(255,255,255,.15);color:#fff;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;';
+      overlay.appendChild(img);
+      overlay.appendChild(hint);
+      document.body.appendChild(overlay);
+      document.body.appendChild(close);
+      close.onclick=()=>{overlay.remove();close.remove();URL.revokeObjectURL(url);};
     }else{
       const a=document.createElement('a');
       a.href=url;a.download='quote-card.jpg';
