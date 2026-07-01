@@ -2528,32 +2528,11 @@ function download(){
   off.toBlob(blob=>{
     if(!blob){toast('저장 실패');return;}
     const url=URL.createObjectURL(blob);
-    const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if(isMobile){
-      // 모바일: 오버레이로 이미지 표시 → 길게 눌러 저장
-      const overlay=document.createElement('div');
-      overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;';
-      const img=document.createElement('img');
-      img.src=url;
-      img.style.cssText='max-width:100%;max-height:85vh;object-fit:contain;';
-      const hint=document.createElement('div');
-      hint.textContent='이미지를 길게 눌러 저장하세요';
-      hint.style.cssText='color:#fff;font-size:13px;margin-top:16px;opacity:.8;';
-      const close=document.createElement('div');
-      close.textContent='✕ 닫기';
-      close.style.cssText='position:fixed;top:16px;right:16px;z-index:100000;background:rgba(255,255,255,.15);color:#fff;padding:8px 16px;border-radius:20px;font-size:14px;cursor:pointer;';
-      overlay.appendChild(img);
-      overlay.appendChild(hint);
-      document.body.appendChild(overlay);
-      document.body.appendChild(close);
-      close.onclick=()=>{overlay.remove();close.remove();URL.revokeObjectURL(url);};
-    }else{
-      const a=document.createElement('a');
-      a.href=url;a.download='quote-card.jpg';
-      document.body.appendChild(a);a.click();
-      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
-      toast('JPG 저장 완료!');
-    }
+    const a=document.createElement('a');
+    a.href=url;a.download='quote-card.jpg';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+    toast('저장 완료!');
   },'image/jpeg',0.95);
 }
 async function copyImg(){
