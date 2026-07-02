@@ -237,6 +237,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <div class="pb-sep"></div>
         <span class="pb-btn" onmousedown="pbClear(event)" style="font-size:10px;padding:0 8px;">지우기</span>
       </div>
+      <!-- 선택 부분 글자 크기 — 전체 크기와 별개로 드래그 선택한 부분만 조절. 미리보기·저장 이미지에만 반영되고 편집 칸 자체 글씨 크기는 바뀌지 않음 -->
+      <div id="pbSizeBar" style="display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap;">
+        <span class="lbl" style="font-size:10px;font-weight:600;letter-spacing:.05em;color:var(--t3);text-transform:uppercase;flex-shrink:0;">선택 크기</span>
+        <span class="pb-btn" id="pbFsDown" onmousedown="pbFontSizeStep(event,-1)" title="선택한 글자만 1px 작게" style="font-size:11px;padding:0 9px;">A−</span>
+        <input type="number" id="pbFsInput" min="8" max="300" step="1" placeholder="-" title="정확한 크기를 직접 입력 (px)" style="width:52px;text-align:center;padding:4px 2px;font-size:13px;flex-shrink:0;" onchange="pbFontSizeInputApply(event)" onkeydown="if(event.key==='Enter'){event.preventDefault();pbFontSizeInputApply(event);}">
+        <span style="font-size:10px;color:var(--t3);flex-shrink:0;">px</span>
+        <span class="pb-btn" id="pbFsUp" onmousedown="pbFontSizeStep(event,1)" title="선택한 글자만 1px 크게" style="font-size:13px;padding:0 9px;">A+</span>
+        <span class="pb-btn" id="pbFsResetBtn" onmousedown="pbFontSizeReset(event)" title="선택한 글자 크기를 전체 크기로 되돌리기" style="font-size:10px;padding:0 8px;">초기화</span>
+      </div>
       <!-- 통합 색상바: A글자색 / 🖊형광펜 모드 토글 + 공통 팔레트 -->
       <div style="margin-top:6px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
@@ -281,7 +290,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <input type="color" id="accentC" value="#ffffff" onchange="rc()" style="display:none;">
       </div>
       <div id="editor" contenteditable="true" data-placeholder="여기에 문구를 입력하세요." spellcheck="false"></div>
-      <div class="note" style="margin-top:6px;">텍스트 드래그 선택 → 위 버튼으로 서식 적용</div>
+      <div class="note" style="margin-top:6px;">텍스트 드래그 선택 → 위 버튼으로 서식 적용. "선택 크기"는 그 부분만 커지거나 작아지며, 편집 칸 글씨 크기는 그대로 두고 미리보기·저장 이미지에만 반영됩니다.</div>
     </div>
   </div>
 
@@ -356,7 +365,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
               onfocus="setActiveEditor(this)"
               style="min-height:32px;border:1.5px solid var(--b1);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--t1);margin-bottom:8px;cursor:text;"
             ></div>
-            <label class="lbl" style="margin-bottom:4px;">서브타이틀</label>
+            <div class="sr"><span class="slb">타이틀 크기</span><input type="range" id="ntFs" min="10" max="100" value="29" oninput="sv(this,'ntFsV','px');rc()"><span class="sv" id="ntFsV">29px</span></div>
+            <div style="text-align:right;margin-top:2px;"><span onclick="pbClearFieldFsz('novelTitle')" style="font-size:10px;color:var(--t3);cursor:pointer;text-decoration:underline;">선택 크기 초기화</span></div>
+            <label class="lbl" style="margin-bottom:4px;margin-top:8px;">서브타이틀</label>
             <div id="novelSub" contenteditable="true"
               data-placeholder="비우면 미표시"
               spellcheck="false"
@@ -364,7 +375,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
               onfocus="setActiveEditor(this)"
               style="min-height:32px;border:1.5px solid var(--b1);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--t1);cursor:text;"
             ></div>
-            <div class="note" style="margin-top:6px;">클릭 후 드래그 선택 → 위 서식 툴바 적용</div>
+            <div class="sr"><span class="slb">서브 크기</span><input type="range" id="nsFs" min="10" max="100" value="23" oninput="sv(this,'nsFsV','px');rc()"><span class="sv" id="nsFsV">23px</span></div>
+            <div style="text-align:right;margin-top:2px;"><span onclick="pbClearFieldFsz('novelSub')" style="font-size:10px;color:var(--t3);cursor:pointer;text-decoration:underline;">선택 크기 초기화</span></div>
+            <div class="note" style="margin-top:6px;">클릭 후 드래그 선택 → 위 서식 툴바 적용. "선택 크기"는 드래그한 부분만, 위 슬라이더는 전체 크기를 조절합니다. 부분 크기를 조절한 뒤로 위 슬라이더가 안 먹히면 "선택 크기 초기화"를 눌러주세요.</div>
           </div>
         </div>
       </div>
@@ -911,6 +924,21 @@ function restoreRange(){
   return true;
 }
 
+// 편집기 안에서 선택이 바뀔 때마다 계속 스냅샷을 갱신 (드래그 도중 실시간으로 갱신됨).
+// 이후 버튼/입력창을 눌러 포커스가 옮겨가도 이미 저장된 값이라 드래그가 "풀려도" 서식 적용은 안전하게 됨.
+// 모바일 터치 드래그에도 동일하게 적용됨 (selectionchange는 터치 드래그에도 발생).
+document.addEventListener('selectionchange',()=>{
+  const sel=window.getSelection();
+  if(!sel||sel.rangeCount===0||sel.isCollapsed)return;
+  const r=sel.getRangeAt(0);
+  const node=r.startContainer.nodeType===3?r.startContainer.parentElement:r.startContainer;
+  const editorRoot=node&&node.closest?node.closest('#editor,#novelTitle,#novelSub'):null;
+  if(!editorRoot)return;
+  _lastEditorRange=r.cloneRange();
+  savedRange=_lastEditorRange;
+  if(typeof pbUpdateFsLabel==='function')pbUpdateFsLabel();
+});
+
 // 툴바 영역 mousedown: selection 날아가기 전에 스냅샷
 g('popBar').addEventListener('mousedown',()=>{
   const sel=window.getSelection();
@@ -919,6 +947,18 @@ g('popBar').addEventListener('mousedown',()=>{
     savedRange=_lastEditorRange;
   }
 },{capture:true});
+// 선택 부분 글자 크기 툴바도 동일하게 스냅샷
+g('pbSizeBar').addEventListener('mousedown',()=>{
+  const sel=window.getSelection();
+  if(sel&&sel.rangeCount>0&&!sel.isCollapsed){
+    _lastEditorRange=sel.getRangeAt(0).cloneRange();
+    savedRange=_lastEditorRange;
+  }
+},{capture:true});
+// A-/A+/초기화 버튼 — 모바일 터치 지원 (mousedown만으로는 터치에서 불안정하게 동작함)
+g('pbFsDown').addEventListener('touchend',e=>{e.preventDefault();pbFontSizeStep(e,-1);},{passive:false});
+g('pbFsUp').addEventListener('touchend',e=>{e.preventDefault();pbFontSizeStep(e,1);},{passive:false});
+g('pbFsResetBtn').addEventListener('touchend',e=>{e.preventDefault();pbFontSizeReset(e);},{passive:false});
 
 // 강조선 버튼 — mousedown에서 스냅샷 찍고, mouseup/click에서 실제 적용
 g('pbAccentBtn').addEventListener('mousedown',e=>{
@@ -1018,6 +1058,208 @@ function updateSelectedAccentColor(color){
   const el2=container.nodeType===3?container.parentElement:container;
   const ps=el2&&el2.closest?el2.closest('span[data-accent]'):null;
   if(ps&&editor.contains(ps))ps.dataset.accentColor=color;
+}
+
+/* ── 선택 부분 글자 크기 (전체 크기 슬라이더와는 별개) ──
+   data-fsz 속성으로만 저장 (style.fontSize를 직접 쓰지 않음) →
+   편집 칸(#editor 등) 자체의 보이는 글자 크기는 그대로 두고,
+   미리보기 캔버스 / 저장 이미지에만 크기가 반영되게 함 */
+function pbCurrentEditorDefaultFs(){
+  if(_activeEditor&&_activeEditor.id==='novelTitle')return gi('ntFs')||29;
+  if(_activeEditor&&_activeEditor.id==='novelSub')return gi('nsFs')||23;
+  return gi('fs')||20;
+}
+function pbGetSelFontSize(){
+  const r=savedRange||_lastEditorRange;
+  if(!r)return pbCurrentEditorDefaultFs();
+  let node=r.startContainer;
+  if(node.nodeType===3)node=node.parentElement;
+  while(node&&node.nodeType===1){
+    if(node.id==='editor'||node.id==='novelTitle'||node.id==='novelSub')break;
+    if(node.dataset&&node.dataset.fsz)return parseFloat(node.dataset.fsz);
+    node=node.parentElement;
+  }
+  return pbCurrentEditorDefaultFs();
+}
+function pbUpdateFsLabel(){
+  const el=g('pbFsInput');if(!el)return;
+  const r=savedRange||_lastEditorRange;
+  if(!r||r.collapsed){el.value='';return;}
+  el.value=Math.round(pbGetSelFontSize());
+}
+// ── 텍스트 문자 오프셋 기반 Range 헬퍼 ──
+// span을 감쌌다 풀었다 반복하면 Range의 container 자체가 사라지는 경우가 있어(예: 이전에 감싼
+// span을 다시 풀 때, 그 span이 바로 range의 시작/끝 container였던 경우) Range가 깨질 수 있다.
+// 그래서 DOM을 건드리기 전에 위치를 "루트 기준 글자 개수"로 미리 환산해두고,
+// DOM을 다 바꾼 뒤에 그 글자 개수로 range를 새로 만든다 (텍스트 총량은 unwrap 전후로 안 변하므로 안전).
+function pbNodeTextLen(n){
+  if(n.nodeType===3)return n.textContent.length;
+  let len=0;n.childNodes.forEach(c=>{len+=pbNodeTextLen(c);});return len;
+}
+function pbOffsetInRoot(root,node,offset){
+  let count=0,result=null;
+  (function walk(n){
+    if(result!==null)return;
+    if(n===node){
+      if(n.nodeType===3){result=count+offset;}
+      else{
+        let idx=0,acc=count;
+        for(const child of n.childNodes){
+          if(idx===offset){result=acc;return;}
+          acc+=pbNodeTextLen(child);idx++;
+        }
+        result=acc;
+      }
+      return;
+    }
+    if(n.nodeType===3){count+=n.textContent.length;return;}
+    for(const child of n.childNodes){walk(child);if(result!==null)return;}
+  })(root);
+  return result===null?pbNodeTextLen(root):result;
+}
+function pbRangeFromOffsets(root,startOff,endOff){
+  const range=document.createRange();
+  let count=0,startSet=false,endSet=false;
+  (function walk(n){
+    if(endSet)return;
+    if(n.nodeType===3){
+      const len=n.textContent.length;
+      if(!startSet&&count+len>=startOff){range.setStart(n,Math.max(0,Math.min(len,startOff-count)));startSet=true;}
+      if(!endSet&&count+len>=endOff){range.setEnd(n,Math.max(0,Math.min(len,endOff-count)));endSet=true;}
+      count+=len;
+    }else{
+      for(const child of Array.from(n.childNodes)){walk(child);if(endSet)return;}
+    }
+  })(root);
+  if(!startSet)range.setStart(root,root.childNodes.length);
+  if(!endSet)range.setEnd(root,root.childNodes.length);
+  return range;
+}
+// 선택 범위를 data-fsz 속성을 가진 span으로 감싼다.
+// (겹치는 기존 span은 문자 오프셋으로 위치를 기억해뒀다가 해제 후 다시 그 위치로 range를 복원 — 반복 조정해도 안 깨짐)
+function pbWrapSelectionFontSize(px){
+  const rangeToUse=savedRange||_lastEditorRange;
+  if(!rangeToUse||rangeToUse.collapsed){toast('크기를 바꿀 텍스트를 드래그로 선택하세요.');return null;}
+  const startEl=rangeToUse.startContainer.nodeType===3?rangeToUse.startContainer.parentElement:rangeToUse.startContainer;
+  const editorRoot=startEl&&startEl.closest?startEl.closest('#editor,#novelTitle,#novelSub'):null;
+  if(!editorRoot){toast('선택 범위를 다시 드래그해주세요.');return null;}
+
+  // DOM을 건드리기 전에 위치를 글자 오프셋으로 미리 저장
+  const startOff=pbOffsetInRoot(editorRoot,rangeToUse.startContainer,rangeToUse.startOffset);
+  const endOff=pbOffsetInRoot(editorRoot,rangeToUse.endContainer,rangeToUse.endOffset);
+
+  // 범위와 겹치는 기존 fsz span 먼저 해제 (중첩 방지) — 텍스트 총량은 그대로라 오프셋은 유효함
+  editorRoot.querySelectorAll('span[data-fsz]').forEach(sp=>{
+    const spRange=document.createRange();
+    spRange.selectNodeContents(sp);
+    const spStart=pbOffsetInRoot(editorRoot,sp,0);
+    const spEnd=spStart+pbNodeTextLen(sp);
+    if(spEnd>startOff&&spStart<endOff){
+      const p=sp.parentNode;
+      while(sp.firstChild)p.insertBefore(sp.firstChild,sp);
+      p.removeChild(sp);
+    }
+  });
+
+  // 저장해둔 글자 오프셋으로 range를 새로 생성 (DOM이 바뀌어도 안전)
+  const freshRange=pbRangeFromOffsets(editorRoot,startOff,endOff);
+  const sel=window.getSelection();
+  try{sel.removeAllRanges();sel.addRange(freshRange);}catch(_){}
+
+  let span;
+  try{
+    span=document.createElement('span');
+    span.dataset.fsz=String(px);
+    freshRange.surroundContents(span);
+  }catch(err){
+    try{
+      const frag=freshRange.extractContents();
+      span=document.createElement('span');
+      span.dataset.fsz=String(px);
+      span.appendChild(frag);
+      freshRange.insertNode(span);
+    }catch(e2){
+      toast('선택 범위를 다시 드래그해주세요.');
+      savedRange=null;_lastEditorRange=null;
+      return null;
+    }
+  }
+
+  // 새로 감싼 부분을 다시 selection으로 유지 → 재드래그 없이 값을 계속 조정 가능
+  const newRange=document.createRange();
+  newRange.selectNodeContents(span);
+  savedRange=newRange.cloneRange();
+  _lastEditorRange=savedRange;
+  try{sel.removeAllRanges();sel.addRange(newRange);}catch(_){}
+
+  rc();
+  return span;
+}
+function pbFontSizeStep(e,delta){
+  e.preventDefault();
+  const rangeToUse=savedRange||_lastEditorRange;
+  if(!rangeToUse||rangeToUse.collapsed){toast('크기를 바꿀 텍스트를 드래그로 선택하세요.');return;}
+  const cur=pbGetSelFontSize();
+  const next=Math.max(8,Math.min(300,Math.round(cur+delta)));
+  pbWrapSelectionFontSize(next);
+  const el=g('pbFsInput');if(el)el.value=next;
+}
+function pbFontSizeInputApply(e){
+  const el=g('pbFsInput');if(!el)return;
+  const v=Math.round(parseFloat(el.value));
+  if(isNaN(v)){el.value='';return;}
+  const next=Math.max(8,Math.min(300,v));
+  const rangeToUse=savedRange||_lastEditorRange;
+  if(!rangeToUse||rangeToUse.collapsed){toast('크기를 바꿀 텍스트를 드래그로 선택하세요.');el.value='';return;}
+  pbWrapSelectionFontSize(next);
+  el.value=next;
+}
+function pbFontSizeReset(e){
+  e.preventDefault();
+  const rangeToUse=savedRange||_lastEditorRange;
+  if(!rangeToUse){toast('되돌릴 텍스트를 드래그로 선택하세요.');return;}
+  const startEl=rangeToUse.startContainer.nodeType===3?rangeToUse.startContainer.parentElement:rangeToUse.startContainer;
+  const editorRoot=startEl&&startEl.closest?startEl.closest('#editor,#novelTitle,#novelSub'):null;
+  if(!editorRoot){toast('선택 범위를 다시 드래그해주세요.');return;}
+
+  const startOff=pbOffsetInRoot(editorRoot,rangeToUse.startContainer,rangeToUse.startOffset);
+  const endOff=pbOffsetInRoot(editorRoot,rangeToUse.endContainer,rangeToUse.endOffset);
+
+  editorRoot.querySelectorAll('span[data-fsz]').forEach(sp=>{
+    const spStart=pbOffsetInRoot(editorRoot,sp,0);
+    const spEnd=spStart+pbNodeTextLen(sp);
+    if(spEnd>startOff&&spStart<endOff){
+      const p=sp.parentNode;
+      while(sp.firstChild)p.insertBefore(sp.firstChild,sp);
+      p.removeChild(sp);
+    }
+  });
+
+  // 되돌린 뒤에도 같은 범위를 selection으로 유지 (연속 조정 편의) — 오프셋으로 새로 만들어서 안전하게 복원
+  const freshRange=pbRangeFromOffsets(editorRoot,startOff,endOff);
+  const sel=window.getSelection();
+  try{sel.removeAllRanges();sel.addRange(freshRange);}catch(_){}
+  savedRange=freshRange.cloneRange();_lastEditorRange=savedRange;
+  rc();
+  const el=g('pbFsInput');if(el)el.value='';
+}
+// 드래그 선택 없이, 특정 필드(타이틀/서브타이틀 등) 안의 "선택 크기" 조정을 전부 한번에 초기화.
+// 실수로 부분 크기를 걸어놔서 위쪽 전체 크기 슬라이더가 안 먹힐 때 이 버튼 하나로 되돌릴 수 있음.
+function pbClearFieldFsz(fieldId){
+  const editorRoot=g(fieldId);
+  if(!editorRoot)return;
+  const spans=editorRoot.querySelectorAll('span[data-fsz]');
+  if(!spans.length){toast('초기화할 부분 크기가 없어요.');return;}
+  spans.forEach(sp=>{
+    const p=sp.parentNode;
+    while(sp.firstChild)p.insertBefore(sp.firstChild,sp);
+    p.removeChild(sp);
+  });
+  editorRoot.normalize();
+  savedRange=null;_lastEditorRange=null;
+  const el=g('pbFsInput');if(el)el.value='';
+  rc();
+  toast('선택 크기를 초기화했어요.');
 }
 
 /* ── 통합 색상바 ── */
@@ -1318,6 +1560,17 @@ function pbClear(e){
         parent.removeChild(sp);
       }
     });
+    // 선택 부분 글자 크기 마킹도 제거
+    container.querySelectorAll('span[data-fsz]').forEach(sp=>{
+      const spRange=document.createRange();
+      spRange.selectNodeContents(sp);
+      if(range.compareBoundaryPoints(Range.END_TO_START,spRange)<0&&
+         range.compareBoundaryPoints(Range.START_TO_END,spRange)>0){
+        const parent=sp.parentNode;
+        while(sp.firstChild)parent.insertBefore(sp.firstChild,sp);
+        parent.removeChild(sp);
+      }
+    });
   }
   savedRange=null;rc();
 }
@@ -1355,15 +1608,15 @@ function pbTCRemove(e){
   savedRange=null;rc();
 }
 
-g('editor').addEventListener('mouseup',()=>setTimeout(saveRange,10));
-g('editor').addEventListener('touchend',()=>setTimeout(saveRange,100));
+g('editor').addEventListener('mouseup',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},10));
+g('editor').addEventListener('touchend',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},100));
 g('editor').addEventListener('focus',()=>{setActiveEditor(g('editor'));});
 // novelTitle/novelSub 에디터 이벤트
 ['novelTitle','novelSub'].forEach(id=>{
   const el=g(id);
   if(!el)return;
-  el.addEventListener('mouseup',()=>setTimeout(saveRange,10));
-  el.addEventListener('touchend',()=>setTimeout(saveRange,100));
+  el.addEventListener('mouseup',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},10));
+  el.addEventListener('touchend',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},100));
   el.addEventListener('keyup',e=>{if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='y'))rc();});
   el.addEventListener('input',rc);
 });
@@ -1463,6 +1716,10 @@ function parseRichText(){
     if(inlineStyle.color&&inlineStyle.color!=='inherit'&&inlineStyle.color!==''){
       nf.color=cssColorToHex(inlineStyle.color);
     }
+    if(node.dataset&&node.dataset.fsz){
+      const fpx=parseFloat(node.dataset.fsz);
+      if(!isNaN(fpx))nf.fontSize=fpx;
+    }
     const isBlock=tag==='DIV'||tag==='P';
     // 블록 요소 앞에 \n (첫 번째 블록 제외)
     if(isBlock&&segments.length>0){
@@ -1476,7 +1733,7 @@ function parseRichText(){
       if(last&&!last.text.endsWith('\n'))segments.push({...nf,text:'\n'});
     }
   }
-  walk(ed,{bold:false,italic:false,underline:false,strike:false,hl:null,color:null,accent:false});
+  walk(ed,{bold:false,italic:false,underline:false,strike:false,hl:null,color:null,accent:false,fontSize:null});
   // 끝 \n 제거
   while(segments.length&&segments[segments.length-1].text==='\n')segments.pop();
   return segments;
@@ -1635,7 +1892,8 @@ function getSet(){
     novelDivider:g('novelDivider')&&g('novelDivider').checked,
     novelTitle:gc('novelTitle'),novelSub:gc('novelSub'),
     novelTitleBold:S.novelTitleBold,novelTitleItalic:S.novelTitleItalic,
-    novelSubBold:S.novelSubBold,novelSubItalic:S.novelSubItalic};
+    novelSubBold:S.novelSubBold,novelSubItalic:S.novelSubItalic,
+    ntFs:gc('ntFs'),nsFs:gc('nsFs')};
 }
 function apSet(c){
   if(!c)return;
@@ -1647,7 +1905,7 @@ function apSet(c){
     dividerC:'dividerC',dividerW:'dividerW',dividerLen:'dividerLen',
     accentC:'accentC',
     quoteColorDbl:'quoteColorDbl',quoteColorSgl:'quoteColorSgl',
-    pgN:'pgN',novelTitle:g('novelTitle')?g('novelTitle').innerHTML:'',novelSub:g('novelSub')?g('novelSub').innerHTML:'',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',
+    pgN:'pgN',novelTitle:g('novelTitle')?g('novelTitle').innerHTML:'',novelSub:g('novelSub')?g('novelSub').innerHTML:'',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',ntFs:'ntFs',nsFs:'nsFs',
     bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur'};
   for(const[k,id]of Object.entries(m))if(c[k]!=null&&g(id))g(id).value=c[k];
   const ch={showBox:'showBox',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider',quoteColorOn:'quoteColorOn',showOutline:'showOutline',novelMode:'novelMode',novelDivider:'novelDivider'};
@@ -1655,7 +1913,7 @@ function apSet(c){
   const svs=[['fs','fsV','px'],['ps','psV','px'],['pad','padV','px'],
     ['ls','lsV','px'],['lh','lhV','%'],['tOp','tOpV','%'],['bgScale','bgScV','%'],
     ['bgDark','bgDkV','%'],['bgBlur','bgBlV','px'],['boxOp','boxOpV','%'],
-    ['boxR','boxRV','px'],['metaFs','metaFsV','px'],
+    ['boxR','boxRV','px'],['metaFs','metaFsV','px'],['ntFs','ntFsV','px'],['nsFs','nsFsV','px'],
     ['shadowBlur','shadowBV','px'],['shadowDist','shadowDV','px'],['shadowOp','shadowOpV','%'],
     ['outlineW','outlineWV','px'],['outlineOp','outlineOpV','%'],
     ['overlayOp','overlayOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%']];
@@ -1869,7 +2127,7 @@ function drawTo(ctx,W,H,scl){
   const chars=[];
   for(const seg of segs){
     for(const ch of seg.text){
-      chars.push({ch,bold:seg.bold,italic:seg.italic,underline:seg.underline,strike:seg.strike,hl:seg.hl,color:seg.color,accent:seg.accent||false,accentColor:seg.accentColor||null});
+      chars.push({ch,bold:seg.bold,italic:seg.italic,underline:seg.underline,strike:seg.strike,hl:seg.hl,color:seg.color,accent:seg.accent||false,accentColor:seg.accentColor||null,fontSize:seg.fontSize?seg.fontSize*scl:null});
     }
   }
   // \n 앞뒤 제거만 (개수 제한 없음 - 엔터 친 만큼 그대로)
@@ -1947,7 +2205,8 @@ function drawTo(ctx,W,H,scl){
       continue;
     }
     // 줄바꿈 판단: 마지막 글자에도 ls 포함 (정렬과 일치시킴)
-    const font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+    const cfs=c.fontSize||fs;
+    const font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${cfs}px ${ff}`;
     ctx.font=font;
     const cw=ctx.measureText(c.ch).width;
     // lineW = 현재 줄 글자너비합 + (글자수-1)*ls
@@ -1961,12 +2220,15 @@ function drawTo(ctx,W,H,scl){
   if(curLine.length)lines.push({chars:curLine,paraEnd:false});
 
   const lhpx=fs*lh;
+  // 줄별 최대 글자 크기 — 부분 크기 조절된 글자가 있으면 그 줄의 줄간격도 전체 크기 조절할 때와 동일하게 늘어나거나 좁아짐
+  const lineMaxFs=lines.map(l=>l.chars.length?Math.max(fs,...l.chars.map(c=>c.fontSize||fs)):fs);
+  const lineHeights=lineMaxFs.map(m=>m*lh);
 
   // totalHsy: sy 계산용 — 텍스트 줄만 (빈줄/ps 제외 → 세로위치 완전 고정)
   let totalHsy=0;
   for(let i=0;i<lines.length;i++){
     if(lines[i].chars.length===0) continue; // 빈줄 제외
-    totalHsy+=(i===lines.length-1)?fs:lhpx;
+    totalHsy+=(i===lines.length-1)?lineMaxFs[i]:lineHeights[i];
   }
 
   // totalH: 실제 렌더 높이 (ps 포함 → 텍스트박스 등에 사용)
@@ -1974,7 +2236,7 @@ function drawTo(ctx,W,H,scl){
   for(let i=0;i<lines.length;i++){
     if(lines[i].chars.length===0) totalH+=Math.max(lhpx*0.3,lhpx+ps);
     else{
-      totalH+=(i===lines.length-1)?fs:lhpx;
+      totalH+=(i===lines.length-1)?lineMaxFs[i]:lineHeights[i];
       if(lines[i].paraEnd&&i<lines.length-1)totalH+=Math.max(0,ps);
     }
   }
@@ -2007,10 +2269,11 @@ function drawTo(ctx,W,H,scl){
             italic:inherited.italic,
             underline:inherited.underline,
             strike:inherited.strike,
-            bg:inherited.bg
+            bg:inherited.bg,
+            fontSize:inherited.fontSize
           }));
         }else if(n.nodeType===1){
-          if(n.tagName==='BR'){spans.push({ch:'\n',color:inherited.color,bold:inherited.bold,italic:inherited.italic,underline:inherited.underline,strike:inherited.strike,bg:inherited.bg});return;}
+          if(n.tagName==='BR'){spans.push({ch:'\n',color:inherited.color,bold:inherited.bold,italic:inherited.italic,underline:inherited.underline,strike:inherited.strike,bg:inherited.bg,fontSize:inherited.fontSize});return;}
           const fw=n.style.fontWeight||'';
           const fi=n.style.fontStyle||'';
           const td=n.style.textDecoration||'';
@@ -2021,16 +2284,20 @@ function drawTo(ctx,W,H,scl){
           const underline=td.includes('underline')||n.tagName==='U'?true:inherited.underline;
           const strike=td.includes('line-through')||n.tagName==='S'||n.tagName==='STRIKE'?true:inherited.strike;
           const bg=n.style.backgroundColor||inherited.bg;
-          spans.push(...getSpans(n,{color:col,bold,italic,underline,strike,bg}));
+          const nfs=(n.dataset&&n.dataset.fsz)?parseFloat(n.dataset.fsz)*scl:inherited.fontSize;
+          spans.push(...getSpans(n,{color:col,bold,italic,underline,strike,bg,fontSize:nfs}));
         }
       });
       return spans;
     }
-    const allChars=getSpans(el,{color:defaultColor,bold:false,italic:false,underline:false,strike:false,bg:null});
+    const allChars=getSpans(el,{color:defaultColor,bold:false,italic:false,underline:false,strike:false,bg:null,fontSize:null});
     // 줄 단위 분리
     const lines=[];let cur=[];
     allChars.forEach(c=>{if(c.ch==='\n'){lines.push(cur);cur=[];}else cur.push(c);});
     lines.push(cur);
+    // 줄별 최대 글자 크기 (부분 크기 조절된 글자가 있으면 그 줄 간격도 같이 늘어나거나 좁아짐)
+    const lineMaxFs=lines.map(l=>l.length?Math.max(defaultFs,...l.map(c=>c.fontSize||defaultFs)):defaultFs);
+    let lineYAcc=y;
     ctx.save();
     ctx.textBaseline='top';
     lines.forEach((line,li)=>{
@@ -2038,41 +2305,43 @@ function drawTo(ctx,W,H,scl){
       let trimmed=line;
       while(trimmed.length&&trimmed[0].ch===' ')trimmed=trimmed.slice(1);
       while(trimmed.length&&trimmed[trimmed.length-1].ch===' ')trimmed=trimmed.slice(0,-1);
-      if(!trimmed.length)return;
+      if(!trimmed.length){lineYAcc+=defaultFs*1.6;return;}
       // 너비 측정
       let totalW=0;
       trimmed.forEach(c=>{
-        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${defaultFs}px ${ff}`;
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${c.fontSize||defaultFs}px ${ff}`;
         totalW+=ctx.measureText(c.ch).width;
       });
       let cx=W/2-totalW/2;
-      const lineY=y+li*defaultFs*1.6;
+      const lineY=lineYAcc;
       trimmed.forEach(c=>{
-        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${defaultFs}px ${ff}`;
+        const cfs=c.fontSize||defaultFs;
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${cfs}px ${ff}`;
         const cw=ctx.measureText(c.ch).width;
         // 형광펜
         if(c.bg&&c.bg!=='transparent'&&!c.bg.startsWith('rgba(0, 0, 0, 0)')){
           ctx.save();ctx.fillStyle=c.bg;ctx.globalAlpha=0.4;
-          ctx.fillRect(cx,lineY-defaultFs*0.1,cw,defaultFs*1.2);ctx.restore();
+          ctx.fillRect(cx,lineY-cfs*0.1,cw,cfs*1.2);ctx.restore();
         }
         ctx.fillStyle=c.color||defaultColor;ctx.globalAlpha=0.85;
         ctx.fillText(c.ch,cx,lineY);
         // 밑줄
         if(c.underline){
           ctx.save();ctx.strokeStyle=c.color||defaultColor;ctx.globalAlpha=0.8;
-          ctx.lineWidth=Math.max(1,defaultFs/18);
-          ctx.beginPath();ctx.moveTo(cx,lineY+defaultFs*1.1);ctx.lineTo(cx+cw,lineY+defaultFs*1.1);ctx.stroke();
+          ctx.lineWidth=Math.max(1,cfs/18);
+          ctx.beginPath();ctx.moveTo(cx,lineY+cfs*1.1);ctx.lineTo(cx+cw,lineY+cfs*1.1);ctx.stroke();
           ctx.restore();
         }
         // 취소선
         if(c.strike){
           ctx.save();ctx.strokeStyle=c.color||defaultColor;ctx.globalAlpha=0.8;
-          ctx.lineWidth=Math.max(1,defaultFs/18);
-          ctx.beginPath();ctx.moveTo(cx,lineY+defaultFs*0.55);ctx.lineTo(cx+cw,lineY+defaultFs*0.55);ctx.stroke();
+          ctx.lineWidth=Math.max(1,cfs/18);
+          ctx.beginPath();ctx.moveTo(cx,lineY+cfs*0.55);ctx.lineTo(cx+cw,lineY+cfs*0.55);ctx.stroke();
           ctx.restore();
         }
         cx+=cw;
       });
+      lineYAcc+=lineMaxFs[li]*1.6;
     });
     ctx.restore();
   }
@@ -2147,7 +2416,7 @@ function drawTo(ctx,W,H,scl){
       // 이 줄의 startX 계산 (정렬 반영)
       let lw2=0;
       for(const c of line){
-        ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+        ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${c.fontSize||fs}px ${ff}`;
         lw2+=ctx.measureText(c.ch).width;
       }
       const totalLW2=lw2+(line.length>1?(line.length-1)*ls:0);
@@ -2161,9 +2430,10 @@ function drawTo(ctx,W,H,scl){
       let sX=pad+lineInd+paraIndent;
       if(S.align==='center')sX=(pad+lineInd)+((maxW-lineInd)-totalLW2)/2;
       else if(S.align==='right')sX=(pad+lineInd)+(maxW-lineInd)-totalLW2;
-      const accentMargin=fs*0.18; // 글자 위아래 동일 여백
-      lineInfos.push({y:ay-accentMargin, h:fs+accentMargin*2, accent:hasAcc, startX:sX, accentColor:lineAccentColor});
-      ay+=lhpx;
+      const lineFs=lineMaxFs[li];
+      const accentMargin=lineFs*0.18; // 글자 위아래 동일 여백
+      lineInfos.push({y:ay-accentMargin, h:lineFs+accentMargin*2, accent:hasAcc, startX:sX, accentColor:lineAccentColor});
+      ay+=lineHeights[li];
       if(lines[li].paraEnd&&li<lines.length-1)ay+=Math.max(0,ps);
     }
 
@@ -2218,7 +2488,7 @@ function drawTo(ctx,W,H,scl){
 
     let lw=0;
     const charWs=line.map(c=>{
-      ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${fs}px ${ff}`;
+      ctx.font=`${c.italic?'italic ':''}${c.bold?'bold ':fw+' '}${c.fontSize||fs}px ${ff}`;
       const cw=ctx.measureText(c.ch).width;lw+=cw;return cw;
     });
     ctx.font=baseFont; // 측정 후 복원
@@ -2256,8 +2526,8 @@ function drawTo(ctx,W,H,scl){
         ctx.globalAlpha=tOp*0.65;  // 글씨 불투명도의 65% 수준
         ctx.shadowColor='transparent';
         ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
-        const hlTop=y-fs*0.15;
-        const hlH=fs*1.3;
+        const hlTop=y-lineMaxFs[li]*0.15;
+        const hlH=lineMaxFs[li]*1.3;
         ctx.fillRect(hlStart,hlTop,hlWidth,hlH);
         ctx.fillStyle=prevFill;
         ctx.globalAlpha=prevAlpha;
@@ -2289,7 +2559,8 @@ function drawTo(ctx,W,H,scl){
       const runChars=line.slice(runStart,end).map(c=>c.ch).join('');
       // 굵기: bold이면 700, 기본 fw 사용
       const runWeight=c0.bold?'700':fw;
-      const runFont=`${c0.italic?'italic ':''}${runWeight} ${fs}px ${ff}`;
+      const rfs=c0.fontSize||fs;
+      const runFont=`${c0.italic?'italic ':''}${runWeight} ${rfs}px ${ff}`;
       ctx.font=runFont;ctx.textBaseline='top';
       const col=c0.quoteColor||c0.color||defaultTc;
 
@@ -2320,18 +2591,18 @@ function drawTo(ctx,W,H,scl){
         // 자간 있으면 한 자씩
         let rx=cx;
         for(let k=runStart;k<end;k++){
-          drawChar(ctx,line[k].ch,rx,y,col,runWeight,fs);
+          drawChar(ctx,line[k].ch,rx,y,col,runWeight,rfs);
           rx+=charWs[k]+(k<end-1?gap:0);
         }
       }else if(ls<0){
         // 자간 음수: 한 자씩, 겹치되 순서 보장
         let rx=cx;
         for(let k=runStart;k<end;k++){
-          drawChar(ctx,line[k].ch,rx,y,col,runWeight,fs);
+          drawChar(ctx,line[k].ch,rx,y,col,runWeight,rfs);
           rx+=charWs[k]+(k<end-1?gap:0);
         }
       }else{
-        drawChar(ctx,runChars,cx,y,col,runWeight,fs);
+        drawChar(ctx,runChars,cx,y,col,runWeight,rfs);
       }
 
       const runW=charWs.slice(runStart,end).reduce((a,b)=>a+b,0)+(end-runStart-1)*gap;
@@ -2339,16 +2610,16 @@ function drawTo(ctx,W,H,scl){
         const prevStroke=ctx.strokeStyle;
         const prevLW=ctx.lineWidth;
         ctx.strokeStyle=col;
-        ctx.lineWidth=Math.max(1,fs/16);
-        ctx.beginPath();ctx.moveTo(cx,y+fs*1.12);ctx.lineTo(cx+runW,y+fs*1.12);ctx.stroke();
+        ctx.lineWidth=Math.max(1,rfs/16);
+        ctx.beginPath();ctx.moveTo(cx,y+rfs*1.12);ctx.lineTo(cx+runW,y+rfs*1.12);ctx.stroke();
         ctx.strokeStyle=prevStroke;ctx.lineWidth=prevLW;
       }
       if(c0.strike){
         const prevStroke=ctx.strokeStyle;
         const prevLW=ctx.lineWidth;
         ctx.strokeStyle=col;
-        ctx.lineWidth=Math.max(1,fs/16);
-        ctx.beginPath();ctx.moveTo(cx,y+fs*0.55);ctx.lineTo(cx+runW,y+fs*0.55);ctx.stroke();
+        ctx.lineWidth=Math.max(1,rfs/16);
+        ctx.beginPath();ctx.moveTo(cx,y+rfs*0.55);ctx.lineTo(cx+runW,y+rfs*0.55);ctx.stroke();
         ctx.strokeStyle=prevStroke;ctx.lineWidth=prevLW;
       }
       cx+=runW+gap;
@@ -2358,9 +2629,9 @@ function drawTo(ctx,W,H,scl){
       if(i===line.length){flushRun(i);break;}
       const prev=line[i-1],cur=line[i];
       if(cur.color!==prev.color||cur.quoteColor!==prev.quoteColor||cur.bold!==prev.bold||cur.italic!==prev.italic||
-         cur.underline!==prev.underline||cur.strike!==prev.strike){flushRun(i);}
+         cur.underline!==prev.underline||cur.strike!==prev.strike||(cur.fontSize||fs)!==(prev.fontSize||fs)){flushRun(i);}
     }
-    y+=lhpx;
+    y+=lineHeights[li];
     if(lines[li].paraEnd&&li<lines.length-1)y+=Math.max(0,ps);
   }
   ctx.restore();
@@ -2395,8 +2666,8 @@ function drawTo(ctx,W,H,scl){
 
     // 타이틀 렌더
     if(hasNovelHeader){
-      const titleFs=Math.round(29*scl);
-      const subFs=Math.round(23*scl);
+      const titleFs=Math.round((gi('ntFs')||29)*scl);
+      const subFs=Math.round((gi('nsFs')||23)*scl);
       const titleY=Math.round(H*0.06);
       if(novelTitleStr&&novelSubStr){
         drawNovelText(novelTitleEl,ctx,titleY,titleFs,metaC,scl);
