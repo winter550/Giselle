@@ -564,10 +564,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <div class="gp" data-s="#00264b" data-e="#00264b" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:#00264b"></span><span>미드나잇블루</span></div>
         <div class="gp" data-s="#111111" data-e="#2a2a2a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#111111,#2a2a2a)"></span><span>블랙</span></div>
         <div class="gp" data-s="#3dd8e0" data-e="#7aeaee" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#3dd8e0,#7aeaee)"></span><span>시안</span></div>
-        <div class="gp" data-s="#1a5490" data-e="#2e7dc8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#1a5490,#2e7dc8)"></span><span>오션</span></div>
         <div class="gp" data-s="#b8e0f8" data-e="#ddf0ff" data-d="to bottom" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(to bottom,#b8e0f8,#ddf0ff)"></span><span>하늘</span></div>
         <div class="gp" data-s="#dce4f2" data-e="#c8d0e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#dce4f2,#c8d0e8)"></span><span>새벽</span></div>
+        <div class="gp" data-s="#3d2645" data-e="#6b3f7a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#3d2645,#6b3f7a)"></span><span>플럼</span></div>
         <div class="gp" data-s="#e6e0f0" data-e="#c8b8e8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#e6e0f0,#c8b8e8)"></span><span>라일락</span></div>
+        <div class="gp" data-s="#d43850" data-e="#ff7a8a" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#d43850,#ff7a8a)"></span><span>체리레드</span></div>
         <div class="gp" data-s="#fdd0dc" data-e="#feecf2" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#fdd0dc,#feecf2)"></span><span>핑크</span></div>
         <div class="gp" data-s="#fdd0b0" data-e="#feead8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#fdd0b0,#feead8)"></span><span>코랄</span></div>
         <div class="gp" data-s="#c8e8e4" data-e="#90ccc8" data-d="135deg" onclick="apP(this)"><span class="gpd" style="background:linear-gradient(135deg,#c8e8e4,#90ccc8)"></span><span>민트</span></div>
@@ -651,6 +652,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <div id="metaDot" style="position:absolute;width:16px;height:16px;border-radius:50%;background:var(--ac);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translate(-50%,-50%);right:auto;bottom:auto;left:90%;top:90%;pointer-events:none;"></div>
       </div>
       <div class="note" style="margin-top:4px;">드래그로 위치 조정</div>
+      <label class="ckr" style="margin-top:8px;"><input type="checkbox" id="metaAlignCk" onchange="toggleMetaAlign(this)" title="현재 좌/우 위치를 유지한 채, 그 쪽 본문 글 여백선에 맞춰 정렬합니다."><span>↔ 현재 위치 기준 본문 여백 맞춤</span></label>
+      <div class="note" style="margin-top:-4px;margin-bottom:6px;">지금 메타가 있는 쪽(왼쪽/오른쪽)은 그대로 두고, 그 쪽 본문 여백선에 딱 맞춰줘요.</div>
       <div class="sr" style="margin-top:10px;"><span class="slb">메타 크기</span><input type="range" id="metaFs" min="8" max="48" value="13" oninput="sv(this,'metaFsV','px')"><span class="sv" id="metaFsV">13px</span></div>
       <div class="cr"><div class="csw"><input type="color" id="metaC" value="#aaaaaa" onchange="rc()"></div><span class="clb">메타 색상</span></div>
     </div>
@@ -2071,6 +2074,7 @@ function drawTo(ctx,W,H,scl){
   // scl은 파라미터로 전달됨 (미리보기=1.0, 저장=W/BASE)
   const _pad=gi('pad'),_fs=gf('fs'),_ps=gf('ps'),_ls=gf('ls');
   const pad=Math.round(_pad*scl);
+  window._padFracX=pad/W; // 본문 텍스트 박스 좌우 여백 비율 — 메타 정렬이 그대로 가져다 씀 (계산 불일치 방지)
   const fs=_fs*scl;
   const ps=_ps*scl;
   const ls=_ls*scl;
@@ -2321,7 +2325,7 @@ function drawTo(ctx,W,H,scl){
         // 형광펜
         if(c.bg&&c.bg!=='transparent'&&!c.bg.startsWith('rgba(0, 0, 0, 0)')){
           ctx.save();ctx.fillStyle=c.bg;ctx.globalAlpha=0.4;
-          ctx.fillRect(cx,lineY-cfs*0.1,cw,cfs*1.2);ctx.restore();
+          ctx.fillRect(cx,lineY-cfs*0.1,cw,cfs*1.05);ctx.restore();
         }
         ctx.fillStyle=c.color||defaultColor;ctx.globalAlpha=0.85;
         ctx.fillText(c.ch,cx,lineY);
@@ -2356,7 +2360,6 @@ function drawTo(ctx,W,H,scl){
   }else{
     sy = isNovelMode ? Math.round(H*0.915 - totalH - Math.round(H*0.085)*0.5 + novelHeaderH*0.2) : Math.round(H*0.915 - totalH - Math.round(H*0.085)*0.5);
   }
-
   /* 텍스트 박스 — totalH 기준 (ps 포함 실제 높이) */
   if(g('showBox').checked){
     const bp=Math.round(16*scl);
@@ -2391,7 +2394,7 @@ function drawTo(ctx,W,H,scl){
   /* 강조선 설정 — 두께/간격 고정값 */
   const showAccent=true;
   const accentCol=gc('accentC');
-  const accentW=3*scl;       // 고정 두께: 3px
+  const accentW=4*scl;       // 고정 두께: 4px (기존 3px에서 살짝 두껍게)
   const accentGap=10*scl;    // 텍스트와 간격: 10px (넓게)
   const accentIndent=accentW+accentGap; // 강조선 있는 줄 텍스트 indent 량
 
@@ -2527,7 +2530,7 @@ function drawTo(ctx,W,H,scl){
         ctx.shadowColor='transparent';
         ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
         const hlTop=y-lineMaxFs[li]*0.15;
-        const hlH=lineMaxFs[li]*1.3;
+        const hlH=lineMaxFs[li]*1.15;
         ctx.fillRect(hlStart,hlTop,hlWidth,hlH);
         ctx.fillStyle=prevFill;
         ctx.globalAlpha=prevAlpha;
@@ -2641,7 +2644,7 @@ function drawTo(ctx,W,H,scl){
   if(parts.length){
     const mt=auth&&char?auth+S.sep+char:(auth||char);
     ctx.save();
-    ctx.font=`400 ${mfs}px ${ff}`;
+    ctx.font=`${fw} ${mfs}px ${ff}`;
     ctx.fillStyle=mc;ctx.globalAlpha=0.9;
     // S.metaX/Y: 0~1 패드 비율 → 캔버스 좌표
     const mx=S.metaX*W;
@@ -2737,9 +2740,32 @@ function setDecoLineTab(el,tab){
   g('decoTabShadow').style.display=tab==='shadow'?'':'none';
   g('decoTabOutline').style.display=tab==='outline'?'':'none';
 }
-function setDT(el){g('dividerTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.dividerType=el.dataset.dt;updateDividerLbl();rc();}
+function setDT(el){
+  g('dividerTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  S.dividerType=el.dataset.dt;
+  updateDividerLbl();
+  rc();
+}
 function updateDividerLbl(){const lbl=g('dividerLenLbl');if(lbl)lbl.textContent='길이';}
 function moveDivDot(nx,ny){const d=g('dividerDot');if(d){d.style.left=(nx*100)+'%';d.style.top=(ny*100)+'%';}}
+// 제작자/캐릭터 메타를 본문 글 여백에 딱 맞춰 정렬 — 삐뚤어지거나 튀어나오지 않게
+function alignMeta(){
+  // 실제 렌더러가 쓰는 여백 비율을 그대로 가져옴 (양쪽정렬 등 어떤 정렬 모드든 텍스트 박스 끝선과 항상 일치)
+  const padFrac=(typeof window._padFracX==='number')?window._padFracX:0.1;
+  // 메타: 현재 좌/우 어느 쪽에 가까운지는 유지하고, 그 쪽 본문 여백선(=텍스트 끝선)에 딱 맞춤
+  S.metaX=(S.metaX<0.5)?padFrac:(1-padFrac);
+  moveMetaDot(S.metaX,S.metaY);
+  rc();
+  toast('메타를 본문 끝선에 맞췄어요.');
+}
+
+// 메타 정렬 체크박스: 켜면 여백에 맞춰 정렬만 하고, 이후에도 자유롭게 드래그로 옮길 수 있음(이동 잠금 없음)
+function toggleMetaAlign(cb){
+  if(cb.checked){
+    alignMeta();
+  }
+}
 (()=>{
   const pad=g('dividerPad');if(!pad)return;
   let drag=false;
