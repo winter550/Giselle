@@ -407,7 +407,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           <select id="fw" onchange="rc()">
             <option value="300" selected>Light</option>
             <option value="400">Regular</option>
-            <option value="600">SemiBold</option>
+            <option value="500">Medium</option>
+            <option value="700">Bold</option>
           </select>
         </div>
       </div>
@@ -2031,21 +2032,24 @@ function rc(){
   const aw=wrap.clientWidth-2,ah=wrap.clientHeight-2;
   const sc=Math.min(aw/PW,ah/PH,1);
   const dpr=window.devicePixelRatio||1;
+  // 화질 저하 방지: dpr을 최대 2까지만 반영 (그 이상은 체감 차이 적고 렌더 부담만 커짐)
+  const edpr=Math.min(dpr,2);
   const dispW=Math.round(PW*sc);
   const dispH=Math.round(PH*sc);
   canvas.width=dispW*dpr;
   canvas.height=dispH*dpr;
   canvas.style.width=dispW+'px';
   canvas.style.height=dispH+'px';
-  // offscreen에 1.0 scl로 그린 뒤 화면 canvas에 복사
-  // → measureText가 scale 오염 없이 정확하게 동작
+  // offscreen도 화면 픽셀 밀도(edpr)까지 반영해서 그린 뒤 화면 canvas에 복사
+  // → 이전엔 1080px 고정으로 그린 뒤 dpr만큼 업스케일하면서 흐려졌었는데, 이제 업스케일이 생기지 않음
+  // → measureText가 scale 오염 없이 정확하게 동작하는 것도 그대로 유지
   const off=document.createElement('canvas');
-  off.width=PW;off.height=PH;
+  off.width=PW*edpr;off.height=PH*edpr;
   const octx=off.getContext('2d');
-  drawTo(octx,PW,PH,1.0);
+  drawTo(octx,PW*edpr,PH*edpr,edpr);
   const ctx=canvas.getContext('2d');
   ctx.save();
-  ctx.scale(dpr*sc,dpr*sc);
+  ctx.scale((dpr*sc)/edpr,(dpr*sc)/edpr);
   ctx.drawImage(off,0,0);
   ctx.restore();
 }
@@ -2313,14 +2317,14 @@ function drawTo(ctx,W,H,scl){
       // 너비 측정
       let totalW=0;
       trimmed.forEach(c=>{
-        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${c.fontSize||defaultFs}px ${ff}`;
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'500':'300'} ${c.fontSize||defaultFs}px ${ff}`;
         totalW+=ctx.measureText(c.ch).width;
       });
       let cx=W/2-totalW/2;
       const lineY=lineYAcc;
       trimmed.forEach(c=>{
         const cfs=c.fontSize||defaultFs;
-        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'700':'300'} ${cfs}px ${ff}`;
+        ctx.font=`${c.italic?'italic':'normal'} ${c.bold?'500':'300'} ${cfs}px ${ff}`;
         const cw=ctx.measureText(c.ch).width;
         // 형광펜
         if(c.bg&&c.bg!=='transparent'&&!c.bg.startsWith('rgba(0, 0, 0, 0)')){
@@ -2560,8 +2564,8 @@ function drawTo(ctx,W,H,scl){
       if(runStart>=end)return;
       const c0=line[runStart];
       const runChars=line.slice(runStart,end).map(c=>c.ch).join('');
-      // 굵기: bold이면 700, 기본 fw 사용
-      const runWeight=c0.bold?'700':fw;
+      // 폰트 문자열 표시용 (실제 두께 효과는 drawChar에서 fw+bold를 조합해 계산)
+      const runWeight=c0.bold?'bold':fw;
       const rfs=c0.fontSize||fs;
       const runFont=`${c0.italic?'italic ':''}${runWeight} ${rfs}px ${ff}`;
       ctx.font=runFont;ctx.textBaseline='top';
@@ -2594,18 +2598,18 @@ function drawTo(ctx,W,H,scl){
         // 자간 있으면 한 자씩
         let rx=cx;
         for(let k=runStart;k<end;k++){
-          drawChar(ctx,line[k].ch,rx,y,col,runWeight,rfs);
+          drawChar(ctx,line[k].ch,rx,y,col,fw,rfs,c0.bold);
           rx+=charWs[k]+(k<end-1?gap:0);
         }
       }else if(ls<0){
         // 자간 음수: 한 자씩, 겹치되 순서 보장
         let rx=cx;
         for(let k=runStart;k<end;k++){
-          drawChar(ctx,line[k].ch,rx,y,col,runWeight,rfs);
+          drawChar(ctx,line[k].ch,rx,y,col,fw,rfs,c0.bold);
           rx+=charWs[k]+(k<end-1?gap:0);
         }
       }else{
-        drawChar(ctx,runChars,cx,y,col,runWeight,rfs);
+        drawChar(ctx,runChars,cx,y,col,fw,rfs,c0.bold);
       }
 
       const runW=charWs.slice(runStart,end).reduce((a,b)=>a+b,0)+(end-runStart-1)*gap;
@@ -2796,27 +2800,35 @@ const MOODS={
 function applyMood(ctx,W,H){if(!MOODS[S.mood])return;ctx.save();ctx.fillStyle=MOODS[S.mood];ctx.fillRect(0,0,W,H);ctx.restore();}
 function rRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
-// 굵기별 글자 렌더: Light=얇게, Regular=보통, Bold=굵게
-function drawChar(ctx,text,x,y,color,weight,fs){
+// 굵기별 글자 렌더: Light=얇게, Regular=보통, Medium/Bold=단계별로 굵게.
+// 드래그 선택 후 적용하는 "굵게(B)" 서식은 현재 기본 굵기 위에 추가로 더 굵게 얹는 방식(가산형).
+// 두께 정도(offset)는 전부 글자 크기(fs)에 비례 → 작은 글씨에서도 뭉개지지 않음
+const BASE_WEIGHT_OFFSET_RATIO={'300':0,'400':0,'500':0.006,'700':0.012};
+const BOLD_FORMAT_INCREMENT_RATIO=0.0060;
+function drawChar(ctx,text,x,y,color,baseWeight,fs,isBold){
   ctx.fillStyle=color;
-  if(weight==='300'){
-    // Light: globalAlpha 살짝 낮춰서 가늘게 (save/restore 없이 → 그림자 유지)
+  if(baseWeight==='300'&&!isBold){
+    // Light(굵게 서식 없을 때만): globalAlpha 살짝 낮춰서 가늘게
     const prev=ctx.globalAlpha;
     ctx.globalAlpha=prev*0.88;
     ctx.fillText(text,x,y);
     ctx.globalAlpha=prev;
-  }else if(weight==='700'||weight==='bold'||weight==='600'){
-    ctx.fillText(text,x,y);
-    // Bold: 그림자 중복 방지 위해 두 번째 렌더는 그림자 OFF
-    const prevBlur=ctx.shadowBlur;
-    const prevShadowColor=ctx.shadowColor;
-    ctx.shadowBlur=0;ctx.shadowColor='transparent';
-    ctx.fillText(text,x+0.3,y);
-    ctx.shadowBlur=prevBlur;
-    ctx.shadowColor=prevShadowColor;
-  }else{
-    ctx.fillText(text,x,y);
+    return;
   }
+  const baseRatio=BASE_WEIGHT_OFFSET_RATIO[baseWeight]||0;
+  const totalRatio=baseRatio+(isBold?BOLD_FORMAT_INCREMENT_RATIO:0);
+  if(totalRatio<=0){
+    ctx.fillText(text,x,y);
+    return;
+  }
+  ctx.fillText(text,x,y);
+  // 두 번째 렌더는 살짝 옆으로 겹쳐서 두껍게 — 그림자 중복 방지 위해 그림자 OFF
+  const prevBlur=ctx.shadowBlur;
+  const prevShadowColor=ctx.shadowColor;
+  ctx.shadowBlur=0;ctx.shadowColor='transparent';
+  ctx.fillText(text,x+fs*totalRatio,y);
+  ctx.shadowBlur=prevBlur;
+  ctx.shadowColor=prevShadowColor;
 }
 
 /* 저장 */
