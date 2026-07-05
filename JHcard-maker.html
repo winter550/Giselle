@@ -609,6 +609,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
       <div class="seg" id="decoSeg" style="margin-bottom:10px;">
         <button class="sgb on" onclick="setDecoTab(this,'box')">텍스트 박스</button>
         <button class="sgb"    onclick="setDecoTab(this,'overlay')">배경 오버레이</button>
+        <button class="sgb"    onclick="setDecoTab(this,'frame')">테두리</button>
       </div>
       <div id="decoBox">
         <label class="ckr"><input type="checkbox" id="showBox" onchange="rc()"><span>텍스트 박스 표시</span></label>
@@ -625,6 +626,22 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
           </div>
           <div class="cr"><div class="csw"><input type="color" id="overlayC" value="#000000" onchange="rc()"></div><span class="clb">오버레이 색</span></div>
           <div class="sr" style="margin-top:4px;"><span class="slb">불투명도</span><input type="range" id="overlayOp" min="0" max="90" value="30" oninput="sv(this,'overlayOpV','%')"><span class="sv" id="overlayOpV">30%</span></div>
+        </div>
+      </div>
+      <div id="decoTabFrame" style="display:none;">
+        <label class="ckr"><input type="checkbox" id="showFrame" onchange="rc()"><span>테두리 표시</span></label>
+        <div style="margin-left:21px;margin-bottom:10px;">
+          <div class="chips" id="frameTypeC" style="margin-bottom:8px;">
+            <span class="chip on" data-ft="line"   onclick="setFT(this)">얇은 단선</span>
+            <span class="chip"    data-ft="corner" onclick="setFT(this)">코너 액자형</span>
+            <span class="chip"    data-ft="ribbon" onclick="setFT(this)">리본 모서리</span>
+            <span class="chip"    data-ft="bracket" onclick="setFT(this)">인용 브라켓형</span>
+            <span class="chip"    data-ft="gradcorner" onclick="setFT(this)">그라데이션 코너</span>
+          </div>
+          <label class="ckr" style="margin-bottom:8px;"><input type="checkbox" id="frameMatchText" onchange="toggleFrameMatchText()"><span>텍스트 색과 맞추기</span></label>
+          <div class="cr" id="frameColorRow"><div class="csw"><input type="color" id="frameC" value="#ffffff" onchange="rc()"></div><span class="clb">테두리 색상</span></div>
+          <div class="sr" style="margin-top:6px;"><span class="slb">두께</span><input type="range" id="frameW" min="1" max="10" value="2" oninput="sv(this,'frameWV','px')"><span class="sv" id="frameWV">2px</span></div>
+          <div class="sr"><span class="slb">여백</span><input type="range" id="frameMargin" min="0" max="80" value="24" oninput="sv(this,'frameMarginV','px')"><span class="sv" id="frameMarginV">24px</span></div>
         </div>
       </div>
     </div>
@@ -665,7 +682,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <div class="sh" onclick="ts(this)"><span class="st">장식</span><span class="sa">▾</span></div>
     <div class="sb">
 
-      <!-- 구분선 / 글자그림자 탭 -->
+      <!-- 구분선 / 글자그림자 / 윤곽선 탭 -->
       <div class="seg" id="decoLineSeg" style="margin-bottom:10px;">
         <button class="sgb on" onclick="setDecoLineTab(this,'divider')">구분선</button>
         <button class="sgb"    onclick="setDecoLineTab(this,'shadow')">글자 그림자</button>
@@ -763,7 +780,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 
 <script>
 /* ── STATE ── */
-const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5,novelAlign:'left',novelSep:' · ',novelTitleBold:false,novelTitleItalic:false,novelSubBold:false,novelSubItalic:false};
+const S={ratio:'1:1',bgMode:'solid',align:'left',vpos:'middle',mood:'none',sep:' | ',bgImg:null,metaX:0.9,metaY:0.9,overlayType:'color',dividerType:'hline',dividerX:0.5,dividerY:0.5,novelAlign:'left',novelSep:' · ',novelTitleBold:false,novelTitleItalic:false,novelSubBold:false,novelSubItalic:false,frameType:'line'};
 const RATIOS={'1:1':[800,800],'4:5':[800,1000],'16:9':[800,450],'twitter':[900,480],'a6':[561,794]};
 const SAVE_RATIOS={'1:1':[2160,2160],'4:5':[2160,2700],'16:9':[3200,1800],'twitter':[3000,1000],'a6':[2244,3174]};
 const g=id=>document.getElementById(id);
@@ -793,10 +810,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 });
 function ts(h){h.closest('.sec').classList.toggle('closed');}
-function setR(el){g('ratioC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.ratio=el.dataset.r;g('customRow').style.display=S.ratio==='custom'?'flex':'none';rc();}
-function setA(el){g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.align=el.dataset.a;rc();}
-function setV(el){g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
-function setM(el){g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
+function setR(el){_commitHistoryNow();g('ratioC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.ratio=el.dataset.r;g('customRow').style.display=S.ratio==='custom'?'flex':'none';rc();}
+function setA(el){_commitHistoryNow();g('aB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.align=el.dataset.a;rc();}
+function setV(el){_commitHistoryNow();g('vB').querySelectorAll('.ib').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.vpos=el.dataset.v;rc();}
+function setM(el){_commitHistoryNow();g('moodC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.mood=el.dataset.m;rc();}
 function setNovelAlign(el){
   g('novelAlignSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');S.novelAlign=el.dataset.na;rc();
@@ -861,8 +878,9 @@ function setDecoTab(el,tab){
   el.classList.add('on');
   g('decoBox').style.display=tab==='box'?'':'none';
   g('decoOverlay').style.display=tab==='overlay'?'':'none';
+  g('decoTabFrame').style.display=tab==='frame'?'':'none';
 }
-function setSep(el){g('sepC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.sep=el.dataset.sep;rc();}
+function setSep(el){_commitHistoryNow();g('sepC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.sep=el.dataset.sep;rc();}
 
 /* 메타 드래그 패드 */
 function moveMetaDot(nx,ny){
@@ -886,11 +904,13 @@ function moveMetaDot(nx,ny){
   document.addEventListener('touchend',()=>drag=false);
 })();
 function setBg(el){
+  _commitHistoryNow();
   g('bgSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));el.classList.add('on');S.bgMode=el.dataset.bm;
   g('solidP').style.display=S.bgMode==='solid'?'':'none';
   g('gradP').style.display=S.bgMode==='gradient'?'':'none';rc();
 }
 function apP(el){
+  _commitHistoryNow();
   document.querySelectorAll('.gp').forEach(d=>d.classList.remove('on'));el.classList.add('on');
   const s=el.dataset.s,e=el.dataset.e,d=el.dataset.d||'135deg';
   if(S.bgMode==='solid'){
@@ -992,6 +1012,7 @@ g('pbAccentBtn').addEventListener('touchend',e=>{
 });
 
 function applyAccent(){
+  _commitHistoryNow();
   const rangeToUse=savedRange||_lastEditorRange;
   if(!rangeToUse){toast('강조선을 넣을 텍스트를 드래그로 선택하세요.');return;}
 
@@ -1144,6 +1165,7 @@ function pbRangeFromOffsets(root,startOff,endOff){
 function pbWrapSelectionFontSize(px){
   const rangeToUse=savedRange||_lastEditorRange;
   if(!rangeToUse||rangeToUse.collapsed){toast('크기를 바꿀 텍스트를 드래그로 선택하세요.');return null;}
+  _commitHistoryNow();
   const startEl=rangeToUse.startContainer.nodeType===3?rangeToUse.startContainer.parentElement:rangeToUse.startContainer;
   const editorRoot=startEl&&startEl.closest?startEl.closest('#editor,#novelTitle,#novelSub'):null;
   if(!editorRoot){toast('선택 범위를 다시 드래그해주세요.');return null;}
@@ -1222,6 +1244,7 @@ function pbFontSizeReset(e){
   e.preventDefault();
   const rangeToUse=savedRange||_lastEditorRange;
   if(!rangeToUse){toast('되돌릴 텍스트를 드래그로 선택하세요.');return;}
+  _commitHistoryNow();
   const startEl=rangeToUse.startContainer.nodeType===3?rangeToUse.startContainer.parentElement:rangeToUse.startContainer;
   const editorRoot=startEl&&startEl.closest?startEl.closest('#editor,#novelTitle,#novelSub'):null;
   if(!editorRoot){toast('선택 범위를 다시 드래그해주세요.');return;}
@@ -1468,6 +1491,7 @@ function setColorMode(mode){
 }
 function uniPick(e,dot){
   e.preventDefault();e.stopPropagation();
+  _commitHistoryNow();
   if(_colorMode==='tc'){
     restoreRange();
     const color=dot.dataset.tc;
@@ -1497,6 +1521,7 @@ function uniPick(e,dot){
   if(_rc&&_rc!=='none')addRecent(_rc);
 }
 function uniCustomPick(inp){
+  _commitHistoryNow();
   const color=inp.value;
   g('uniCustomDot').style.background=color;
   // on 클래스 이동
@@ -1538,12 +1563,14 @@ function setPalTab(el,tab){setColorMode(tab==='tc'?'tc':'hl');}
 
 function pbFmt(e,cmd){
   e.preventDefault();
+  _commitHistoryNow();
   restoreRange();
   document.execCommand(cmd,false,null);
   savedRange=null;rc();
 }
 function pbClear(e){
   e.preventDefault();
+  _commitHistoryNow();
   restoreRange();
   document.execCommand('removeFormat',false,null);
   // accent 마킹도 제거
@@ -1621,7 +1648,6 @@ g('editor').addEventListener('focus',()=>{setActiveEditor(g('editor'));});
   if(!el)return;
   el.addEventListener('mouseup',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},10));
   el.addEventListener('touchend',()=>setTimeout(()=>{saveRange();pbUpdateFsLabel();},100));
-  el.addEventListener('keyup',e=>{if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='y'))rc();});
   el.addEventListener('input',rc);
 });
 g('editor').addEventListener('keydown',e=>{
@@ -1642,8 +1668,6 @@ g('editor').addEventListener('keydown',e=>{
   }
 });
 g('editor').addEventListener('input',rc);
-// Ctrl+Z/Y 되돌리기 후에도 재렌더
-g('editor').addEventListener('keyup',e=>{if((e.ctrlKey||e.metaKey)&&(e.key==='z'||e.key==='y'))rc();});
 g('editor').addEventListener('paste',e=>{
   e.preventDefault();
   let text=e.clipboardData.getData('text/plain');
@@ -1885,6 +1909,7 @@ function getSet(){
     showBox:g('showBox').checked,boxC:gc('boxC'),boxOp:gc('boxOp'),boxR:gc('boxR'),
     showShadow:g('showShadow').checked,shadowBlur:gc('shadowBlur'),shadowDist:gc('shadowDist'),shadowC:gc('shadowC'),shadowOp:gc('shadowOp'),
     showOutline:g('showOutline').checked,outlineC:gc('outlineC'),outlineW:gc('outlineW'),outlineOp:gc('outlineOp'),
+    showFrame:g('showFrame')&&g('showFrame').checked,frameType:S.frameType,frameC:gc('frameC'),frameW:gc('frameW'),frameMargin:gc('frameMargin'),frameMatchText:g('frameMatchText')&&g('frameMatchText').checked,
     showOverlay:g('showOverlay').checked,overlayType:S.overlayType,overlayC:gc('overlayC'),overlayOp:gc('overlayOp'),
     showDivider:g('showDivider').checked,dividerType:S.dividerType,dividerX:S.dividerX,dividerY:S.dividerY,dividerC:gc('dividerC'),dividerW:gc('dividerW'),
     pgN:gc('pgN'),
@@ -1910,9 +1935,9 @@ function apSet(c){
     accentC:'accentC',
     quoteColorDbl:'quoteColorDbl',quoteColorSgl:'quoteColorSgl',
     pgN:'pgN',novelTitle:g('novelTitle')?g('novelTitle').innerHTML:'',novelSub:g('novelSub')?g('novelSub').innerHTML:'',author:'author',chara:'chara',metaC:'metaC',metaFs:'metaFs',ntFs:'ntFs',nsFs:'nsFs',
-    bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur'};
+    bgScale:'bgScale',bgDark:'bgDark',bgBlur:'bgBlur',frameC:'frameC',frameW:'frameW',frameMargin:'frameMargin'};
   for(const[k,id]of Object.entries(m))if(c[k]!=null&&g(id))g(id).value=c[k];
-  const ch={showBox:'showBox',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider',quoteColorOn:'quoteColorOn',showOutline:'showOutline',novelMode:'novelMode',novelDivider:'novelDivider'};
+  const ch={showBox:'showBox',showShadow:'showShadow',showOverlay:'showOverlay',showDivider:'showDivider',quoteColorOn:'quoteColorOn',showOutline:'showOutline',novelMode:'novelMode',novelDivider:'novelDivider',showFrame:'showFrame',frameMatchText:'frameMatchText'};
   for(const[k,id]of Object.entries(ch))if(c[k]!=null&&g(id))g(id).checked=c[k];
   const svs=[['fs','fsV','px'],['ps','psV','px'],['pad','padV','px'],
     ['ls','lsV','px'],['lh','lhV','%'],['tOp','tOpV','%'],['bgScale','bgScV','%'],
@@ -1920,7 +1945,8 @@ function apSet(c){
     ['boxR','boxRV','px'],['metaFs','metaFsV','px'],['ntFs','ntFsV','px'],['nsFs','nsFsV','px'],
     ['shadowBlur','shadowBV','px'],['shadowDist','shadowDV','px'],['shadowOp','shadowOpV','%'],
     ['outlineW','outlineWV','px'],['outlineOp','outlineOpV','%'],
-    ['overlayOp','overlayOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%']];
+    ['overlayOp','overlayOpV','%'],['dividerW','dividerWV','px'],['dividerLen','dividerLenV','%'],
+    ['frameW','frameWV','px'],['frameMargin','frameMarginV','px']];
   svs.forEach(([id,vid,sfx,a=true])=>{if(g(id)&&g(vid))g(vid).textContent=a?g(id).value+sfx:g(id).value;});
   [['fs','fsN'],['ps','psN'],['pad','padN'],['ls','lsN'],['lh','lhN']].forEach(([sid,nid])=>{if(g(sid)&&g(nid))g(nid).value=g(sid).value;});
   if(c.ratio){const b=g('ratioC').querySelector(`[data-r="${c.ratio}"]`);if(b)setR(b);}
@@ -1930,6 +1956,8 @@ function apSet(c){
   if(c.sep){const b=[...g('sepC').querySelectorAll('.chip')].find(x=>x.dataset.sep===c.sep);if(b)setSep(b);else S.sep=c.sep;}
   if(c.overlayType){const b=g('overlayTypeC').querySelector(`[data-ot="${c.overlayType}"]`);if(b)setOT(b);}
   if(c.dividerType){const b=g('dividerTypeC').querySelector(`[data-dt="${c.dividerType}"]`);if(b)setDT(b);}
+  if(c.frameType){const b=g('frameTypeC').querySelector(`[data-ft="${c.frameType}"]`);if(b)setFT(b);}
+  if(g('frameColorRow'))g('frameColorRow').style.display=(g('frameMatchText')&&g('frameMatchText').checked)?'none':'';
   if(c.dividerX!=null){S.dividerX=c.dividerX;S.dividerY=c.dividerY??0.5;moveDivDot(S.dividerX,S.dividerY);}
   if(c.metaX!=null){S.metaX=c.metaX;S.metaY=c.metaY??0.9;moveMetaDot(S.metaX,S.metaY);}
   if(c.bgMode){const b=g('bgSeg').querySelector(`[data-bm="${c.bgMode}"]`);if(b)setBg(b);}
@@ -2022,7 +2050,13 @@ function renderP(){
 renderFolderSelect();
 
 /* ── CANVAS ── */
+// 실행취소/다시실행 기능은 제거했어요 (계속 오류가 나서 아예 뺐습니다).
+// 아래 두 함수는 다른 곳에서 여전히 호출되고 있어서 이름만 남겨둔 빈 함수예요 (아무 동작 안 함).
+function _noteHistoryChange(){}
+function _commitHistoryNow(){}
+
 function rc(){
+  _noteHistoryChange();
   const canvas=g('cv');
   const[SW,SH]=getSaveDim();
   const BASE=1080;
@@ -2090,6 +2124,9 @@ function drawTo(ctx,W,H,scl){
 
   /* 배경 */
   if(S.bgImg){
+    // 이미지 확대(bgScale)를 100% 미만으로 줄이면 캔버스 가장자리에 빈 틈이 생기는데,
+    // 그 틈이 그대로 비어있으면(투명) JPG로 저장할 때 검은 테두리로 보임 → 먼저 기본 배경색을 깔아둠
+    drawBgFill(ctx,W,H);
     const iw=S.bgImg.width,ih=S.bgImg.height;
     const sc2=Math.max(W/iw,H/ih)*((gi('bgScale')||100)/100);
     const cx=(W-iw*sc2)*BG.x,cy=(H-ih*sc2)*BG.y;
@@ -2395,6 +2432,74 @@ function drawTo(ctx,W,H,scl){
     ctx.restore();
   }
 
+  /* 테두리(프레임) */
+  if(g('showFrame')&&g('showFrame').checked){
+    const fCol=g('frameMatchText').checked?defaultTc:gc('frameC');
+    const fw2=gi('frameW')*scl;
+    const fm=gi('frameMargin')*scl;
+    const fx=fm,fy=fm,fw3=W-fm*2,fh3=H-fm*2;
+    ctx.save();
+    ctx.globalAlpha=1;
+    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+    ctx.strokeStyle=fCol;
+    ctx.fillStyle=fCol;
+    ctx.lineWidth=fw2;
+    ctx.lineCap='round';ctx.lineJoin='round';
+
+    if(S.frameType==='line'){
+      ctx.save();
+      ctx.lineJoin='miter';
+      ctx.strokeRect(fx,fy,fw3,fh3);
+      ctx.restore();
+    }else if(S.frameType==='corner'||S.frameType==='gradcorner'){
+      const armLen=Math.min(W,H)*0.045;
+      const corners=[
+        [fx,fy, armLen,0, 0,armLen],
+        [fx+fw3,fy, -armLen,0, 0,armLen],
+        [fx,fy+fh3, armLen,0, 0,-armLen],
+        [fx+fw3,fy+fh3, -armLen,0, 0,-armLen]
+      ];
+      corners.forEach(c=>{
+        const[ox,oy,ax,ay,bx,by]=c;
+        if(S.frameType==='gradcorner'){
+          // 팔 끝에서 반대쪽 팔 끝까지 이어지는 그라데이션 — 색조까지 살짝 돌려서 화사하게
+          const[gc1,gc2]=gradPairFromHex(fCol);
+          const grad=ctx.createLinearGradient(ox+ax,oy+ay,ox+bx,oy+by);
+          grad.addColorStop(0,gc1);
+          grad.addColorStop(1,gc2);
+          ctx.strokeStyle=grad;
+        }
+        ctx.beginPath();
+        ctx.moveTo(ox+ax,oy+ay);
+        ctx.lineTo(ox,oy);
+        ctx.lineTo(ox+bx,oy+by);
+        ctx.stroke();
+      });
+    }else if(S.frameType==='ribbon'){
+      // 좌상단에 삼각형 리본만 (사각 테두리 없음) — 두께 슬라이더로 크기 조절됨
+      const rs=fw2*14;
+      ctx.beginPath();
+      ctx.moveTo(fx,fy);
+      ctx.lineTo(fx+rs,fy);
+      ctx.lineTo(fx,fy+rs);
+      ctx.closePath();
+      ctx.fill();
+    }else if(S.frameType==='bracket'){
+      // 좌상단/우하단에 큰 인용부호 브라켓 — 두께 슬라이더로 크기 조절됨
+      const bfs=Math.min(W,H)*0.05+fw2*9;
+      ctx.font=`700 ${bfs}px Georgia, serif`;
+      ctx.textBaseline='top';
+      ctx.textAlign='left';
+      ctx.fillText('\u201C',fx,fy-bfs*0.22);
+      ctx.save();
+      ctx.translate(fx+fw3+bfs*0.05,fy+fh3+bfs*0.05);
+      ctx.rotate(Math.PI);
+      ctx.textAlign='left';
+      ctx.fillText('\u201C',0,0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
   /* 강조선 설정 — 두께/간격 고정값 */
   const showAccent=true;
   const accentCol=gc('accentC');
@@ -2736,7 +2841,7 @@ function drawBgFill(ctx,W,H){
   ctx.fillRect(0,0,rW,rH);
   ctx.restore();
 }
-function setOT(el){g('overlayTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.overlayType=el.dataset.ot;rc();}
+function setOT(el){_commitHistoryNow();g('overlayTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');S.overlayType=el.dataset.ot;rc();}
 function setDecoLineTab(el,tab){
   g('decoLineSeg').querySelectorAll('.sgb').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
@@ -2744,7 +2849,73 @@ function setDecoLineTab(el,tab){
   g('decoTabShadow').style.display=tab==='shadow'?'':'none';
   g('decoTabOutline').style.display=tab==='outline'?'':'none';
 }
+function setFT(el){
+  _commitHistoryNow();
+  g('frameTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  S.frameType=el.dataset.ft;
+  rc();
+}
+function toggleFrameMatchText(){
+  _commitHistoryNow();
+  const row=g('frameColorRow');
+  if(row)row.style.display=g('frameMatchText').checked?'none':'';
+  rc();
+}
+// hex 색상의 밝기를 percent(-100~100)만큼 조정 — (다른 용도로 남겨둠)
+function shadeHex(hex,percent){
+  hex=(hex||'#ffffff').replace('#','');
+  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+  let r=parseInt(hex.slice(0,2),16)||0,g2=parseInt(hex.slice(2,4),16)||0,b=parseInt(hex.slice(4,6),16)||0;
+  const amt=Math.round(2.55*percent);
+  r=Math.max(0,Math.min(255,r+amt));
+  g2=Math.max(0,Math.min(255,g2+amt));
+  b=Math.max(0,Math.min(255,b+amt));
+  return '#'+[r,g2,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+// hex ↔ HSL 변환 — 그라데이션 코너용 색 2개를 "밝기만 다른 흐릿한 버전"이 아니라
+// 색조까지 살짝 돌려서 진짜 그라데이션 프리셋처럼 화사하게 만들기 위함
+function hexToHsl(hex){
+  hex=(hex||'#ffffff').replace('#','');
+  if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');
+  const r=(parseInt(hex.slice(0,2),16)||0)/255,g2=(parseInt(hex.slice(2,4),16)||0)/255,b=(parseInt(hex.slice(4,6),16)||0)/255;
+  const max=Math.max(r,g2,b),min=Math.min(r,g2,b);
+  let h=0,s=0;const l=(max+min)/2;
+  if(max!==min){
+    const d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    if(max===r)h=(g2-b)/d+(g2<b?6:0);
+    else if(max===g2)h=(b-r)/d+2;
+    else h=(r-g2)/d+4;
+    h/=6;
+  }
+  return[h*360,s*100,l*100];
+}
+function hslToHex(h,s,l){
+  h=((h%360)+360)%360;h/=360;s=Math.max(0,Math.min(100,s))/100;l=Math.max(0,Math.min(100,l))/100;
+  let r,g2,b;
+  if(s===0){r=g2=b=l;}
+  else{
+    const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
+    const q=l<0.5?l*(1+s):l+s-l*s;
+    const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3);g2=hue2rgb(p,q,h);b=hue2rgb(p,q,h-1/3);
+  }
+  const toHex=x=>Math.round(x*255).toString(16).padStart(2,'0');
+  return '#'+toHex(r)+toHex(g2)+toHex(b);
+}
+// 선택한 색 1개로 그라데이션 코너용 2색 자동 생성.
+// 배경 프리셋(플럼/체리레드 등)들을 실제로 분석해보니 색조는 거의 그대로 두고
+// 명도만 자연스럽게 어둡게→밝게 흐르는 패턴이라, 그 패턴을 그대로 따라함
+function gradPairFromHex(hex){
+  const[h,s,l]=hexToHsl(hex);
+  const sBoost=Math.min(100,s+5);
+  const c1=hslToHex(h,sBoost,Math.max(15,l-13));
+  const c2=hslToHex(h,Math.min(100,sBoost+8),Math.min(92,l+18));
+  return[c1,c2];
+}
 function setDT(el){
+  _commitHistoryNow();
   g('dividerTypeC').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
   S.dividerType=el.dataset.dt;
@@ -2755,6 +2926,7 @@ function updateDividerLbl(){const lbl=g('dividerLenLbl');if(lbl)lbl.textContent=
 function moveDivDot(nx,ny){const d=g('dividerDot');if(d){d.style.left=(nx*100)+'%';d.style.top=(ny*100)+'%';}}
 // 제작자/캐릭터 메타를 본문 글 여백에 딱 맞춰 정렬 — 삐뚤어지거나 튀어나오지 않게
 function alignMeta(){
+  _commitHistoryNow();
   // 실제 렌더러가 쓰는 여백 비율을 그대로 가져옴 (양쪽정렬 등 어떤 정렬 모드든 텍스트 박스 끝선과 항상 일치)
   const padFrac=(typeof window._padFracX==='number')?window._padFracX:0.1;
   // 메타: 현재 좌/우 어느 쪽에 가까운지는 유지하고, 그 쪽 본문 여백선(=텍스트 끝선)에 딱 맞춤
