@@ -318,6 +318,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
         <button class="btn ba bsm" onclick="saveP()" style="flex-shrink:0;height:34px;">저장</button>
       </div>
       <div class="note">폴더당 최대 5개까지 저장됩니다. 스타일 설정값만 저장되며 배경이미지·글 내용은 저장되지 않습니다.</div>
+      <div class="r2 kr" style="margin-top:8px;gap:6px;">
+        <button class="btn bg bsm" onclick="exportPresets()" style="flex:1;height:34px;">⬇ 프리셋 내보내기</button>
+        <button class="btn bg bsm" onclick="g('importPresetFile').click()" style="flex:1;height:34px;">⬆ 불러오기</button>
+        <input type="file" id="importPresetFile" accept="application/json,.json" style="display:none;" onchange="importPresetsFile(this)">
+      </div>
+      <div class="note">내보내기: 지금 저장된 프리셋 전부를 파일로 저장해둬요 (다른 기기·주소로 옮길 때 백업용). 불러오기: 그 파일을 다시 불러와서 합쳐줘요.</div>
     </div>
   </div>
 
@@ -1818,6 +1824,58 @@ if(!Object.keys(presetData).length) presetData={'미분류':[]};
 
 function savePresetData(){
   try{localStorage.setItem('qcm6',JSON.stringify(presetData));}catch(_){}
+}
+// 프리셋 전체를 JSON 파일로 내보내기 (기기/주소 옮길 때 백업용)
+function exportPresets(){
+  const payload={type:'quote-card-maker-presets',version:1,exportedAt:new Date().toISOString(),data:presetData};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const d=new Date();
+  const stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  a.href=url;
+  a.download=`quote-card-presets-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('프리셋을 파일로 내보냈어요.');
+}
+// JSON 파일에서 프리셋 불러와서 기존 것과 합치기 (같은 폴더면 합치고, 이름 겹치면 건너뜀, 폴더당 5개 제한 유지)
+function importPresetsFile(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const parsed=JSON.parse(ev.target.result);
+      const incoming=(parsed&&parsed.data&&typeof parsed.data==='object')?parsed.data:parsed;
+      if(!incoming||typeof incoming!=='object')throw new Error('형식이 올바르지 않음');
+      let added=0,skippedDup=0,skippedFull=0;
+      for(const[folder,list]of Object.entries(incoming)){
+        if(!Array.isArray(list))continue;
+        if(!presetData[folder])presetData[folder]=[];
+        for(const p of list){
+          if(!p||!p._n)continue;
+          if(presetData[folder].find(x=>x._n===p._n)){skippedDup++;continue;}
+          if(presetData[folder].length>=5){skippedFull++;continue;}
+          presetData[folder].push(p);
+          added++;
+        }
+      }
+      savePresetData();
+      renderFolderSelect();
+      renderP();
+      let msg=`${added}개 불러왔어요.`;
+      if(skippedDup)msg+=` (이름 겹쳐서 ${skippedDup}개 건너뜀)`;
+      if(skippedFull)msg+=` (폴더당 5개 제한으로 ${skippedFull}개 건너뜀)`;
+      toast(msg);
+    }catch(e){
+      toast('파일을 읽을 수 없어요. 올바른 프리셋 백업 파일인지 확인해주세요.');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
 }
 function currentFolder(){
   const sel=g('pFolder');
